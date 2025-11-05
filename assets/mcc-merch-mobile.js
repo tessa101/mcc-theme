@@ -1,8 +1,11 @@
 
-/* ===== MCC Merch — Bottom Sheet (free-drag + momentum, snap only at peek) ===== */
+/* ===== TEST HERE against CC Merch — Bottom Sheet JS (sheet model) ===== */
+/* Version: 10.20.25-simple (restored working version) */
 (function () {
   const root   = document.querySelector('#product_merch_mobile');
-  if (!root || root.__mccSheetFreeInited) return; root.__mccSheetFreeInited = true;
+  if (!root || root.__mccSheetInited) return; root.__mccSheetInited = true;
+  
+  console.log('[MCC Drawer] Simple version loaded - v10.20.25');
 
   const drawer = root.querySelector('[data-mm-drawer]');
   const handle = root.querySelector('[data-mm-handle]');
@@ -11,107 +14,25 @@
   if (!drawer || !handle || !peekEl || !sheet) return;
 
   /* ---- knobs ---- */
-  const EDGE_PX       = 60;    // start pull from sheet near the top
-  const INTERACTIVE_Y = 140;    // y <= this => sheet is interactive
-  const PROJ_MS       = 950;   // ← more projection time = more momentum
-  const PROJ_GAIN     = 1.7;   // ← smoother glide for free momentum
-  const FRICTION_EDGE = 0.2;   // ← reduced rubberband friction
-  const THRESHOLD_PX  = 0;     // first-move threshold (zero for instant response)
-  const SNAP_PEEK_PX  = 36;    // snap to peek if release is close to bottom
-  const SNAP_TOP_PX   = -1;    // ← disable top snap entirely
-  const VEL_OPEN      = -0.012; // px/ms; easier up flick (less strict)
-  const VEL_CLOSE     =  0.018; // px/ms; easier down flick (less strict)
-  const MOMENTUM_DECAY = 0.98; // momentum decay factor (smooth, free momentum)
-  const OVERSHOOT_CLAMP = 200; // max overshoot beyond bounds (px)
-  const MIN_VELOCITY_THRESHOLD = 0.002; // px/ms - low threshold for free momentum
-
-
-  /* ---- state ---- */
-  let closedY = 0;        // translateY for peek (bottom)
-  const OPEN_Y = 0;       // translateY for fully up
-  let peekHeight = 0;
-
-  let dragging=false, startY=0, lastY=0, lastT=0, vY=0, moved=false;
-  let raf=null;
-  let preDragY = 0, preDragTaken = false;  // ← add this right after raf
-
-
-  const css = (n,v)=> root.style.setProperty(n, v);
-  const clamp = (v, lo, hi)=> Math.max(lo, Math.min(hi, v));
-
-  /* ---- geometry ---- */
- function measure(){
-  // compute drawer height without current transform
-  const prev = drawer.style.transform;
-  drawer.style.transform = 'translateY(0) translateZ(0)';
-  const h = Math.round(drawer.getBoundingClientRect().height);
-  drawer.style.transform = prev || 'translateY(0) translateZ(0)';
-
-  // safe “viewport” for the sheet; expose as CSS var (used by your CSS)
-  const vh = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  css('--mm-sheet-max', Math.max(320, vh - 12) + 'px');
-
-  // compute peek height
-  const safeBottom = parseInt(getComputedStyle(root).getPropertyValue('--mm-safe-bottom')||'0',10) || 0;
-  const target = Math.max(64, Math.min(200, Math.max(0, h - 16))); // baseline; your CSS/JS may override via --mm-peek-height
-  peekHeight = target + safeBottom;
-  css('--mm-peek-height', peekHeight + 'px');
-
-  closedY = Math.max(0, h - peekHeight);
-  
-  // Verify closedY calculation - drawer height should equal viewport height
-  // If there's a mismatch, use viewport height for accuracy
-  const viewportHeight = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  if (Math.abs(h - viewportHeight) > 20) {
-    // Drawer height doesn't match viewport, use viewport-based calculation
-    closedY = Math.max(0, viewportHeight - peekHeight);
-  }
-
-  // if we’re not open, sit at peek
-  drawer.style.transition = 'none';
-
-  // --- one-time gentle boot-in from just below peek ---
-  if (!root.__mmBooted) {
-    root.__mmBooted = true;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // Start slightly below the peek position (e.g., +18px), then ease up to peek
-    const startY = closedY + 18;      // tweak 12–24px to taste
-    drawer.style.transform = `translateY(${startY}px) translateZ(0)`;
-    drawer.classList.add('is-peek');  // ensure correct state on first paint
-
-    // force layout
-    drawer.offsetHeight;
-
-    if (!reduce) {
-      drawer.style.transition = 'transform 260ms cubic-bezier(.16,1,.3,1)';
-    }
-
-    // animate up to true peek (closedY)
-    requestAnimationFrame(() => {
-      const onEnd = () => { drawer.removeEventListener('transitionend', onEnd); syncInteractive(); };
-      drawer.addEventListener('transitionend', onEnd, { once: true });
-      drawer.style.transform = `translateY(${closedY}px) translateZ(0)`;
-    });
-
-    return; // don't overwrite transition right after scheduling the boot
-  }
-
-  // normal non-boot path
-  if (!drawer.classList.contains('is-open')) {
-    drawer.style.transform = `translateY(${closedY}px) translateZ(0)`;
-    drawer.classList.add('is-peek');
-  }
-  // reflow then restore transition for later animations
-  drawer.offsetHeight;
-  drawer.style.transition = '';
-  syncInteractive();
-}
-
+  const PEEK_PX   = 200;   // visible peek target (px)
+  const SNAP_V    = 0.5;   // px/ms
+  const SNAP_MID  = 0.5;   // 50% midpoint
+  const FRICTION  = 0.95;  // resistance at bounds
+  const TH        = 6;     // px - gate threshold
 
   /* ---- helpers ---- */
-  const getY = () => {
-    const t = getComputedStyle(drawer).transform;
+  const css = (n,v)=> root.style.setProperty(n, v);
+  const isIOS = () =>
+    /iP(hone|ad|od)/.test(navigator.platform) ||
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+  const safeBottom = () => {
+    const v = getComputedStyle(root).getPropertyValue('--mm-safe-bottom');
+    const n = parseInt(v, 10); return isNaN(n) ? 0 : n;
+  };
+
+  const getY = (el) => {
+    const t = getComputedStyle(el).transform;
     if (!t || t === 'none') return 0;
     try {
       const M = ('DOMMatrixReadOnly' in window) ? DOMMatrixReadOnly : (window.WebKitCSSMatrix || null);
@@ -119,538 +40,221 @@
     } catch { return 0; }
   };
 
-  function animateTo(y){
-    drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
-    drawer.style.transform  = `translateY(${y}px) translateZ(0)`;
-    // Maintain visual integrity during transition
-    drawer.style.overflow = 'hidden';
-    drawer.style.pointerEvents = 'auto';
-    // after any animate, ensure interactive state matches where we landed
-    drawer.addEventListener('transitionend', () => {
-      // Clear inline styles after transition
-      drawer.style.pointerEvents = '';
-      drawer.style.overflow = '';
-      syncInteractive();
-      // Update gallery height after drawer position changes
-      if (window.MCCMerchGallery && window.MCCMerchGallery.updateHeight) {
-        window.MCCMerchGallery.updateHeight();
+  /* ---- page lock (block bg; allow sheet to scroll) ---- */
+  function lockPage(on){
+    const html=document.documentElement, body=document.body;
+    const stopBg=(e)=>{ if (!sheet.contains(e.target)) e.preventDefault(); };
+    if (on){
+      html.classList.add('mm-locked'); body.classList.add('mm-locked');
+      window.addEventListener('touchmove', stopBg, {passive:false});
+      window.addEventListener('wheel',     stopBg, {passive:false});
+      lockPage._stop = stopBg;
+    } else {
+      html.classList.remove('mm-locked'); body.classList.remove('mm-locked');
+      if (lockPage._stop){
+        window.removeEventListener('touchmove', lockPage._stop, {passive:false});
+        window.removeEventListener('wheel',     lockPage._stop, {passive:false});
+        lockPage._stop = null;
       }
-    }, { once:true });
+    }
   }
 
-  function syncInteractive(){
-  const y = getY();
-  const openish = y <= INTERACTIVE_Y; // now only when truly at the top
-  // Don't update classes during drag or momentum to prevent CSS interference
-  if (dragging || raf) {
-    return; // Skip updates during drag/momentum to prevent sticking
+  /* ---- geometry ---- */
+  let peekHeight = 0, closedY = 0;
+  const OPEN_Y = 0;
+
+  function measure(){
+    // neutralize to measure the drawer's **visual** height
+    const prev = drawer.style.transform;
+    drawer.style.transform = 'translateY(0)';
+    const h = Math.round(drawer.getBoundingClientRect().height);
+    drawer.style.transform = prev;
+
+    // safe "viewport" for the sheet; expose as CSS var (used by your CSS)
+    const vh = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
+    css('--mm-sheet-max', Math.max(320, vh - 12) + 'px');
+
+    const target = Math.max(64, Math.min(PEEK_PX, Math.max(0, h - 16)));
+    peekHeight = target + safeBottom();
+    css('--mm-peek-height', peekHeight + 'px');
+
+    closedY = Math.max(0, h - peekHeight);
+
+    if (!drawer.classList.contains('is-open')) {
+      drawer.style.transition = 'none';
+      drawer.style.transform  = `translateY(${closedY}px)`;
+      drawer.offsetHeight; // reflow
+      drawer.style.transition = '';
+    }
   }
-  drawer.classList.toggle('is-open', openish);
-  drawer.classList.toggle('is-peek', !openish);
-  document.documentElement.classList.toggle('mm-locked', openish);
-  document.body.classList.toggle('mm-locked', openish);
-  // Restore pointer-events based on state (will be auto if is-open, none if peek)
-  // This is handled by CSS, but we clear inline style to let CSS take over
-  drawer.style.pointerEvents = '';
-}
+
+
+  /* ---- open / close ---- */
+  function animateTo(y){
+    drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
+    drawer.style.transform  = `translateY(${y}px)`;
+  }
+  function openDrawer(){ drawer.classList.add('is-open'); lockPage(true);  animateTo(OPEN_Y); }
+  function closeDrawer(){ drawer.classList.remove('is-open');             animateTo(closedY); lockPage(false); }
+  const toggleDrawer = () => (drawer.classList.contains('is-open') ? closeDrawer() : openDrawer());
+
+  /* ---- drag state ---- */
+  let dragging=false, baseY=0, startY=0, lastY=0, lastT=0, vY=0, moved=false;
 
   function startDrag(y){
     dragging = true; moved = false;
-    startY = lastY = y; lastT = performance.now(); vY = 0;
-    
-    // Force layout recalculation to prevent content breaking during drag
-    drawer.offsetHeight; // force reflow
-    
-    // Ensure drawer content is visible and properly laid out
+    startY = lastY = y;
+    lastT  = performance.now();
+    baseY  = getY(drawer);
     drawer.style.transition = 'none';
-    // Enable pointer events during drag to prevent gallery showing through
-    drawer.style.pointerEvents = 'auto';
-    // Force GPU acceleration to prevent breaking
-    drawer.style.transform = `translateY(${getY()}px) translateZ(0)`;
-    // Only set background to prevent gallery showing through - let CSS handle overflow
-    if (sheet) {
-      sheet.style.backgroundColor = '#fff';
-    }
-    
-    cancelAnimationFrame(raf);
+    lockPage(true);
   }
-
   function moveDrag(y){
+    if(!dragging) return;
     const now = performance.now();
     const dy  = y - lastY;
     const dt  = Math.max(1, now - lastT);
-    
-    // Use instant velocity for better responsiveness (revert smoothing)
-    vY = dy / dt; // px/ms
-    
-    // Mark as moved immediately - no threshold check needed
-    moved = true;
+    vY = dy / dt;
+    if (!moved && Math.abs(y - startY) > 6) moved = true;
 
-    // Ensure transition is disabled during drag
-    drawer.style.transition = 'none';
-    // Keep pointer-events enabled during drag to prevent breaking
-    drawer.style.pointerEvents = 'auto';
-    // Only set background to prevent gallery showing through - let CSS handle overflow
-    if (sheet) {
-      sheet.style.backgroundColor = '#fff';
-    }
+    let next = baseY + (y - startY);
+    if (next < OPEN_Y)   next = OPEN_Y   + (next - OPEN_Y)   * FRICTION;
+    if (next > closedY)  next = closedY  + (next - closedY)  * FRICTION;
 
-    let next = getY() + dy;
-
-    // Allow completely free movement - no friction at bounds
-    // Only apply resistance when way beyond (150px+)
-    const overshootTop = OPEN_Y - next;
-    const overshootBottom = next - closedY;
-    
-    // Only apply resistance when significantly beyond bounds (150px+)
-    if (overshootTop > 150) {
-      next = OPEN_Y - 150 + (overshootTop - 150) * FRICTION_EDGE;
-    } else if (overshootBottom > 150) {
-      next = closedY + 150 + (overshootBottom - 150) * FRICTION_EDGE;
-    }
-    // Otherwise completely free movement - no friction at bounds
-    
-    // Ensure drawer never goes below closedY (never off screen)
-    if (next > closedY) {
-      next = closedY;
-    }
-    
-    // Apply transform with GPU acceleration to prevent breaking (after all calculations)
-    drawer.style.transform = `translateY(${next}px) translateZ(0)`;
-
+    drawer.style.transform = `translateY(${next}px)`;
     lastY = y; lastT = now;
-    // Don't update interactivity during drag - only at end to prevent sticking
   }
-
-  function continueMomentum(startY, startVel, startTime){
-    let currentY = startY;
-    let currentVel = startVel;
-    let lastFrameTime = startTime;
-    let hasOvershot = false;
-    
-    // Ensure transition is disabled during momentum
-    drawer.style.transition = 'none';
-    // Ensure pointer-events stays enabled during momentum to prevent gallery showing through
-    drawer.style.pointerEvents = 'auto';
-    // Only set background to prevent gallery showing through - let CSS handle overflow
-    if (sheet) {
-      sheet.style.backgroundColor = '#fff';
-    }
-    
-    function animate(){
-      const now = performance.now();
-      const dt = Math.max(1, now - lastFrameTime);
-      lastFrameTime = now;
-      
-      // Apply velocity with decay
-      currentY += currentVel * dt;
-      currentVel *= MOMENTUM_DECAY;
-      
-      // Ensure drawer never goes below closedY (prevent going off screen)
-      if (currentY > closedY) {
-        currentY = closedY;
-        currentVel = 0; // Stop momentum if we hit bottom
-      }
-      
-      // Prevent drawer from breaking during strong downward swipes
-      // Don't override sheet overflow - let CSS handle scrolling
-      
-      // Check bounds and apply gentle resistance when beyond
-      let beyondBounds = false;
-      if (currentY < OPEN_Y) {
-        // Beyond top - allow free movement without resistance
-        // Only apply very light resistance when way past (200px+)
-        const overshoot = OPEN_Y - currentY;
-        if (overshoot > 200) {
-          beyondBounds = true;
-          hasOvershot = true;
-          // Only apply resistance when way past (200px+)
-          currentVel *= 0.98; // Very light resistance
-        }
-      }
-      
-      // Stop if velocity is very small (allow momentum to continue longer for free feeling)
-      if (Math.abs(currentVel) < 0.002) {
-        // Determine final target - allow natural stopping
-        let finalTarget = currentY;
-        
-        // Only snap to peek if very close to bottom
-        if (Math.abs(currentY - closedY) <= SNAP_PEEK_PX) {
-          finalTarget = closedY;
-        }
-        // Only snap to top if way overshot (200px+) - prevents sticking when momentum stops near top
-        else if (currentY < OPEN_Y - 200) {
-          // Only return if way past top (200px+) - allow free movement without sticking
-          finalTarget = OPEN_Y;
-        } else if (currentY > closedY) {
-          // Always return to closedY if beyond (prevent off screen)
-          finalTarget = closedY;
-        }
-        // Otherwise, let it stay where momentum stopped naturally - NO FORCED SNAP TO TOP
-        // This prevents getting stuck at top when momentum stops near there
-        
-        drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
-        drawer.style.transform = `translateY(${finalTarget}px) translateZ(0)`;
-        
-        // Maintain visual integrity during transition - prevent breaking
-        drawer.style.overflow = 'hidden'; // Prevent content breaking during transition
-        drawer.style.pointerEvents = 'auto'; // Keep enabled during transition
-        // Keep sheet background during transition - don't clear until after
-        // (sheet.style.backgroundColor already set, keep it)
-        
-        // Update classes immediately when momentum stops (before transition) so scrolling works
-        // Clear raf flag since momentum animation is complete
-        raf = null;
-        syncInteractive(); // Set is-open class immediately so CSS can enable scrolling
-        
-        // Update interactivity state and clear styles after transition completes
-        const updateAfterTransition = () => {
-          // Clear all inline styles after transition completes - let CSS take over
-          drawer.style.pointerEvents = '';
-          drawer.style.overflow = '';
-          if (sheet) {
-            sheet.style.backgroundColor = '';
-          }
-          syncInteractive(); // Ensure state is correct after transition
-          if (window.MCCMerchGallery && window.MCCMerchGallery.updateHeight) {
-            window.MCCMerchGallery.updateHeight();
-          }
-        };
-        
-        // Ensure drawer always reaches closedY properly when snapping to peek
-        if (finalTarget === closedY) {
-          // Use slightly longer transition for closing to ensure it completes
-          drawer.style.transition = 'transform 400ms cubic-bezier(.16,1,.3,1)';
-          drawer.addEventListener('transitionend', () => {
-            // Force position check after animation to ensure it's at closedY
-            const actualY = getY();
-            if (Math.abs(actualY - closedY) > 3) {
-              // Force to correct position if it didn't reach
-              // Maintain visual integrity during force positioning
-              drawer.style.overflow = 'hidden';
-              drawer.style.pointerEvents = 'auto';
-              drawer.style.transition = 'none';
-              drawer.style.transform = `translateY(${closedY}px) translateZ(0)`;
-              requestAnimationFrame(() => {
-                drawer.style.transition = '';
-                updateAfterTransition();
-              });
-            } else {
-              updateAfterTransition();
-            }
-          }, { once: true });
-        } else {
-          drawer.addEventListener('transitionend', updateAfterTransition, { once: true });
-        }
-        return;
-      }
-      
-      // Continue momentum animation - ensure pointer-events stays enabled
-      drawer.style.transition = 'none';
-      drawer.style.pointerEvents = 'auto'; // Keep enabled during momentum
-      // Apply transform with GPU acceleration to prevent breaking
-      drawer.style.transform = `translateY(${currentY}px) translateZ(0)`;
-      raf = requestAnimationFrame(animate);
-    }
-    
-    raf = requestAnimationFrame(animate);
-  }
-
   function endDrag(){
-  if (!dragging) return;
-  dragging = false;
-  drawer.style.transition = '';
-  // Don't clear pointer-events here - let continueMomentum or syncInteractive handle it
-  // This ensures pointer-events stays enabled during momentum animation
-  
-  cancelAnimationFrame(raf);
+    if (!dragging) return;
+    dragging = false;
+    drawer.style.transition = '';
 
-  // tap: toggle toward the nearer state
-  if (!moved){
-    const y = getY();
-    animateTo(y > (closedY * 0.5) ? OPEN_Y : closedY);
-    return;
+    if (!moved){ toggleDrawer(); finish(); return; }
+
+    const yNow = getY(drawer);
+    const span = Math.max(1, closedY - OPEN_Y);
+    const progress = 1 - (yNow - OPEN_Y) / span;
+
+    if (-vY > SNAP_V) openDrawer();
+    else if ( vY > SNAP_V) closeDrawer();
+    else (progress > SNAP_MID ? openDrawer : closeDrawer)();
+
+    finish();
+  }
+  function finish(){
+    lockPage(drawer.classList.contains('is-open'));
+    // cleanup listeners added during a drag
+    window.removeEventListener('pointermove', onPointerMove, {passive:false});
+    window.removeEventListener('pointerup',   onPointerUp,   {passive:false});
+    document.removeEventListener('touchmove', onTouchMove,   {passive:false});
+    document.removeEventListener('touchend',  onTouchEnd,    {passive:true});
   }
 
-  const yNow = getY();
+  /* ---- FIRST-MOVE GATE (make sheet drag down from top) ---- */
 
-  // Ensure velocity is valid (not NaN or Infinity)
-  if (!isFinite(vY) || isNaN(vY)) {
-    // Fallback: snap to nearest state
-    const midPoint = closedY * 0.5;
-    animateTo(yNow > midPoint ? closedY : OPEN_Y);
-    syncInteractive();
-    return;
-  }
+  // pointer path (non-iOS)
+  function onPointerDown(e){
+    const y = e.clientY;
+    const t = e.target;
 
-  // Always use momentum continuation - no threshold check for free momentum
-  // Even tiny movements get momentum for smooth, free feeling
-  const boostedVel = vY * PROJ_GAIN;
-  continueMomentum(yNow, boostedVel, performance.now());
-  
-  // Don't update interactivity state here - let continueMomentum handle it after animation
-  // This prevents CSS from interfering with momentum
-}
+    // immediate drag from peek/handle
+    if (peekEl.contains(t) || handle.contains(t)) {
+      e.preventDefault();
+      startDrag(y);
+      window.addEventListener('pointermove', onPointerMove, {passive:false});
+      window.addEventListener('pointerup',   onPointerUp,   {passive:false});
+      return;
+    }
 
-function maybeTakeoverFromSheet(currentY){
-  if (preDragTaken) return false;
-  const dy = currentY - preDragY;
-  const yNow = getY();
-  const isOpen = yNow <= INTERACTIVE_Y;
-  
-  // Only allow takeover when drawer is open and clearly swiping down (higher threshold)
-  if (dy > 8 && isOpen && sheet.scrollTop <= 0){
-    preDragTaken = true;
-    startDrag(currentY);
-    return true;
-  }
-  return false;
-}
-// when the drawer is peeking, allow an upward swipe from the entire peek header to start
-function maybeOpenFromPeek(currentY){
-  if (preDragTaken) return false;
-  const dy = preDragY - currentY;             // upward is positive here
-  const yNow = getY();
-  const nearPeek = Math.abs(yNow - closedY) <= 30;   // drawer effectively closed (very tolerant - 30px)
-  // Start drag immediately on any upward movement from peek (ultra-sensitive - no threshold)
-  if (nearPeek && dy > 0){
-    preDragTaken = true;
-    startDrag(currentY);
-    return true;
-  }
-  return false;
-}
-
-  /* ---- sheet edge gate: only begin pull from very top edge ---- */
-  function wantsEdgeDragPointer(e){
-    const r = sheet.getBoundingClientRect();
-    const atTopEdge = (e.clientY - r.top) <= EDGE_PX;
-    return atTopEdge && sheet.scrollTop <= 0;
-  }
-  function wantsEdgeDragTouch(e){
-    const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
-    const r = sheet.getBoundingClientRect();
-    const atTopEdge = (y - r.top) <= EDGE_PX;
-    return atTopEdge && sheet.scrollTop <= 0;
-  }
-function onPointerDown(e){
-  const t = e.target;
-  preDragY = e.clientY; preDragTaken = false;
-  
-  // Handle/peek always drag - start immediately, no delay (check BEFORE isOpen check)
-  // Check if target is inside handle or peek (including buttons inside peek)
-  if (handle.contains(t) || peekEl.contains(t) || t.closest('[data-mm-handle]') || t.closest('[data-mm-peek]')){
-    e.preventDefault(); 
-    startDrag(e.clientY); 
-    bindPointerMove(); 
-    return;
-  }
-
-  const yNow = getY();
-  const isOpen = yNow <= INTERACTIVE_Y;
-  
-  // If drawer is closed and target is in sheet, check for upward swipe to open drawer
-  if (!isOpen && sheet.contains(t)) {
-    // Watch for upward movement to start drag (allows easy swipe up from peek)
-    const gateMove = (ev)=>{
-      if (maybeOpenFromPeek(ev.clientY)){
-        ev.preventDefault();
-        window.removeEventListener('pointermove', gateMove);
-        window.removeEventListener('pointerup', gateCleanup);
-        window.removeEventListener('pointercancel', gateCleanup);
-        bindPointerMove();
-      } else {
-        // If not an upward swipe, remove listener to allow gallery interaction
-        const dy = ev.clientY - preDragY;
-        if (Math.abs(dy) > 5) {
-          window.removeEventListener('pointermove', gateMove);
-          window.removeEventListener('pointerup', gateCleanup);
-          window.removeEventListener('pointercancel', gateCleanup);
-        }
-      }
-    };
-    const gateCleanup = ()=>{
-      window.removeEventListener('pointermove', gateMove);
-      window.removeEventListener('pointerup', gateCleanup);
-      window.removeEventListener('pointercancel', gateCleanup);
-    };
-    window.addEventListener('pointermove', gateMove, {passive:false});
-    window.addEventListener('pointerup', gateCleanup, {passive:false, once:true});
-    window.addEventListener('pointercancel', gateCleanup, {passive:false, once:true});
-    return;
-  }
-
-  // Inside sheet?
-  if (sheet.contains(t)){
-    // Drawer must be open at this point (we already returned if closed above)
-    // Drawer is open - allow dragging
-    if (sheet.scrollTop <= 0){
-      // Start drag on downward movement only
-      const gateMove = (ev)=>{
-        const dy = ev.clientY - preDragY;
-        // Only start drag if clearly swiping down (prevent misfires)
-        if (dy > 5){
+    // if the gesture starts inside the sheet and the sheet is scrolled to top,
+    // wait to see direction: up => let sheet scroll; down => hijack to drawer
+    if (sheet.contains(t) && sheet.scrollTop <= 0) {
+      let gateStart = y;
+      function gateMove(ev){
+        const dy = ev.clientY - gateStart;
+        if (Math.abs(dy) < TH) return;
+        if (dy > 0) { // pulling DOWN -> start drawer drag
           ev.preventDefault();
-          window.removeEventListener('pointermove', gateMove);
           startDrag(ev.clientY);
-          bindPointerMove();
+          window.removeEventListener('pointermove', gateMove, {passive:false});
+          window.addEventListener('pointermove', onPointerMove, {passive:false});
+          window.addEventListener('pointerup',   onPointerUp,   {passive:false});
+        } else {
+          // pushing up -> let sheet scroll naturally
+          window.removeEventListener('pointermove', gateMove, {passive:false});
         }
-      };
+      }
       window.addEventListener('pointermove', gateMove, {passive:false});
+    }
+  }
+  function onPointerMove(e){ if (dragging){ moveDrag(e.clientY); e.preventDefault(); } }
+  function onPointerUp(){ endDrag(); }
+
+  // touch path (iOS)
+  function onTouchStart(e){
+    const y = e.touches[0].clientY;
+    const t = e.target;
+
+    if (peekEl.contains(t) || handle.contains(t)) {
+      startDrag(y);
+      document.addEventListener('touchmove', onTouchMove, {passive:false});
+      document.addEventListener('touchend',  onTouchEnd,  {passive:true});
+      e.preventDefault();
       return;
     }
-    
-    // If finger starts within EDGE_PX of top and sheet is at top → pull-down to close
-    if (wantsEdgeDragPointer(e)){ e.preventDefault(); startDrag(e.clientY); bindPointerMove(); return; }
 
-    // Otherwise, watch first move for takeover - but only if drawer is open
-    const gateMove = (ev)=>{
-      // Only allow takeover if swiping down (not peek swipe when drawer is open)
-      if (maybeTakeoverFromSheet(ev.clientY)){
-        ev.preventDefault();
-        window.removeEventListener('pointermove', gateMove);
-        bindPointerMove();
-      }
-    };
-    window.addEventListener('pointermove', gateMove, {passive:false});
-  }
-}
-
-function onTouchStart(e){
-  const t = e.target;
-  const y = e.touches[0].clientY;
-  preDragY = y; preDragTaken = false;
-  
-  // Handle/peek always drag - start immediately, no delay (check BEFORE isOpen check)
-  // Check if target is inside handle or peek (including buttons inside peek)
-  if (handle.contains(t) || peekEl.contains(t) || t.closest('[data-mm-handle]') || t.closest('[data-mm-peek]')){
-    e.preventDefault(); 
-    startDrag(y); 
-    bindTouchMove(); 
-    return;
-  }
-
-  const yNow = getY();
-  const isOpen = yNow <= INTERACTIVE_Y;
-  
-  // If drawer is closed and target is in sheet, check for upward swipe to open drawer
-  if (!isOpen && sheet.contains(t)) {
-    // Watch for upward movement to start drag (allows easy swipe up from peek)
-    const gateMove = (ev)=>{
-      const cy = ev.touches[0].clientY;
-      if (maybeOpenFromPeek(cy)){
-        ev.preventDefault();
-        document.removeEventListener('touchmove', gateMove);
-        document.removeEventListener('touchend', gateCleanup);
-        document.removeEventListener('touchcancel', gateCleanup);
-        bindTouchMove();
-      } else {
-        // If not an upward swipe, remove listener to allow gallery interaction
-        const dy = cy - preDragY;
-        if (Math.abs(dy) > 5) {
-          document.removeEventListener('touchmove', gateMove);
-          document.removeEventListener('touchend', gateCleanup);
-          document.removeEventListener('touchcancel', gateCleanup);
-        }
-      }
-    };
-    const gateCleanup = ()=>{
-      document.removeEventListener('touchmove', gateMove);
-      document.removeEventListener('touchend', gateCleanup);
-      document.removeEventListener('touchcancel', gateCleanup);
-    };
-    document.addEventListener('touchmove', gateMove, {passive:false});
-    document.addEventListener('touchend', gateCleanup, {passive:true, once:true});
-    document.addEventListener('touchcancel', gateCleanup, {passive:true, once:true});
-    return;
-  }
-
-  if (sheet.contains(t)){
-    // Drawer must be open at this point (we already returned if closed above)
-    // Drawer is open - allow dragging
-    if (sheet.scrollTop <= 0){
-      // Start drag on downward movement only
-      const gateMove = (ev)=>{
+    if (sheet.contains(t) && sheet.scrollTop <= 0) {
+      let gateStart = y;
+      function gateMove(ev){
         const cy = ev.touches[0].clientY;
-        const dy = cy - preDragY;
-        // Only start drag if clearly swiping down (prevent misfires)
-        if (dy > 5){
+        const dy = cy - gateStart;
+        if (Math.abs(dy) < TH) return;
+        if (dy > 0) {
           ev.preventDefault();
-          document.removeEventListener('touchmove', gateMove);
           startDrag(cy);
-          bindTouchMove();
+          document.removeEventListener('touchmove', gateMove, {passive:false});
+          document.addEventListener('touchmove', onTouchMove, {passive:false});
+          document.addEventListener('touchend',  onTouchEnd,  {passive:true});
+        } else {
+          document.removeEventListener('touchmove', gateMove, {passive:false});
         }
-      };
-      document.addEventListener('touchmove', gateMove, {passive:false});
-      return;
-    }
-    
-    if (wantsEdgeDragTouch(e)){ e.preventDefault(); startDrag(y); bindTouchMove(); return; }
-
-    // Otherwise, watch first move for takeover - but only if drawer is open
-    const gateMove = (ev)=>{
-      const cy = ev.touches[0].clientY;
-      // Only allow takeover if swiping down (not peek swipe when drawer is open)
-      if (maybeTakeoverFromSheet(cy)){
-        ev.preventDefault();
-        document.removeEventListener('touchmove', gateMove);
-        bindTouchMove();
       }
-    };
-    document.addEventListener('touchmove', gateMove, {passive:false});
+      document.addEventListener('touchmove', gateMove, {passive:false});
+    }
   }
-}
+  function onTouchMove(e){ if (dragging){ moveDrag(e.touches[0].clientY); e.preventDefault(); } }
+  function onTouchEnd(){ endDrag(); }
 
-
-
-  function bindPointerMove(){
-    const pm = (ev)=>{ if (dragging){ moveDrag(ev.clientY); ev.preventDefault(); } };
-    const pu = ()=>{ window.removeEventListener('pointermove', pm); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu); endDrag(); };
-    window.addEventListener('pointermove', pm, {passive:false});
-    window.addEventListener('pointerup',   pu, {passive:false, once:true});
-    window.addEventListener('pointercancel', pu, {passive:false, once:true});
-  }
-  function bindTouchMove(){
-    const tm = (ev)=>{ if (dragging){ moveDrag(ev.touches[0].clientY); ev.preventDefault(); } };
-    const tu = ()=>{ document.removeEventListener('touchmove', tm); document.removeEventListener('touchend', tu); document.removeEventListener('touchcancel', tu); endDrag(); };
-    document.addEventListener('touchmove', tm, {passive:false});
-    document.addEventListener('touchend',  tu, {passive:true,  once:true});
-    document.addEventListener('touchcancel', tu, {passive:true, once:true});
-  }
-
-  /* ---- bind starts ---- */
-  const usePointer = 'PointerEvent' in window && !(/iP(hone|ad|od)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document));
-  if (usePointer){
-    handle.addEventListener('pointerdown', onPointerDown, {passive:false});
-    peekEl.addEventListener('pointerdown', onPointerDown, {passive:false});
-    sheet .addEventListener('pointerdown', onPointerDown, {passive:false});
+  /* ---- bind ---- */
+  if ('PointerEvent' in window && !isIOS()){
+    drawer.addEventListener('pointerdown', onPointerDown, {passive:false});
   } else {
-    handle.addEventListener('touchstart', onTouchStart, {passive:false});
-    peekEl.addEventListener('touchstart', onTouchStart, {passive:false});
-    sheet .addEventListener('touchstart', onTouchStart, {passive:false});
+    drawer.addEventListener('touchstart', onTouchStart, {passive:false});
   }
 
-  // click toggles for handle/peek (don’t toggle when tapping controls inside peek)
-  handle.addEventListener('click', ()=>{ if (!dragging){ const y = getY(); animateTo(y > (closedY*0.5) ? OPEN_Y : closedY); }});
-  peekEl.addEventListener('click', (e)=>{
-    if (dragging) return;
-    if (e.target.closest('button,a,input,select,textarea,[role="button"]')) return;
-    const y = getY(); animateTo(y > (closedY*0.5) ? OPEN_Y : closedY);
-  });
+  handle.addEventListener('click', ()=>{ if(!dragging) toggleDrawer(); });
+  peekEl.addEventListener('click', ()=>{ if(!dragging) toggleDrawer(); });
 
   /* ---- lifecycle ---- */
-  measure();
-  if (window.visualViewport){
+  if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', measure);
     window.visualViewport.addEventListener('scroll',  measure);
   }
   window.addEventListener('resize', measure);
-  new MutationObserver(measure).observe(sheet, { childList:true, subtree:true });
-
-  // expose in case you want to open/close programmatically
+  new MutationObserver(measure).observe(sheet, {childList:true, subtree:true, attributes:true});
+  window.addEventListener('load', measure);
+  
+  // Update gallery height after drawer position changes
+  function updateGalleryHeight() {
+    if (window.MCCMerchGallery && window.MCCMerchGallery.updateHeight) {
+      window.MCCMerchGallery.updateHeight();
+    }
+  }
+  
+  // Expose for programmatic control
   window.MCCMerchSheet = {
-    open(){ animateTo(OPEN_Y); },
-    peek(){ animateTo(closedY); },
+    open(){ openDrawer(); updateGalleryHeight(); },
+    peek(){ closeDrawer(); updateGalleryHeight(); },
     measure
   };
 })();

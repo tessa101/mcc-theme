@@ -223,7 +223,12 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 </script>
 
 {{ 'mcc-merch-mobile.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'mcc-merch-mobile.js' | asset_url }}" defer></script>
+<script src="{{ 'mcc-merch-mobile.js' | asset_url }}?v={{ 'now' | date: '%s' }}" defer></script>
+<script>
+  // Force cache clear - verify new code is loaded
+  console.log('[MCC Drawer] JS loaded at', new Date().toISOString());
+  console.log('[MCC Drawer] Sheet init flag:', '__mccSheetInited');
+</script>
 
 
 

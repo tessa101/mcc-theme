@@ -157,7 +157,8 @@
 /* Note: Final drawer rules are consolidated in "FINAL OVERRIDES" section at bottom */
 
 /* Safety: prevent any global rule from zeroing the height */
-#product_merch_mobile [data-mm-sheet]{ height: auto !important; }
+/* REMOVED: height: auto !important - conflicts with flex layout in FINAL OVERRIDES */
+/* #product_merch_mobile [data-mm-sheet]{ height: auto !important; } */
 
 
 
@@ -381,7 +382,7 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   z-index: 10020;                   /* above header, below cart drawer (12000) */
 
   /* visuals */
-  background: #fff;
+  background: #fff !important;      /* Ensure solid background during drag - prevents gallery showing through */
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -10px 30px rgba(0,0,0,.14);
   padding-bottom: calc(var(--mm-safe-bottom) + 8px);
@@ -397,7 +398,7 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   background: #fff;
   touch-action: pan-y;              /* allow vertical scroll */
   /* JS sets --mm-sheet-max based on visualViewport */
-  max-height: var(--mm-sheet-max, 80vh);
+  max-height: 100%;                 /* Changed from 80vh to 100% - ensures sheet fills drawer height */
 }
 
 #product_merch_mobile .mm-drawer.is-open .mm-sheet,
