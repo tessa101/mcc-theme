@@ -1,0 +1,297 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "mcc_landing_hero_cTEDrd": {
+      "type": "mcc-landing-hero",
+      "name": "MCC Landing — Hero",
+      "settings": {
+        "image": "shopify://shop_images/BlueCan_png.webp",
+        "heading": "COLD BREW.",
+        "subheading": "",
+        "cta_label": "Buy now",
+        "cta_link": "",
+        "desktop_height_vh": 88,
+        "title_size_desktop": 80,
+        "title_size_mobile": 56,
+        "invert_header_colors": false
+      }
+    },
+    "mcc_landing_available_LD34qG": {
+      "type": "mcc-landing-available",
+      "blocks": {
+        "logo_pdd3Yb": {
+          "type": "logo",
+          "settings": {
+            "logo": "shopify://shop_images/Howdys.png",
+            "caption": "Howdy's Cafe",
+            "link": "https://www.howdyscafe.com/"
+          }
+        },
+        "logo_4BWA8z": {
+          "type": "logo",
+          "settings": {
+            "logo": "shopify://shop_images/Vintage.webp",
+            "caption": "Vintage Grocers",
+            "link": "https://www.vintagegrocers.com/"
+          }
+        },
+        "logo_MdQi9d": {
+          "type": "logo",
+          "settings": {
+            "logo": "shopify://shop_images/Kristys.webp",
+            "caption": "Kristy's Village Cafe",
+            "link": "https://kristysvillagecafe.com/"
+          }
+        },
+        "logo_UM9Rbn": {
+          "type": "logo",
+          "settings": {
+            "logo": "shopify://shop_images/Vintage.webp",
+            "caption": "Caption",
+            "link": ""
+          }
+        },
+        "logo_XTaNJL": {
+          "type": "logo",
+          "settings": {
+            "logo": "shopify://shop_images/Kristys.webp",
+            "caption": "Caption",
+            "link": ""
+          }
+        },
+        "logo_FYE8yr": {
+          "type": "logo",
+          "disabled": true,
+          "settings": {
+            "caption": "",
+            "link": ""
+          }
+        },
+        "logo_MUcCPp": {
+          "type": "logo",
+          "disabled": true,
+          "settings": {
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "logo_pdd3Yb",
+        "logo_4BWA8z",
+        "logo_MdQi9d",
+        "logo_UM9Rbn",
+        "logo_XTaNJL",
+        "logo_FYE8yr",
+        "logo_MUcCPp"
+      ],
+      "name": "MCC Landing — Available",
+      "settings": {
+        "title": "AVAILABLE AT",
+        "cols": 5,
+        "cols_mobile": 3,
+        "logo_max_width": 120
+      }
+    },
+    "1759258195bd3c073b": {
+      "type": "apps",
+      "blocks": {
+        "instafeed_app_block_czymrB": {
+          "type": "shopify://apps/instafeed/blocks/app-block/c447db20-095d-4a10-9725-b5977662c9d5",
+          "settings": {
+            "title": "",
+            "title_color": "",
+            "title_size_v2": 0,
+            "alignment": "center",
+            "instafeed_margin_top": 100,
+            "instafeed_margin_bottom": 0,
+            "instafeed_margin_sides": 0,
+            "show_instagram_link": true,
+            "link_alignment": "left",
+            "link_color": "#000000",
+            "background_color": "",
+            "feed_id": "",
+            "html_area": ""
+          }
+        }
+      },
+      "block_order": [
+        "instafeed_app_block_czymrB"
+      ],
+      "name": "IG App",
+      "settings": {
+        "include_margins": true
+      }
+    },
+    "mcc_landing_newsletter_GVfNmx": {
+      "type": "mcc-landing-newsletter",
+      "name": "MCC Landing — Newsletter",
+      "settings": {
+        "title": "Stay in the Loop!",
+        "subtitle": "Sign up with your email address to receive news and updates.",
+        "button_label": "Sign Up"
+      }
+    },
+    "mcc_landing_footer_6VqEgF": {
+      "type": "mcc-landing-footer",
+      "name": "MCC Landing — Footer",
+      "settings": {
+        "contact_link": "shopify://pages/contact",
+        "wholesale_link": "shopify://pages/wholesale",
+        "partnerships_link": "shopify://pages/partnerships"
+      }
+    },
+    "replo_hero_2_Ty7rnk": {
+      "type": "replo-hero-2",
+      "disabled": true,
+      "name": "hero 2",
+      "settings": {}
+    },
+    "replo_hero_1_ANhMpU": {
+      "type": "replo-hero-1",
+      "disabled": true,
+      "name": "hero 1",
+      "settings": {}
+    },
+    "image_banner": {
+      "type": "image-banner",
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Browse our latest products",
+            "heading_size": "h0"
+          }
+        },
+        "button": {
+          "type": "buttons",
+          "settings": {
+            "button_label_1": "Shop all",
+            "button_link_1": "shopify://collections/all",
+            "button_style_secondary_1": true,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading",
+        "button"
+      ],
+      "disabled": true,
+      "settings": {
+        "image": "shopify://shop_images/malibu_coffee_art.png",
+        "image_overlay_opacity": 40,
+        "image_height": "large",
+        "image_behavior": "none",
+        "desktop_content_position": "bottom-center",
+        "desktop_content_alignment": "center",
+        "show_text_box": false,
+        "color_scheme": "scheme-3",
+        "stack_images_on_mobile": false,
+        "mobile_content_alignment": "center",
+        "show_text_below": false
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "disabled": true,
+      "settings": {
+        "collection": "all",
+        "products_to_show": 8,
+        "title": "Featured products",
+        "heading_size": "h2",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 4,
+        "enable_desktop_slider": false,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "solid",
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": true,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "none",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 44,
+        "padding_bottom": 36
+      }
+    },
+    "175703848286cfca26": {
+      "type": "apps",
+      "blocks": {
+        "klaviyo_reviews_featured_reviews_carousel_aRz94h": {
+          "type": "shopify://apps/klaviyo-reviews/blocks/featured-reviews-carousel/db20e365-d984-4ac4-9655-e1588d951ca9",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "klaviyo_reviews_featured_reviews_carousel_aRz94h"
+      ],
+      "disabled": true,
+      "settings": {
+        "include_margins": true
+      }
+    },
+    "mcc_landing_instagram_CGGqdb": {
+      "type": "mcc-landing-instagram",
+      "blocks": {
+        "instafeed_app_block_3jJiEx": {
+          "type": "shopify://apps/instafeed/blocks/app-block/c447db20-095d-4a10-9725-b5977662c9d5",
+          "settings": {
+            "title": "Follow our journey.",
+            "title_color": "#121212",
+            "title_size_v2": 7,
+            "alignment": "center",
+            "instafeed_margin_top": 0,
+            "instafeed_margin_bottom": 0,
+            "instafeed_margin_sides": 0,
+            "show_instagram_link": true,
+            "link_alignment": "left",
+            "link_color": "#000000",
+            "background_color": "",
+            "feed_id": "",
+            "html_area": ""
+          }
+        }
+      },
+      "block_order": [
+        "instafeed_app_block_3jJiEx"
+      ],
+      "disabled": true,
+      "name": "MCC Landing — Instagram (manual)",
+      "settings": {
+        "title": "Follow our journey.",
+        "handle": "malibucoffeecompany",
+        "limit": 6
+      }
+    }
+  },
+  "order": [
+    "mcc_landing_hero_cTEDrd",
+    "mcc_landing_available_LD34qG",
+    "1759258195bd3c073b",
+    "mcc_landing_newsletter_GVfNmx",
+    "mcc_landing_footer_6VqEgF",
+    "replo_hero_2_Ty7rnk",
+    "replo_hero_1_ANhMpU",
+    "image_banner",
+    "featured_collection",
+    "175703848286cfca26",
+    "mcc_landing_instagram_CGGqdb"
+  ]
+}

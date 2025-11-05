@@ -1,0 +1,107 @@
+{%- comment -%}
+mcc-bean-meter.liquid
+Renders roast level as text, beans, or both.
+
+Props:
+  - product: Product (required)
+  - mode: 'full' | 'label' | 'beans'   (default 'full')
+  - variant: 'inline' | 'stacked'      (used in 'full' mode; default 'inline')
+  - show_text: boolean                 (full mode only; default true)
+  - text_suffix: string                (full mode only; default ' roast')
+{%- endcomment -%}
+
+{%- assign mode = mode | default: 'full' -%}
+{%- assign variant = variant | default: 'inline' -%}
+{%- assign show_text = show_text | default: true -%}
+{%- assign text_suffix = text_suffix | default: ' roast' -%}
+
+{%- comment -%} ---- Resolve roast value from metafields / fallbacks ---- {%- endcomment -%}
+{%- assign roast_raw = product.metafields.custom.roast
+  | default: product.metafields.custom.roast_level
+  | default: product.metafields.coffee.roast_level
+  | default: product.metafields.roast.level -%}
+
+{%- unless roast_raw -%}
+  {%- assign title_lower = product.title | downcase -%}
+  {%- assign tags_lower = product.tags | join: ',' | downcase -%}
+  {%- if title_lower contains 'french' or tags_lower contains 'french roast' -%}
+    {%- assign roast_raw = 'French' -%}
+  {%- elsif title_lower contains 'dark' or tags_lower contains 'dark roast' -%}
+    {%- assign roast_raw = 'Dark' -%}
+  {%- elsif title_lower contains 'medium-dark' or title_lower contains 'medium dark' -%}
+    {%- assign roast_raw = 'Medium-Dark' -%}
+  {%- elsif title_lower contains 'medium-light' or title_lower contains 'medium light' -%}
+    {%- assign roast_raw = 'Medium-Light' -%}
+  {%- elsif title_lower contains 'medium' or tags_lower contains 'medium roast' -%}
+    {%- assign roast_raw = 'Medium' -%}
+  {%- elsif title_lower contains 'light' or tags_lower contains 'light roast' -%}
+    {%- assign roast_raw = 'Light' -%}
+  {%- else -%}
+    {%- assign roast_raw = 'Medium' -%}
+  {%- endif -%}
+{%- endunless -%}
+
+{%- comment -%} ---- Map to 1–5 beans + display label ---- {%- endcomment -%}
+{%- assign roast_as_number = roast_raw | plus: 0 -%}
+{%- assign bean_count = roast_as_number -%}
+{%- assign roast_label = roast_raw -%}
+
+{%- if bean_count > 0 -%}
+  {%- if bean_count < 1 -%}{%- assign bean_count = 1 -%}{%- endif -%}
+  {%- if bean_count > 5 -%}{%- assign bean_count = 5 -%}{%- endif -%}
+  {%- case bean_count -%}
+    {%- when 5 -%}{%- assign roast_label = 'Dark' -%}
+    {%- when 4 -%}{%- assign roast_label = 'Medium-Dark' -%}
+    {%- when 3 -%}{%- assign roast_label = 'Medium' -%}
+    {%- when 2 -%}{%- assign roast_label = 'Medium-Light' -%}
+    {%- when 1 -%}{%- assign roast_label = 'Light' -%}
+  {%- endcase -%}
+{%- else -%}
+  {%- assign roast_norm = roast_raw | downcase
+    | replace: '–','-' | replace: '—','-'
+    | replace: ' roast','' | strip -%}
+  {%- case roast_norm -%}
+    {%- when 'french' -%}{%- assign bean_count = 5 -%}{%- assign roast_label = 'French' -%}
+    {%- when 'dark' -%}{%- assign bean_count = 5 -%}{%- assign roast_label = 'Dark' -%}
+    {%- when 'medium-dark' -%}{%- assign bean_count = 4 -%}{%- assign roast_label = 'Medium-Dark' -%}
+    {%- when 'medium-light' -%}{%- assign bean_count = 2 -%}{%- assign roast_label = 'Medium-Light' -%}
+    {%- when 'medium' -%}{%- assign bean_count = 3 -%}{%- assign roast_label = 'Medium' -%}
+    {%- when 'light' -%}{%- assign bean_count = 2 -%}{%- assign roast_label = 'Light' -%}
+    {%- else -%}
+      {%- if roast_norm contains 'french' -%}{%- assign bean_count = 5 -%}{%- assign roast_label = 'French' -%}
+      {%- elsif roast_norm contains 'dark' -%}{%- assign bean_count = 5 -%}{%- assign roast_label = 'Dark' -%}
+      {%- elsif roast_norm contains 'medium-dark' or roast_norm contains 'full city' -%}
+        {%- assign bean_count = 4 -%}{%- assign roast_label = 'Medium-Dark' -%}
+      {%- elsif roast_norm contains 'medium-light' or roast_norm contains 'city' -%}
+        {%- assign bean_count = 2 -%}{%- assign roast_label = 'Medium-Light' -%}
+      {%- elsif roast_norm contains 'medium' -%}{%- assign bean_count = 3 -%}{%- assign roast_label = 'Medium' -%}
+      {%- elsif roast_norm contains 'light' -%}{%- assign bean_count = 2 -%}{%- assign roast_label = 'Light' -%}
+      {%- else -%}{%- assign bean_count = 3 -%}{%- assign roast_label = 'Medium' -%}{%- endif -%}
+  {%- endcase -%}
+{%- endif -%}
+
+{%- comment -%} ---- Output modes ---- {%- endcomment -%}
+{%- if mode == 'label' -%}
+  {{ roast_label }} roast
+{%- elsif mode == 'beans' -%}
+  <div class="bean-icons">
+    {%- for i in (1..5) -%}
+      <span class="bean-icon {% if i <= bean_count %}filled{% endif %}">
+        {% render 'mcc-bean-icon' %}
+      </span>
+    {%- endfor -%}
+  </div>
+{%- else -%}
+  <div class="bean-meter bean-meter--{{ variant }}">
+    {%- if show_text -%}
+      <span class="roast-label">{{ roast_label }}{{ text_suffix }}</span>
+    {%- endif -%}
+    <div class="bean-icons">
+      {%- for i in (1..5) -%}
+        <span class="bean-icon {% if i <= bean_count %}filled{% endif %}">
+          {% render 'mcc-bean-icon' %}
+        </span>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}

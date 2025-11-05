@@ -1,0 +1,88 @@
+{%- comment -%}
+mcc-flavor-profiles.liquid
+Dynamic Flavor Profile cards
+
+Usage:
+  {% render 'mcc-flavor-profiles', product: product %}
+
+Reads:
+  - Names (primary):  custom.taste_profiles                 (single line, comma-separated)
+  - Names (legacy):   custom.tasing_profiles                (rich text; we flatten to plain text)
+  - Descriptions:     custom.taste_profile_descs            (multi-line preferred; commas OK)
+
+Structure (matches mcc-growing-details):
+<div class="content-section flavor-details" id="flavor-profile">
+  <h3>...</h3>
+  <div class="flavor-grid"> ...cards... </div>
+</div>
+{%- endcomment -%}
+
+{%- assign p = product | default: product -%}
+{%- assign section_title = title | default: p.metafields.custom.flavor_section_title | default: 'Flavor profile' -%}
+{%- if show_desc == nil -%}{%- assign show_desc = true -%}{%- endif -%}
+
+{%- comment -%} -------- Names -------- {%- endcomment -%}
+{%- assign names_raw = '' -%}
+{%- if p.metafields.custom.taste_profiles != blank -%}
+  {%- assign names_raw = p.metafields.custom.taste_profiles -%}
+{%- elsif p.metafields.custom.tasing_profiles != blank -%}
+  {%- assign names_raw = p.metafields.custom.tasing_profiles.value | default: p.metafields.custom.tasing_profiles | metafield_text -%}
+{%- endif -%}
+
+{%- assign names_text = names_raw
+  | newline_to_br
+  | replace: '<br />','\n' | replace: '<br/>','\n' | replace: '<br>','\n'
+  | replace: '\r\n','\n' | replace: '\r','\n'
+  | strip
+-%}
+
+{%- if names_text contains ',' -%}
+  {%- assign names = names_text | split: ',' -%}
+{%- else -%}
+  {%- assign names = names_text | split: '\n' -%}
+{%- endif -%}
+
+{%- comment -%} -------- Descriptions (optional) -------- {%- endcomment -%}
+{%- assign descs = '' -%}
+{%- if p.metafields.custom.taste_profile_descs != blank -%}
+  {%- assign descs_raw = p.metafields.custom.taste_profile_descs.value | default: p.metafields.custom.taste_profile_descs -%}
+  {%- assign descs_text = descs_raw
+    | newline_to_br
+    | replace: '<br />','\n' | replace: '<br/>','\n' | replace: '<br>','\n'
+    | replace: '\r\n','\n' | replace: '\r','\n'
+    | strip
+  -%}
+  {%- if descs_text contains '\n' -%}
+    {%- assign descs = descs_text | split: '\n' -%}
+  {%- else -%}
+    {%- assign descs = descs_text | split: ',' -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- assign count = names.size -%}
+{%- if count > 0 -%}
+<div class="content-section flavor-details flavor-profiles" id="flavor-profile">
+  <h3 id="flavor-profiles-title" class="flavor-title">{{ section_title }}</h3>
+
+
+  <div class="flavor-grid">
+    {%- assign last = count | minus: 1 -%}
+    {%- for i in (0..last) -%}
+      {%- assign display = names[i] | strip | remove: '"' | remove: "'" -%}
+      {%- if display != '' -%}
+        <article class="flavor-card" aria-label="{{ display }}">
+          <div class="flavor-media" aria-hidden="true">
+            {% render 'mcc-flavor-icon', flavor: display, class: 'flavor-icon' %}
+          </div>
+
+          <h4 class="flavor-name">{{ display }}</h4>
+
+          {%- if show_desc and descs and descs[i] and descs[i] != '' -%}
+            <p class="flavor-desc">{{ descs[i] | strip }}</p>
+          {%- endif -%}
+        </article>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+{%- endif -%}

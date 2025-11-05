@@ -1,0 +1,58 @@
+{% comment %}
+MCC Product Gallery Snippet
+Handles desktop gallery with image switching
+{% endcomment %}
+
+{% comment %}
+MCC Product Gallery Snippet
+Handles desktop gallery with image switching
+{% endcomment %}
+
+<div class="product-gallery">
+  {% if product.media.size > 0 %}
+    {% assign all_images = product.media | where: 'media_type', 'image' %}
+    
+    <div class="gallery-grid">
+      <!-- Main Image -->
+      <div class="gallery-main" onclick="MCC.switchMainImage('{{ all_images[0] | image_url: width: 1200 }}', '{{ all_images[0].alt | escape }}')">
+        <img
+          id="main-product-image"
+          src="{{ all_images[0] | image_url: width: 1200 }}"
+          alt="{{ all_images[0].alt | escape }}"
+          loading="eager"
+          width="1200"
+          height="800"
+        />
+      </div>
+
+      <!-- Secondary Images -->
+      <div class="gallery-secondary">
+        {% for image in all_images offset: 1 limit: 2 %}
+          <div class="gallery-thumb" onclick="MCC.switchMainImage('{{ image | image_url: width: 1200 }}', '{{ image.alt | escape }}')">
+            <img
+              src="{{ image | image_url: width: 600 }}"
+              alt="{{ image.alt | escape }}"
+              loading="lazy"
+              width="600"
+              height="400"
+            />
+          </div>
+        {% else %}
+          <div class="gallery-thumb gallery-placeholder">
+            <div class="placeholder-bg"></div>
+          </div>
+        {% endfor %}
+        
+        <!-- Fill remaining slots with placeholders if needed -->
+        {% assign remaining_slots = 2 | minus: all_images.size | plus: 1 %}
+        {% if remaining_slots > 0 %}
+          {% for i in (1..remaining_slots) %}
+            <div class="gallery-thumb gallery-placeholder">
+              <div class="placeholder-bg"></div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>

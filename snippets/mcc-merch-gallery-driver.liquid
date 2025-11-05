@@ -1,0 +1,95 @@
+{%- comment -%}
+MCC Merch Gallery — Unified Safe Driver
+Purpose:
+- Replaces all previous SwapDriver / Side-car scripts.
+- Throttled, single watcher (~2.5x/sec) that only reacts to variant changes.
+- Moves variant-linked media to top of .mgg-rail without duplication.
+{%- endcomment -%}
+
+<script>
+(() => {
+  // Singleton – never attach twice
+  if (window.__MCC_SWAPDRIVER_ON__) return;
+  window.__MCC_SWAPDRIVER_ON__ = true;
+
+  const LOG = false;
+  const log = (...a) => { if (LOG) console.log('[MCC SwapDriver]', ...a); };
+
+  const gallery = document.querySelector('[id^="MerchGallery-"].mcc-merch-gallery');
+  if (!gallery) return; // nothing to do
+
+  const rail = gallery.querySelector('.mgg-rail');
+  if (!rail) return;
+
+  // Tell the gallery controller we exist (so it can skip its own polling)
+  window.__MCC_HAS_DRIVER__ = true;
+
+  // Build Variant→Media map from JSON
+  let variants = [], media = [];
+  try { variants = JSON.parse(gallery.querySelector('script[data-merch-variants]').textContent || '[]'); } catch {}
+  try { media    = JSON.parse(gallery.querySelector('script[data-merch-media]').textContent || '[]'); } catch {}
+
+  const normSrc = (u) => String(u || '').replace(/^https?:\/\//,'').replace(/[_-]+/g,'-').toLowerCase();
+  const MEDIA_BY_SRC = new Map(
+    media.map(m => [normSrc(m?.preview_image?.src || m?.src || ''), m]).filter(([k,v]) => k && v)
+  );
+
+  const V2M = {};
+  for (const v of variants) {
+    let mid = v?.featured_media?.id || null;
+    if (!mid && v?.featured_image?.src) {
+      const key = normSrc(v.featured_image.src);
+      if (MEDIA_BY_SRC.has(key)) mid = MEDIA_BY_SRC.get(key).id;
+    }
+    if (v?.id) V2M[String(v.id)] = mid || null;
+  }
+  log('map', V2M);
+
+  function moveMediaToTop(mediaId){
+    if (!mediaId) return false;
+    const item = gallery.querySelector(`.mgg-item[data-media-id="${mediaId}"]`);
+    if (!item) return false;
+    if (rail.firstElementChild !== item) {
+      rail.insertBefore(item, rail.firstElementChild);
+      rail.scrollTo?.({ top: 0, behavior: 'smooth' });
+      log('moved', mediaId);
+    }
+    return true;
+  }
+
+  function readVariantId(){
+    const section = gallery.closest('.product-merch') || document;
+    const r = section.querySelector('input[name="id"][type="radio"]:checked');
+    if (r?.value) return r.value;
+    const sel = section.querySelector('select[name="id"]');
+    if (sel?.value) return sel.value;
+    const hid = section.querySelector('input[type="hidden"][name="id"]') ||
+                document.querySelector('input[type="hidden"][name="id"]');
+    return hid?.value || '';
+  }
+
+  let last = '';
+  let timer = null;
+
+  function loop(){
+    // Pause work when tab is hidden to reduce CPU/jank
+    if (document.visibilityState === 'visible') {
+      const vid = readVariantId();
+      if (vid && vid !== last) {
+        last = vid;
+        moveMediaToTop(V2M[String(vid)]);
+      }
+    }
+    timer = setTimeout(() => requestAnimationFrame(loop), 500); // gentler cadence
+  }
+
+  // Start after paint
+  setTimeout(loop, 300);
+
+  // Clean up on navigation/hot-reload
+  window.addEventListener('pagehide', () => {
+    clearTimeout(timer);
+    window.__MCC_SWAPDRIVER_ON__ = false;
+  }, { once:true });
+})();
+</script>

@@ -1,0 +1,100 @@
+{% comment %} MCC Landing — Instagram (manual grid or app slot) {% endcomment %}
+
+<section class="mcc-ig" data-mcc-landing="instagram">
+  {% if section.settings.title != blank %}
+    <h2 class="mi-title">{{ section.settings.title }}</h2>
+  {% endif %}
+  {% if section.settings.handle != blank %}
+    <p class="mi-handle">@{{ section.settings.handle }}</p>
+  {% endif %}
+
+  {% if section.blocks.size > 0 %}
+    <ul class="mi-grid">
+      {% for block in section.blocks limit: section.settings.limit %}
+        {% assign url = block.settings.post_url %}
+        {% assign thumb = block.settings.thumbnail %}
+        <li class="mi-item">
+          <a href="{{ url }}" target="_blank" rel="noopener">
+            {% if thumb != blank %}
+              {{ thumb | image_url: width: 720 | image_tag: class: 'mi-img', alt: 'Instagram post' }}
+            {% else %}
+              <div class="mi-fpo"></div>
+            {% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <!-- App slot: drop an Instagram app block here -->
+    {%- comment -%} Prefer an @app block if present; else show manual posts {%- endcomment -%}
+{%- assign rendered_app = false -%}
+{%- for block in section.blocks -%}
+  {%- if block.type == '@app' and rendered_app == false -%}
+    {% render block %}
+    {%- assign rendered_app = true -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- unless rendered_app -%}
+  <ul class="mi-grid" role="list" {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}>
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'post' -%}
+        <li class="mi-item" {{ block.shopify_attributes }}>
+          <a href="{{ block.settings.post_url }}" target="_blank" rel="noopener nofollow">
+            {%- if block.settings.thumbnail != blank -%}
+              {{ block.settings.thumbnail | image_url: width: 640 | image_tag:
+                sizes: "(max-width:740px) 33vw, 200px",
+                alt: "Instagram post thumbnail",
+                class: "mi-thumb" }}
+            {%- else -%}
+              <div class="mi-thumb mi-thumb--placeholder"></div>
+            {%- endif -%}
+          </a>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+{%- endunless -%}
+
+  {% endif %}
+</section>
+
+<style>
+.mcc-ig{ padding:100px 0; background:var(--color-base-bg,#fff); text-align:center; }
+.mi-title{ font-family: var(--font-sans, 'SuisseIntl', system-ui); font-weight:700; font-size:22px; margin:0; }
+.mi-handle{ margin:6px 0 20px; opacity:.7; }
+.mi-grid{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; padding:0; margin:0 auto; max-width:1200px; list-style:none; }
+@media (max-width: 1100px){ .mi-grid{ grid-template-columns:repeat(4,1fr);} }
+@media (max-width: 720px){ .mi-grid{ grid-template-columns:repeat(3,1fr);} }
+.mi-item a{ display:block; }
+.mi-img{ width:100%; height:100%; aspect-ratio:1/1; object-fit:cover; border-radius:10px; }
+.mi-fpo{ background:#eee; width:100%; aspect-ratio:1/1; border-radius:10px; }
+</style>
+
+
+
+{% schema %}
+{
+  "name": "MCC Landing — Instagram",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Title", "default": "Follow our journey." },
+    { "type": "text", "id": "handle", "label": "Instagram handle (display only)", "default": "malibucoffeecompany" },
+    { "type": "range", "id": "limit", "min": 3, "max": 12, "step": 1, "label": "Max posts to show", "default": 6 }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    {
+      "type": "post",
+      "name": "Post (manual)",
+      "settings": [
+        { "type": "url", "id": "post_url", "label": "Instagram post URL" },
+        { "type": "image_picker", "id": "thumbnail", "label": "Thumbnail (upload a square)" }
+      ]
+    }
+  ],
+  "max_blocks": 24,
+  "presets": [{ "name": "MCC Landing — Instagram (manual)" }]
+}
+{% endschema %}
+
+

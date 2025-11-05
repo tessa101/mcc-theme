@@ -1,0 +1,203 @@
+{% comment %}
+MCC Product Form Snippet (Dawn-compatible)
+- Uses <product-form> + inner <form> (AJAX add-to-cart via Dawn)
+- Keeps app blocks inside the form (Recharge selling_plan, etc.)
+- Provides safe fallbacks for variant id and quantity
+- Includes Dawn's loading spinner stub
+{% endcomment %}
+
+{%- comment -%} OOS flag for price/CTA styling {%- endcomment -%}
+{%- comment -%} OOS flag (reliable): product.available is false when ALL variants are OOS {%- endcomment -%}
+{%- comment -%} All-variants OOS is reliably: product.available == false {%- endcomment -%}
+
+{%- assign all_oos = false -%}
+{%- unless product.available -%}{%- assign all_oos = true -%}{%- endunless -%}
+
+
+<div id="ProductInfo-{{ section.id }}"
+     class="product__info-container"
+     data-oos="{{ all_oos }}"
+     data-section="{{ section.id }}"
+     data-product-id="{{ product.id }}"
+     data-product-handle="{{ product.handle }}"
+     data-url="{{ product.url }}"
+     data-update-url="true">
+
+
+  {%- assign product_form_id = 'product-form-' | append: section.id -%}
+
+  <product-form id="ProductForm-{{ section.id }}" data-section-id="{{ section.id }}">
+    <form
+      id="{{ product_form_id }}"
+      class="product-form"
+      method="post"
+      action="{{ routes.cart_add_url }}"
+      enctype="multipart/form-data"
+      novalidate
+      data-product-id="{{ product.id }}"
+      data-product-handle="{{ product.handle }}"
+    >
+
+      {%- comment -%}
+      App Blocks & Custom Blocks
+      (All inputs must live INSIDE the form to be submitted)
+      {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+
+          {%- when '@app' -%}
+            <div class="product-app-block" {{ block.shopify_attributes }}>
+              <label class="variant-label">PURCHASE OPTIONS</label>
+              {% render block %}
+            </div>
+
+          {%- when 'variant_picker' -%}
+            {% render 'mcc-variant-picker', product: product, block: block, section: section %}
+
+          {%- when 'quantity_selector' -%}
+            <div class="block-quantity-selector" {{ block.shopify_attributes }}>
+              {% render 'mcc-quantity-selector', block: block, section: section %}
+            </div>
+
+          {%- when 'buy_buttons' -%}
+            <div class="block-buy-buttons" {{ block.shopify_attributes }}>
+              {% render 'mcc-buy-buttons', block: block, section: section, product: product %}
+            </div>
+
+          {%- when 'wishlist' -%}
+            <div class="block-wishlist" {{ block.shopify_attributes }}>
+              <div id="mcc-wishlist-anchor"
+                   class="wishlist-anchor"
+                   aria-label="{{ block.settings.label | default: 'Add to favorites' }}"
+                   style="--wishlist-margin-top: {{ block.settings.top_margin | default: 12 }}px">
+              </div>
+            </div>
+
+          {%- when 'custom_liquid' -%}
+            <div class="block-custom-liquid" {{ block.shopify_attributes }}>
+              {{ block.settings.custom_liquid }}
+            </div>
+
+          {%- when 'text' -%}
+            <div class="block-text" {{ block.shopify_attributes }}>
+              <p>{{ block.settings.text }}</p>
+            </div>
+
+          {%- else -%}
+            <div class="hidden-block" {{ block.shopify_attributes }} style="display:none;"></div>
+        {%- endcase -%}
+      {%- endfor -%}
+
+      {%- comment -%}
+      Fallback content when no blocks are configured (optional)
+      {%- endcomment -%}
+      {% if section.blocks.size == 0 %}
+        {% render 'mcc-variant-picker', product: product, section: section %}
+
+        {%- if product.selling_plan_groups.size > 0 -%}
+          <label class="variant-label" aria-hidden="true">PURCHASE OPTIONS</label>
+        {%- endif -%}
+        <div class="recharge-subscription-container">
+          <div class="rc-widget-injection-parent"></div>
+        </div>
+
+        {% render 'mcc-quantity-selector', section: section %}
+        {% render 'mcc-buy-buttons', product: product, section: section %}
+      {% endif %}
+
+
+      {%- comment -%}
+      SAFE FALLBACKS:
+      If your variant picker already outputs an element with name="id" (select/radios),
+      this fallback gets removed by the tiny script below.
+      {%- endcomment -%}
+      <input type="hidden"
+             name="id"
+             value="{{ product.selected_or_first_available_variant.id }}"
+             data-fallback-variant-id>
+
+      {%- comment -%}
+      If your quantity block outputs an input[name="quantity"], this fallback is removed.
+      {%- endcomment -%}
+      <input type="hidden" name="quantity" value="1" data-fallback-quantity>
+
+      {%- comment -%}
+      Dawn expects a spinner node it toggles on submit; keep it inside the form.
+      {%- endcomment -%}
+      {% render 'loading-spinner' %}
+
+    </form>
+  </product-form>
+
+  {%- comment -%}
+  Product JSON for apps (unchanged)
+  {%- endcomment -%}
+  <script type="application/json" id="mcc-selling-data-{{ section.id }}">
+  {
+    "productId": {{ product.id }},
+    "variants": [
+      {% for v in product.variants %}
+        {
+          "id": {{ v.id }},
+          "price": {{ v.price }},
+          "compare_at_price": {{ v.compare_at_price | default: 0 }},
+          "selling_plan_allocations": [
+            {% for spa in v.selling_plan_allocations %}
+              {
+                "selling_plan_id": {{ spa.selling_plan.id }},
+                "title": {{ spa.selling_plan.name | json }},
+                "final_price": {{ spa.price }},
+                "per_delivery_price": {{ spa.per_delivery_price | default: spa.price }}
+              }{% unless forloop.last %},{% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  }
+  </script>
+
+  <script type="application/json" id="ProductJSON-{{ product.id }}">
+    {{ product | json }}
+  </script>
+
+</div>
+
+{%- comment -%}
+Tiny helper: remove fallback inputs if real ones exist,
+and keep fallbacks synced otherwise. This avoids duplicate `name="id"` or `name="quantity"`.
+{%- endcomment -%}
+<script>
+(function(){
+  const wrap = document.getElementById('ProductForm-{{ section.id }}');
+  if (!wrap) return;
+  const form = wrap.querySelector('form');
+  if (!form) return;
+
+  const fallbackId = form.querySelector('[data-fallback-variant-id]');
+  const fallbackQty = form.querySelector('[data-fallback-quantity]');
+
+  // If "real" inputs exist, drop fallbacks
+  const realId = form.querySelector('input[name="id"]:not([data-fallback-variant-id]), select[name="id"]:not([data-fallback-variant-id])');
+  const realQty = form.querySelector('input[name="quantity"]:not([data-fallback-quantity])');
+
+  if (realId && fallbackId) fallbackId.remove();
+  if (realQty && fallbackQty) fallbackQty.remove();
+
+  // Keep fallback values in sync if they remain (no real inputs present)
+  function syncFallbacks(){
+    if (fallbackId && !form.querySelector('input[name="id"]:not([data-fallback-variant-id]), select[name="id"]:not([data-fallback-variant-id])')) {
+      const chosen = form.querySelector('input[name="id"]:checked') || form.querySelector('select[name="id"]');
+      if (chosen) fallbackId.value = chosen.value;
+    }
+    if (fallbackQty && !form.querySelector('input[name="quantity"]:not([data-fallback-quantity])')) {
+      const qtyInput = form.querySelector('input[name="quantity"]') || document.getElementById('quantity-{{ section.id }}');
+      if (qtyInput && qtyInput.value) fallbackQty.value = qtyInput.value;
+    }
+  }
+
+  document.addEventListener('change', syncFallbacks, true);
+  document.addEventListener('input', syncFallbacks, true);
+  document.addEventListener('DOMContentLoaded', syncFallbacks);
+})();
+</script>

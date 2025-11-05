@@ -1,0 +1,18 @@
+{% comment %}
+MCC Reviews — markup only (assets are global)
+{% endcomment %}
+<section id="reviews" class="pdp-reviews" data-mcc-reviews data-section="{{ section.id }}">
+  <div class="mcc-reviews-viewport" data-viewport>
+    <div class="jdgm-widget jdgm-review-widget"
+         data-product-title="{{ product.title | escape }}"
+         data-id="{{ product.id }}">
+    </div>
+  </div>
+
+  <div class="mcc-reviews-controls" data-controls>
+    <button type="button" class="mcc-load-prev" data-prev>Previous</button>
+    <button type="button" class="mcc-load-next" data-next>Next</button>
+  </div>
+
+  <button type="button" class="mcc-mobile-more" data-more>See more reviews</button>
+</section>

@@ -1,0 +1,69 @@
+{%- comment -%}
+Brew suggestion module — desktop: 4 cards in a row; mobile: stacked with icon left.
+Drop this snippet inside mcc-product-content.liquid:
+  {% render 'mcc-brew-methods', product: product %}
+{%- endcomment -%}
+
+<div class="brew-methods" aria-labelledby="brew-methods-title">
+  <h2 id="brew-methods-title" class="brew-title">Brewing methods</h2>
+
+  <div class="brew-grid">
+
+    <!-- Machine -->
+    <div class="brew-card">
+      {% render 'mcc-brew-icon', type: 'machine', class: 'brew-icon' %}
+      <div class="brew-body">
+        <h3 class="brew-name">Drip</h3>
+        <ul class="brew-list">
+          <li><span class="brew-label">Coffee:</span>40g</li>
+          <li><span class="brew-label">Grind:</span>Medium</li>
+          <li><span class="brew-label">Water:</span>640g</li>
+          <li><span class="brew-label">Ratio:</span>1:10</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- French press -->
+    <div class="brew-card">
+      {% render 'mcc-brew-icon', type: 'french_press', class: 'brew-icon' %}
+      <div class="brew-body">
+        <h3 class="brew-name">French press</h3>
+        <ul class="brew-list">
+          <li><span class="brew-label">Coffee:</span>60g</li>
+          <li><span class="brew-label">Grind:</span>Coarse</li>
+          <li><span class="brew-label">Water:</span>900g</li>
+          <li><span class="brew-label">Ratio:</span>1:10</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Pour over -->
+    <div class="brew-card">
+      {% render 'mcc-brew-icon', type: 'pour_over', class: 'brew-icon' %}
+      <div class="brew-body">
+        <h3 class="brew-name">Pour over</h3>
+        <ul class="brew-list">
+          <li><span class="brew-label">Coffee:</span>17g</li>
+          <li><span class="brew-label">Grind:</span>Medium fine</li>
+          <li><span class="brew-label">Water:</span>250g</li>
+          <li><span class="brew-label">Ratio:</span>1:10</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Espresso -->
+    <div class="brew-card">
+      {% render 'mcc-brew-icon', type: 'espresso', class: 'brew-icon' %}
+      <div class="brew-body">
+        <h3 class="brew-name">Espresso</h3>
+        <ul class="brew-list">
+          <li><span class="brew-label"></span>18g coffee</li>
+          <li><span class="brew-label"></span>Fine grind</li>
+          <li><span class="brew-label"></span>36g water</li>
+          <li><span class="brew-label"></span>Strong, full bodied</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>

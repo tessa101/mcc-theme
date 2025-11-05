@@ -1,0 +1,104 @@
+{% comment %}
+MCC Variant Picker (compat)
+- Preserves legacy hooks so price/subtotal + chip CSS keep working:
+  • Keeps a hidden "id" radio for EVERY variant (legacy listeners)
+  • Uses your old classes: .variant-options / .variant-option
+- Adds UI groups per option (Size, Color, …) that drive the hidden "id" radios
+- Disables impossible values live
+{% endcomment %}
+
+{%- assign all_oos = false -%}
+{%- unless product.available -%}{%- assign all_oos = true -%}{%- endunless -%}
+
+{%- capture variants_json -%}
+[
+{%- for v in product.variants -%}
+  {
+    "id": {{ v.id }},
+    "available": {{ v.available | json }},
+    "options": {{ v.options | json }}
+  }{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]
+{%- endcapture -%}
+
+<div class="mcc-variant-picker"
+     data-variants='{{ variants_json | strip_newlines | escape }}'
+     data-section="{{ section.id }}"
+     data-product-id="{{ product.id }}">
+
+{% style %}
+/* Force COLOR/SIZE labels to match our spec, scoped to this section only */
+#ProductInfo-{{ section.id }} label.variant-label{
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #666;
+  margin: 8px 0;
+  display: block;
+}
+{% endstyle %}
+
+
+  {%- comment -%}
+  LEGACY: keep actual name="id" radios so subtotal/price listeners see changes.
+  We visually hide them but still toggle them from JS.
+  {%- endcomment -%}
+  <fieldset class="sr-only" aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+    {%- for variant in product.variants -%}
+      {%- assign is_available = variant.available -%}
+      <input
+        type="radio"
+        id="legacy-variant-{{ variant.id }}"
+        class="mcc-variant-id-radio"
+        name="id"
+        value="{{ variant.id }}"
+        data-available="{{ is_available }}"
+        {% if is_available and variant.id == product.selected_or_first_available_variant.id %}checked{% endif %}
+        {% if all_oos or is_available == false %}disabled aria-disabled="true"{% endif %}>
+      <label for="legacy-variant-{{ variant.id }}"></label>
+    {%- endfor -%}
+  </fieldset>
+
+  {%- if product.options_with_values.size > 0 -%}
+    {%- for opt in product.options_with_values -%}
+      {%- assign opt_index = forloop.index0 -%}
+      {%- assign opt_name_downcase = opt.name | downcase -%}
+
+      <label id="mcc-opt-label-{{ section.id }}-{{ opt_index }}" class="variant-label">
+        {{ opt.name }}
+      </label>
+
+      <fieldset class="variant-options{% if all_oos %} all-sold-out{% endif %}"
+                {% if all_oos %}disabled aria-disabled="true"{% endif %}
+                aria-labelledby="mcc-opt-label-{{ section.id }}-{{ opt_index }}"
+                data-opt-index="{{ opt_index }}"
+                data-opt-name="{{ opt.name | escape }}">
+
+        {%- for val in opt.values -%}
+          {%- assign input_id = 'mcc-opt-' | append: section.id | append: '-' | append: opt_index | append: '-' | append: forloop.index0 -%}
+          <input
+            type="radio"
+            class="mcc-opt-input"
+            id="{{ input_id }}"
+            name="options[{{ opt.name }}]"
+            value="{{ val | escape }}"
+            {% if val == opt.selected_value %}checked{% endif %}
+            {% if all_oos %}disabled aria-disabled="true"{% endif %}>
+          <label class="variant-option{% if opt_name_downcase contains 'color' %} is-swatch{% endif %}"
+                 data-value="{{ val | escape }}"
+                 for="{{ input_id }}">
+            {%- if opt_name_downcase contains 'color' -%}
+              <span class="mcc-swatch" style="--swatch: {{ val | escape }};"></span>
+              <span class="mcc-swatch-label">{{ val }}</span>
+            {%- else -%}
+              {{ val }}
+            {%- endif -%}
+          </label>
+        {%- endfor -%}
+      </fieldset>
+    {%- endfor -%}
+  {%- endif -%}
+</div>

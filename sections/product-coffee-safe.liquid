@@ -1,0 +1,352 @@
+{% comment %}
+Coffee PDP — SAFE HARNESS
+- Renders: title, one image, price, safe add-to-cart
+- Everything else from the original is present but commented
+- Uncomment one block at a time to find any crashers on new products
+{% endcomment %}
+
+<section class="mcc-product product-coffee"
+  data-product-id="{{ product.id }}"
+  data-section="{{ section.id }}">
+
+  {%- comment -%}
+  STEP A — Mobile Hero (optional)
+  Un-comment if you want the special 3rd-media mobile hero.
+  {%- endcomment -%}
+  
+  <div class="product-hero-mobile">
+    {% assign mobile_image = product.media[3] | default: product.featured_media %}
+    {% if mobile_image %}
+      <img
+        src="{{ mobile_image | image_url: width: 800 }}"
+        alt="{{ mobile_image.alt | escape }}"
+        class="product-image-mobile">
+    {% endif %}
+  </div>
+  
+
+  <div class="product-container">
+
+    <!-- LEFT: MAIN -->
+    <div class="product-main">
+      {%- comment -%}
+      STEP B — Minimal, always-safe content (kept enabled)
+      {%- endcomment -%}
+      <h1 class="pdp-h1">{{ product.title }}</h1>
+
+      {% assign fm = product.featured_media %}
+      {% if fm %}
+        {{ fm
+          | image_url: width: 1200
+          | image_tag: alt: fm.alt, loading: 'eager', decoding: 'async' }}
+      {% endif %}
+
+      <div class="pdp-description rte">
+        {{ product.description }}
+      </div>
+
+      {%- comment -%}
+      STEP C — Gallery (original snippet)
+      Un-comment to test. If it blanks, issue is inside snippet/JS or metafields it expects.
+      {%- endcomment -%}
+      
+      {% render 'mcc-product-gallery', product: product %}
+      
+
+      {%- comment -%}
+      STEP D — Content (original snippet)
+      Guarded example shown below if needed.
+      {%- endcomment -%}
+     
+      {%- if product.metafields and product.metafields.custom != blank -%}
+        {% render 'mcc-product-content', product: product %}
+      {%- else -%}
+        
+      {%- endif -%}
+     
+    </div>
+
+    <!-- RIGHT: SIDEBAR -->
+    <aside class="product-sidebar">
+      <div class="sidebar-content">
+
+        {%- comment -%}
+        STEP E — Header (original snippet)
+        Often includes review badge. Guard Judge.me metafields inside the snippet if needed:
+          {% if product.metafields.judgeme.badge %} {{ product.metafields.judgeme.badge }} {% endif %}
+        {%- endcomment -%}
+        
+        {% render 'mcc-product-header', product: product %}
+     
+
+        {%- comment -%}
+        STEP F — Price (safe, kept enabled)
+        {%- endcomment -%}
+        {% if product.available %}
+          <div class="product-price-display" data-product-price>
+            <span class="current-price" id="current-subtotal">
+              {{ product.selected_or_first_available_variant.price | money }}
+            </span>
+            {% assign cur = product.selected_or_first_available_variant %}
+            {% if cur.compare_at_price and cur.compare_at_price > cur.price %}
+              <span class="compare-price" id="compare-price-display">
+                {{ cur.compare_at_price | money }}
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {%- comment -%}
+        STEP G — SAFE Add-to-cart (kept enabled)
+        Uses routes.cart_add_url and real variant id.
+        {%- endcomment -%}
+        {% assign sel = product.selected_or_first_available_variant %}
+        {% if sel %}
+          <form method="post"
+                action="{{ routes.cart_add_url }}"
+                accept-charset="UTF-8"
+                novalidate>
+            <input type="hidden" name="form_type" value="product">
+            <input type="hidden" name="utf8" value="✓">
+            <input type="hidden" name="id" value="{{ sel.id }}">
+            <label style="display:block;margin:.5rem 0 .25rem">Quantity</label>
+            <input type="number" name="quantity" value="1" min="1" style="max-width:120px">
+            <button type="submit" style="margin-top:.5rem">Add to cart</button>
+          </form>
+        {% endif %}
+
+        {%- comment -%}
+        STEP H — Product Form (original snippet)
+        Un-comment to test after everything else is stable.
+        If it blanks, keep this block commented and keep the safe form above.
+        {%- endcomment -%}
+       
+        {% if product.variants.size > 0 %}
+          {% render 'mcc-product-form', product: product, section: section %}
+        {% endif %}
+    
+
+      </div>
+    </aside>
+  </div>
+</section>
+
+{%- comment -%}
+STEP I — ORIGINAL CSS blocks (Accordion, Recharge tweaks, Reviews, Recs)
+Uncomment these only after the structure is confirmed stable.
+{%- endcomment -%}
+
+<!-- === Coffee PDP: Accordion CSS === -->
+<style id="coffee-accordion-css">
+/* … original accordion CSS here (pasted from your file) … */
+</style>
+
+<style id="recharge-tweaks">
+/* … your recharge CSS … */
+</style>
+
+<style id="coffee-reviews-css">
+/* … your reviews CSS … */
+</style>
+
+<style id="recs-only-once">
+/* … your recommendations CSS … */
+</style>
+
+{%- comment -%}
+STEP J — ORIGINAL Scripts
+Uncomment one at a time, in this order:
+1) MCCProduct.init (depends on your product JS)
+2) Recharge click shim
+3) Accordion init (mobile)
+{%- endcomment -%}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.MCCProduct) {
+    window.MCCProduct.init({
+      productId: {{ product.id }},
+      sectionId: '{{ section.id }}',
+      selectedVariantId: {{ product.selected_or_first_available_variant.id }},
+      price: {{ product.selected_or_first_available_variant.price }}
+    });
+  }
+});
+</script>
+
+<script>
+/* Recharge badge click behavior */
+(function () {
+  function handleClick(e) {
+    if (!e.composedPath) return;
+    const path = e.composedPath();
+    const host = path.find(el => el && el.tagName === 'RECHARGE-SUBSCRIPTION-WIDGET');
+    if (!host) return;
+    const label = path.find(el => el?.getAttribute && el.getAttribute('part') === 'rc-purchase-option__label');
+    if (!label) return;
+    const isSubscription = /subscribe/i.test(label.textContent || '');
+    if (isSubscription) { host.removeAttribute('data-one-time'); }
+    else { host.setAttribute('data-one-time', ''); }
+  }
+  document.addEventListener('click', handleClick, true);
+})();
+</script>
+
+<script>
+/* Coffee accordion init (mobile only) */
+(() => {
+  const mq = window.matchMedia('(max-width: 767.98px)');
+  const sections = Array.from(document.querySelectorAll('.coffee-accordion'));
+  const observers = new WeakMap();
+
+  function setPanelHeight(panel, expanded) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { panel.style.height = expanded ? 'auto' : '0px'; return; }
+
+    if (expanded) {
+      panel.style.height = 'auto';
+      const h = panel.getBoundingClientRect().height;
+      panel.style.height = '0px';
+      panel.offsetHeight;
+      panel.style.height = h + 'px';
+    } else {
+      panel.style.height = panel.getBoundingClientRect().height + 'px';
+      panel.offsetHeight;
+      panel.style.height = '0px';
+    }
+  }
+
+  function observeWhileOpen(btn, panel) {
+    if (!('ResizeObserver' in window)) return;
+    if (observers.has(panel)) { observers.get(panel).disconnect(); observers.delete(panel); }
+    const ro = new ResizeObserver(() => {
+      if (btn.getAttribute('aria-expanded') === 'true') {
+        panel.style.height = 'auto';
+        const h = panel.getBoundingClientRect().height;
+        panel.style.height = h + 'px';
+      }
+    });
+    ro.observe(panel);
+    observers.set(panel, ro);
+  }
+
+  function initMobile() {
+    sections.forEach((sec) => {
+      const btn   = sec.querySelector('.coffee-acc-trigger');
+      const panel = sec.querySelector('.coffee-acc-panel');
+      if (!btn || !panel) return;
+
+      btn.setAttribute('aria-expanded', 'false');
+      panel.style.height = '0px';
+
+      if (btn._coffeeClick) btn.removeEventListener('click', btn._coffeeClick);
+      btn._coffeeClick = () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          panel.classList.remove('is-opening');
+          panel.classList.add('is-closing');
+          btn.setAttribute('aria-expanded', 'false');
+          setPanelHeight(panel, false);
+        } else {
+          panel.classList.remove('is-closing');
+          panel.classList.add('is-opening');
+          btn.setAttribute('aria-expanded', 'true');
+          setPanelHeight(panel, true);
+        }
+      };
+      btn.addEventListener('click', btn._coffeeClick);
+
+      if (panel._coffeeTE) panel.removeEventListener('transitionend', panel._coffeeTE);
+      panel._coffeeTE = (e) => {
+        if (e.propertyName !== 'height') return;
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          panel.style.height = 'auto';
+          panel.classList.remove('is-opening');
+          observeWhileOpen(btn, panel);
+        } else {
+          panel.classList.remove('is-closing');
+        }
+      };
+      panel.addEventListener('transitionend', panel._coffeeTE);
+    });
+  }
+
+  function destroyMobile() {
+    sections.forEach((sec) => {
+      const btn   = sec.querySelector('.coffee-acc-trigger');
+      const panel = sec.querySelector('.coffee-acc-panel');
+      if (!btn || !panel) return;
+      btn.setAttribute('aria-expanded', 'true');
+      panel.style.height = 'auto';
+      if (observers.has(panel)) { observers.get(panel).disconnect(); observers.delete(panel); }
+    });
+  }
+
+  const handleMQ = (e) => (e.matches ? initMobile() : destroyMobile());
+  handleMQ(mq);
+  mq.addEventListener('change', handleMQ);
+
+  window.addEventListener('load', () => {
+    if (!mq.matches) return;
+    sections.forEach((sec) => {
+      const btn   = sec.querySelector('.coffee-acc-trigger');
+      const panel = sec.querySelector('.coffee-acc-panel');
+      if (!btn || !panel) return;
+      if (btn.getAttribute('aria-expanded') === 'true') {
+        panel.style.height = 'auto';
+        const h = panel.getBoundingClientRect().height;
+        panel.style.height = h + 'px';
+      }
+    });
+  });
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "product-coffee-safe",
+  "tag": "section",
+  "class": "section",
+  "limit": 1,
+  "settings": [
+    { "type": "checkbox", "id": "show_shipping_info", "label": "Show shipping information", "default": true },
+    { "type": "checkbox", "id": "enable_image_zoom", "label": "Enable image zoom on hover", "default": false }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    { "type": "title", "name": "Product Title", "limit": 1 },
+    { "type": "price", "name": "Product Price", "limit": 1 },
+    { "type": "variant_picker", "name": "Variant Picker", "limit": 1 },
+    {
+      "type": "quantity_selector",
+      "name": "Quantity Selector",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "quantity_label", "label": "Quantity Label", "default": "QUANTITY" }
+      ]
+    },
+    { "type": "buy_buttons", "name": "Buy Buttons", "limit": 1 },
+    {
+      "type": "wishlist",
+      "name": "Wishlist / Favorites",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "label", "label": "Accessible label", "default": "Add to favorites" },
+        { "type": "range", "id": "top_margin", "label": "Top spacing (px)", "min": 0, "max": 40, "step": 4, "default": 12 }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "product-coffee-safe",
+      "blocks": [
+        { "type": "variant_picker" },
+        { "type": "quantity_selector" },
+        { "type": "buy_buttons" }
+      ]
+    }
+  ]
+}
+{% endschema %}

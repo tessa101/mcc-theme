@@ -1,0 +1,144 @@
+{% comment %}
+MCC Merch Product Form (now aligned to Coffee form)
+- Uses the SAME class names and structure that Coffee targets with CSS.
+- Keeps merch-only hooks as extra classes (don’t replace, just add).
+- Description still renders BELOW the CTAs via mcc-merch-description.
+{% endcomment %}
+
+{%- assign all_oos = false -%}
+{%- unless product.available -%}{%- assign all_oos = true -%}{%- endunless -%}
+
+<div id="ProductInfo-{{ section.id }}"
+     class="product__info-container mcc-merch-info" 
+     data-oos="{{ all_oos }}"
+     data-section="{{ section.id }}"
+     data-product-id="{{ product.id }}"
+     data-product-handle="{{ product.handle }}"
+     data-url="{{ product.url }}"
+     data-update-url="true">
+
+  {%- assign product_form_id = 'product-form-' | append: section.id -%}
+
+  <product-form id="ProductForm-{{ section.id }}" data-section-id="{{ section.id }}">
+    <form
+      id="{{ product_form_id }}"
+      class="product-form mcc-merch-form"         
+      method="post"
+      action="{{ routes.cart_add_url }}"
+      enctype="multipart/form-data"
+      novalidate
+      data-product-id="{{ product.id }}"
+      data-product-handle="{{ product.handle }}"
+    >
+
+      {%- comment -%} Theme blocks live INSIDE the form {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+
+          {%- when '@app' -%}
+            <div class="product-app-block" {{ block.shopify_attributes }}>  
+              {% render block %}
+            </div>
+
+          {%- when 'variant_picker' -%}
+            {% render 'mcc-variant-picker', product: product, block: block, section: section %}
+
+          {%- when 'quantity_selector' -%}
+            <div class="block-quantity-selector" {{ block.shopify_attributes }}>
+              {% render 'mcc-quantity-selector', block: block, section: section %}
+            </div>
+
+          {%- when 'buy_buttons' -%}
+            <div class="block-buy-buttons" {{ block.shopify_attributes }}>
+              {% render 'mcc-buy-buttons', block: block, section: section, product: product %}
+            </div>
+
+          {%- when 'wishlist' -%}
+            <div class="block-wishlist" {{ block.shopify_attributes }}>
+              {%- comment -%}
+              Match Coffee’s anchor pattern so shared CSS applies.
+              (Your wishlist script/anchor finder expects this.)
+              {%- endcomment -%}
+              <div id="mcc-wishlist-anchor"
+                   class="wishlist-anchor"
+                   aria-label="{{ block.settings.label | default: 'Add to favorites' }}"
+                   style="--wishlist-margin-top: {{ block.settings.top_margin | default: 12 }}px">
+              </div>
+            </div>
+
+          {%- when 'custom_liquid' -%}
+            <div class="block-custom-liquid" {{ block.shopify_attributes }}>
+              {{ block.settings.custom_liquid }}
+            </div>
+
+          {%- when 'text' -%}
+            <div class="block-text" {{ block.shopify_attributes }}>
+              <p>{{ block.settings.text }}</p>
+            </div>
+
+          {%- else -%}
+            <div class="hidden-block" {{ block.shopify_attributes }} style="display:none;"></div>
+        {%- endcase -%}
+      {%- endfor -%}
+
+      {%- comment -%} Fallbacks if no blocks configured {%- endcomment -%}
+      {% if section.blocks.size == 0 %}
+        {% render 'mcc-variant-picker', product: product, section: section %}
+        {% render 'mcc-quantity-selector', section: section %}
+        {% render 'mcc-buy-buttons', product: product, section: section %}
+      {% endif %}
+
+      {%- comment -%} SAFE FALLBACK INPUTS (same as Coffee) {%- endcomment -%}
+      <input type="hidden" name="id"
+             value="{{ product.selected_or_first_available_variant.id }}"
+             data-fallback-variant-id>
+      <input type="hidden" name="quantity" value="1" data-fallback-quantity>
+
+      {% render 'loading-spinner' %}
+    </form>
+  </product-form>
+
+  {%- comment -%} Description BELOW CTAs (merch metafield first, fallback) 
+  {% render 'mcc-merch-description', product: product %} {%- endcomment -%}
+
+  {%- comment -%} Product JSON for apps (kept) {%- endcomment -%}
+  <script type="application/json" id="ProductJSON-{{ product.id }}">
+    {{ product | json }}
+  </script>
+</div>
+
+{%- comment -%}
+Tiny helper: same sync script as Coffee (unchanged)
+{%- endcomment -%}
+<script>
+(function(){
+  const wrap = document.getElementById('ProductForm-{{ section.id }}');
+  if (!wrap) return;
+  const form = wrap.querySelector('form');
+  if (!form) return;
+
+  const fallbackId = form.querySelector('[data-fallback-variant-id]');
+  const fallbackQty = form.querySelector('[data-fallback-quantity]');
+
+  const realId = form.querySelector('input[name="id"]:not([data-fallback-variant-id]), select[name="id"]:not([data-fallback-variant-id])');
+  const realQty = form.querySelector('input[name="quantity"]:not([data-fallback-quantity])');
+
+  if (realId && fallbackId) fallbackId.remove();
+  if (realQty && fallbackQty) fallbackQty.remove();
+
+  function syncFallbacks(){
+    if (fallbackId && !form.querySelector('input[name="id"]:not([data-fallback-variant-id]), select[name="id"]:not([data-fallback-variant-id])')) {
+      const chosen = form.querySelector('input[name="id"]:checked') || form.querySelector('select[name="id"]');
+      if (chosen) fallbackId.value = chosen.value;
+    }
+    if (fallbackQty && !form.querySelector('input[name="quantity"]:not([data-fallback-quantity])')) {
+      const qtyInput = form.querySelector('input[name="quantity"]') || document.getElementById('quantity-{{ section.id }}');
+      if (qtyInput && qtyInput.value) fallbackQty.value = qtyInput.value;
+    }
+  }
+
+  document.addEventListener('change', syncFallbacks, true);
+  document.addEventListener('input', syncFallbacks, true);
+  document.addEventListener('DOMContentLoaded', syncFallbacks);
+})();
+</script>

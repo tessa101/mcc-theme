@@ -1,0 +1,17 @@
+{%- comment -%}
+Merch Header — title + optional status chip
+{%- endcomment -%}
+
+
+<div class="product-header">
+  <div class="product-title-wrap">
+    <h1 class="product-title">{{ product.title }}</h1>
+
+  {%- assign in_stock_count = product.variants | where: 'available', true | size -%}
+  {%- if in_stock_count == 0 -%}
+    <span class="mcc-status-chip" role="status" aria-live="polite">Sold out</span>
+  {%- endif -%}
+  </div>
+</div>
+
+

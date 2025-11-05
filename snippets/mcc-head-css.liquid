@@ -1,0 +1,63 @@
+{%- comment -%}
+MCC CSS LOADER — HOW THIS WORKS
+----------------------------------------------------------------------
+What changed
+- We centralized ALL visual styles in `assets/mcc-global.css`.
+- We split placement-only rules into 3 layout files:
+    • Coffee PDP:   assets/mcc-layout-coffee.css
+    • Merch PDP:    assets/mcc-layout-merch.css  (mobile drawer; desktop stays Dawn)
+    • Default:      assets/mcc-layout-default.css
+- Dawn’s `base.css` stays stock. We override Dawn safely from `mcc-global.css`.
+
+Load order (important)
+1) Dawn base.css      → theme defaults
+2) mcc-global.css     → our visuals (buttons, variants, quantity, price, titles, etc.)
+3) ONE layout file    → grid/placement for the current template (coffee / merch / default)
+
+How the layout is chosen
+- We use the page’s `template.suffix`:
+    • product.coffee  → loads coffee layout
+    • product.merch   → loads merch layout
+    • anything else   → loads default layout
+- Also add the body class once in `layout/theme.liquid` so layout scopes work:
+    <body class="layout-{{ template.suffix | default: 'default' }}">
+
+Where to put new styles
+- Visuals (colors, borders, fonts, component skins):  mcc-global.css
+- Placement (grids, widths, sticky, show/hide by breakpoint):  the relevant mcc-layout-*.css
+- Per-layout visual tweaks (e.g., button color): keep them in mcc-global.css, scoped like:
+    .layout-merch .btn.primary { /* tweak */ }
+
+Migration notes
+- Remove per-section <style> blocks and old CSS includes over time.
+- If something still links an old CSS asset, keep a tiny stub asset that `@import`s mcc-global.css
+  so you don’t get 404s during cutover.
+
+Adding another layout later
+- Create `assets/mcc-layout-<name>.css`, then add a `{% when '<name>' %}` branch below
+  and assign a `product.<name>.json` template to products in Admin.
+
+Troubleshooting
+- If changes don’t appear, confirm:
+    • this snippet is included in <head> (layout/theme.liquid)
+    • template suffix matches your file (e.g., “coffee”, “merch”)
+    • body class is present on <body> (see above)
+---------------------------------------------------------------------- 
+{%- endcomment -%}
+
+{%- comment -%}
+MCC CSS LOADER — loads ONLY MCC CSS (not Dawn)
+- Keep Dawn's base.css and any component *.css where they already are.
+- This file must be included LAST in <head> so MCC overrides win.
+{%- endcomment -%}
+
+{{ 'mcc-global.css' | asset_url | stylesheet_tag }}
+
+{% case template.suffix %}
+  {% when 'coffee' %}
+    {{ 'mcc-layout-coffee.css'  | asset_url | stylesheet_tag }}
+  {% when 'merch' %}
+    {{ 'mcc-layout-merch.css'   | asset_url | stylesheet_tag }}
+  {% else %}
+    {{ 'mcc-layout-default.css' | asset_url | stylesheet_tag }}
+{% endcase %}

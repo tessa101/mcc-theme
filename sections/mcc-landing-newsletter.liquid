@@ -1,0 +1,51 @@
+{% comment %} MCC Landing — Newsletter signup {% endcomment %}
+ 
+<section class="mcc-news" data-mcc-landing="newsletter">
+  <div class="mn-reveal scroll-trigger animate--fade-in scroll-trigger--offscreen" style="--animation-order:0">
+    
+    {% if section.settings.title != blank %}<h2 class="mn-title">{{ section.settings.title }}</h2>{% endif %}
+    {% if section.settings.subtitle != blank %}<p class="mn-sub">{{ section.settings.subtitle }}</p>{% endif %}
+
+    {%- form 'customer', id: 'ContactNewsletter' -%}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      <label class="sr-only" for="NewsletterEmail">Email</label>
+      <div class="mn-row">
+        <input id="NewsletterEmail" type="email" name="contact[email]" placeholder="Email address" required>
+        <button type="submit">{{ section.settings.button_label | default: 'Sign up' }}</button>
+      </div>
+      {% if form.posted_successfully? %}
+        <p class="mn-success">Thanks! You’re on the list.</p>
+      {% elsif form.errors %}
+        <p class="mn-error">
+          {{ form.errors.translated_fields['email'] | default: 'Email' }}
+          {{ form.errors.messages['email'] }}
+        </p>
+      {% endif %}
+    {%- endform -%}
+  </div>
+</section>
+
+<style>
+.mcc-news{ padding:100px 16px; background:var(--color-base-bg,#fff); display:grid; place-items:center; }
+.mn-wrap{ width:min(680px, 92vw); text-align:center; }
+.mn-title{ font-family: var(--font-sans,'SuisseIntl',system-ui); font-weight:700; font-size:26px; margin:0 0 8px; }
+.mn-sub{ margin:0 0 16px; opacity:.8; }
+.mn-row{ display:flex; gap:10px; justify-content:center; }
+.mn-row input{ flex:1; min-width:0; padding:14px 16px; border-radius:999px; border:1px solid #ccc; }
+.mn-row button{ padding:14px 18px; border-radius:999px; border:none; background:#111; color:#fff; font-weight:700; cursor:pointer; }
+.mn-success{ margin-top:10px; color:#0a5c2d; }
+.mn-error{ margin-top:10px; color:#7a1111; }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+</style>
+
+{% schema %}
+{
+  "name": "MCC Landing — Newsletter",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Title", "default": "Stay in the Loop!" },
+    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "Sign up with your email address to receive news and updates." },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Sign Up" }
+  ],
+  "presets": [{ "name": "MCC Landing — Newsletter" }]
+}
+{% endschema %}

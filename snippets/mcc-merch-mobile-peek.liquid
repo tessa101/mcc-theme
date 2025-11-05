@@ -1,0 +1,480 @@
+<!-- snippets/mcc-merch-mobile-peek.liquid -->
+{%- liquid
+  assign v = product.selected_or_first_available_variant
+  assign rb = rb | default: section.blocks | where: 'type', 'reviews_badge' | first
+-%}
+
+<div class="mm-peek" data-mm-peek data-product-id="{{ product.id }}">
+  <div class="mm-peek__left">
+    <h2 class="mm-peek__title">{{ product.title }}</h2>
+
+    <div class="mm-peek__price-wrap">
+      <span class="mm-peek__price" data-price>{{ v.price | money }}</span>
+      {%- if v.compare_at_price and v.compare_at_price > v.price -%}
+        <span class="mm-peek__price-compare" data-compare>{{ v.compare_at_price | money }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="mm-peek__color" aria-live="polite">
+      <i class="mm-peek__swatch" data-swatch title="{{ v.option1 | escape }}"></i>
+      <span class="mm-peek__color-name"
+            data-color-name
+            data-initial="{{ v.option1 | escape }}">{{ v.option1 }}</span>
+    </div>
+
+    <script>
+    /* EARLY GUARD: runs immediately to block numeric media IDs (e.g., "463") */
+    (function(){
+      var colorWrap = document.currentScript.previousElementSibling; // the .mm-peek__color div
+      var el = colorWrap && colorWrap.querySelector('[data-color-name]');
+      if (!el) return;
+
+      var initial = (el.getAttribute('data-initial') || el.textContent || '').trim();
+      var isNum = function(s){ return /^[0-9]+$/.test((s||'').toString().trim()); };
+
+      // If something already wrote a number, overwrite it immediately
+      if (isNum(el.textContent)) el.textContent = initial;
+
+      // Watch for any script that tries to drop a numeric value; revert instantly
+      var mo = new MutationObserver(function(){
+        var now = (el.textContent || '').trim();
+        if (!now || isNum(now)) {
+          el.textContent = initial;
+          return;
+        }
+        // Accept legit names and update our baseline
+        initial = now;
+      });
+      mo.observe(el, { childList: true, characterData: true, subtree: true });
+
+      // Expose a safe setter other scripts can use (optional)
+      window.MCC = window.MCC || {};
+      window.MCC.setPeekColorName = function(name){
+        if (name && !isNum(name)) {
+          el.textContent = (initial = String(name).trim());
+        }
+      };
+    })();
+    </script>
+
+    {%- if rb -%}
+      <a class="mm-peek__reviews-link" href="#shopify-section-reviews_widget">
+        {%- if rb.settings.show_label and rb.settings.label_text != blank -%}
+          <span class="mm-peek__reviews-label">{{ rb.settings.label_text }}</span>
+        {%- endif -%}
+        <span class="mm-peek__reviews-badge">
+          <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
+            {{ product.metafields.judgeme.badge }}
+          </div>
+        </span>
+      </a>
+    {%- endif -%}
+  </div>
+
+  <div class="mm-peek__right">
+    <button class="button button--primary button--sm" data-role="atc-peek">Add to cart</button>
+  </div>
+</div>
+
+<style>
+/* —— Merch Mobile Peek: full-width bar, no white card —— */
+.mm-drawer[data-mm-drawer] { padding: 0; } /* kill inner padding that was shrinking width */
+
+.mm-peek{
+  display:grid;
+  grid-template-columns: 1fr auto;   /* left stack + right CTA */
+  align-items: flex-start;
+  gap:0px;
+  inline-size:100%;
+  padding:12px 16px;                 /* internal breathing room */
+  background:transparent;            /* remove white fill */
+  border-radius:0;                   /* remove rounded card look */
+  box-shadow:none;                   /* remove card shadow */
+}
+
+/* left column stacks vertically */
+.mm-peek__left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+
+/* right column keeps the button tight */
+.mm-peek__right{ display:flex; align-items:flex-start; }
+
+.mm-peek__title{
+  margin:0;
+  font: 700 30px/1.1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing:-0.02em; color:#111;
+  word-break:break-word;
+}
+
+.mm-peek__price-wrap{
+  display:flex; align-items:baseline; gap:8px;
+  font:inherit;
+}
+.mm-peek__price{ font-weight:700; font-size:18px; color: #111;}
+.mm-peek__price-compare{ font-weight:600; font-size:14px; color:#9a9a9a; text-decoration:line-through; }
+
+.mm-peek__color{ display:inline-flex; align-items:center; gap:8px; }
+.mm-peek__swatch{
+  width:24px; height:24px; border-radius:50%;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  background:#ddd;
+}
+.mm-peek__color-name{ font-weight:600; font-size:16px; color: #111;}
+
+/* reviews badge under color */
+.mm-peek__reviews-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; margin-top: 6px !important; }
+.mm-peek__reviews-label{ font:600 13px/1.2 var(--font-body, inherit); }
+.mm-peek__reviews-badge :where(.jdgm-preview-badge){ display:inline-flex; }
+
+/* CTA sizing */
+.mm-peek .button--sm{ padding:8px 12px; border-radius:999px; }
+
+/* a little larger on wider phones */
+@media (min-width:480px){
+  .mm-peek__title{ font-size:22px; }
+}
+
+/* 2) Make the CTA smaller (override Dawn globals) */
+.mm-peek .button{ min-width: unset; }             /* Dawn sets a big min-width */
+.mm-peek .button--primary.button--sm{
+  padding: 12px 16px;                 /* was larger */
+  font-size: 14px;                   /* down from default */
+  line-height: 1.05;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+/* If your theme sets a fixed min-height/line-height on buttons, clamp it: */
+.mm-peek .button--sm{ min-height: auto; }
+
+/* 3) Make "2 reviews" text black instead of blue */
+.mm-peek__reviews-link,
+.mm-peek__reviews-link:link,
+.mm-peek__reviews-link:visited{
+  color: var(--mcc-text, #111) !important;         /* your standard text color */
+  text-decoration: none;
+}
+
+/* Judge.me preview badge text/link specifically */
+.mm-peek__reviews-link .jdgm-prev-badge__text{
+  color: var(--mcc-text, #111) !important;
+}
+
+/* Optional: keep stars as-is; or force a color here if needed */
+/* .mm-peek__reviews-link .jdgm-star { color: #1f8e8e !important; } */
+</style>
+
+<script>
+/* Merch Mobile Peek — color/price controller (guards against media-id noise) */
+(function(){
+  const styleEl = document.currentScript.previousElementSibling;
+  const host = styleEl?.previousElementSibling?.matches?.('.mm-peek')
+    ? styleEl.previousElementSibling
+    : document.querySelector('[data-mm-peek]');
+  if(!host) return;
+
+  const elPrice   = host.querySelector('[data-price]');
+  const elCompare = host.querySelector('[data-compare]');
+  const elSwatch  = host.querySelector('[data-swatch]');
+  const elName    = host.querySelector('[data-color-name]');
+  const atcBtn    = host.querySelector('[data-role="atc-peek"]');
+
+  const COLOR_MAP = {
+    black:'#000', white:'#fff', offwhite:'#f6f6f6', cream:'#efe9dc', natural:'#e7dfcf',
+    grey:'#808080', gray:'#808080', charcoal:'#333', silver:'#c9c9c9',
+    brown:'#5a402e', tan:'#d2b48c', camel:'#b88a55', khaki:'#c3b091',
+    red:'#c62828', orange:'#ef6c00', rust:'#b3572f', copper:'#b87333', cranberry:'#9f1632',
+    yellow:'#f2c200', mustard:'#d4a017', gold:'#c49a41',
+    green:'#2e7d32', forest:'#205c2d', olive:'#556b2f', mint:'#a6e3c6', evergreen:'#1b5e20', moss:'#8a9a5b',
+    teal:'#008080', blue:'#1565c0', navy:'#0d1b3c', sky:'#87ceeb', 'light blue':'#add8e6',
+    purple:'#6a1b9a', lavender:'#b57edc', pink:'#e91e63', 'hot pink':'#e91e63',
+    caramel:'#af6e4d', 'heather gray':'#b2b2b2', 'heather grey':'#b2b2b2', 'dark gray':'#4a4a4a', 'dark grey':'#4a4a4a'
+  };
+
+  const isHex = (s)=> /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test((s||'').toString().trim());
+  const isNumeric = (s)=> /^[0-9]+$/.test((s||'').toString().trim()); // media ids like "463"
+  const norm = (s)=> (s||'').toString().trim();
+
+  function applySwatch(colorLike){
+    if(!elSwatch) return;
+    const v = norm(colorLike);
+    if (!v) return;
+
+    // Check for bicolor (contains "/")
+    if (v.includes('/')) {
+      const parts = v.split('/').map(p => norm(p));
+      if (parts.length === 2) {
+        const color1 = parts[0];
+        const color2 = parts[1];
+        const hex1 = COLOR_MAP[color1.toLowerCase()] || '#ddd';
+        const hex2 = COLOR_MAP[color2.toLowerCase()] || '#ddd';
+        // Use linear gradient for split swatch (left half = color1, right half = color2)
+        const gradient = `linear-gradient(to right, ${hex1} 0%, ${hex1} 50%, ${hex2} 50%, ${hex2} 100%)`;
+        elSwatch.style.background = gradient;
+        elSwatch.style.backgroundColor = hex1; // Fallback to first color
+        elSwatch.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,.08)';
+        return;
+      }
+    }
+
+    if (isHex(v)) {
+      const light = ['#fff','#ffffff','#f6f6f6','#efe9dc','#e7dfcf','#c9c9c9'].includes(v.toLowerCase());
+      elSwatch.style.background = v;
+      elSwatch.style.backgroundColor = v; // Explicit fallback
+      elSwatch.style.boxShadow = light
+        ? 'inset 0 0 0 1px rgba(0,0,0,.25)'
+        : 'inset 0 0 0 1px rgba(0,0,0,.08)';
+      return;
+    }
+
+    const key = v.toLowerCase();
+    const hex = COLOR_MAP[key] || '#ddd';
+    
+    // Special handling for black to ensure it's truly black
+    if (key === 'black' || v.toLowerCase().trim() === 'black') {
+      elSwatch.style.background = '#000000';
+      elSwatch.style.backgroundColor = '#000000';
+      elSwatch.style.setProperty('background-color', '#000000', 'important');
+      elSwatch.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,.08)';
+      return;
+    }
+    
+    elSwatch.style.background = hex;
+    elSwatch.style.backgroundColor = hex; // Explicit fallback
+    const needsRing = ['white','offwhite','cream','natural','silver'].includes(key);
+    elSwatch.style.boxShadow = needsRing
+      ? 'inset 0 0 0 1px rgba(0,0,0,.25)'
+      : 'inset 0 0 0 1px rgba(0,0,0,.08)';
+  }
+
+  function setColor(name, hex){
+    const cleanName = norm(name);
+    if (elName && cleanName && !isNumeric(cleanName)) {
+      elName.textContent = cleanName;
+    }
+    applySwatch(hex || cleanName);
+  }
+
+  function formatMoney(cents){
+    if(window?.Shopify?.formatMoney)
+      return Shopify.formatMoney(cents, window.theme?.moneyFormat || '${{amount}}');
+    return '$' + (Number(cents || 0)/100).toFixed(2);
+  }
+
+  function setPrice({price, compare_at_price} = {}){
+    if (typeof price !== 'undefined' && elPrice) elPrice.textContent = formatMoney(price);
+    if (elCompare){
+      if (compare_at_price && compare_at_price > price){
+        elCompare.textContent = formatMoney(compare_at_price);
+        elCompare.style.display = '';
+      } else {
+        elCompare.style.display = 'none';
+      }
+    }
+  }
+
+// ATC forwards to the main form + opens cart drawer after add
+// ATC (peek) — let Dawn handle the form + cart drawer
+// ATC (peek) — let Dawn handle the cart drawer natively
+function handlePeekAddToCart(e){
+  e.preventDefault();
+  e.stopPropagation(); // don't toggle the drawer
+  e.stopImmediatePropagation(); // prevent any other handlers
+
+  // Store scroll position BEFORE any async operations
+  const scrollY = window.scrollY;
+  const scrollX = window.scrollX;
+
+  const form = document.querySelector('form[data-product-form]');
+  if (!form) {
+    console.warn('Merch mobile peek: form not found');
+    return;
+  }
+  
+  // Find the product-form element wrapper
+  const productForm = form.closest('product-form');
+  if (!productForm) {
+    console.warn('Merch mobile peek: product-form element not found');
+    return;
+  }
+  
+  // Find the submit button
+  const submitButton = form.querySelector('[type="submit"], button[name="add"]');
+  if (!submitButton) {
+    console.warn('Merch mobile peek: submit button not found');
+    return;
+  }
+  
+  // Check if button is disabled
+  if (submitButton.getAttribute('aria-disabled') === 'true') {
+    console.warn('Merch mobile peek: submit button is disabled');
+    return;
+  }
+  
+  // Create a synthetic submit event
+  const submitEvent = new Event('submit', { 
+    bubbles: true, 
+    cancelable: true 
+  });
+  
+  // Directly call Dawn's onSubmitHandler if available
+  // This bypasses any scroll issues from clicking
+  if (typeof productForm.onSubmitHandler === 'function') {
+    // Lock scroll position
+    const lockScroll = () => {
+      window.scrollTo(scrollX, scrollY);
+    };
+    
+    // Set up scroll prevention
+    const scrollInterval = setInterval(lockScroll, 10);
+    const scrollListener = () => lockScroll();
+    window.addEventListener('scroll', scrollListener, { passive: false });
+    document.addEventListener('scroll', scrollListener, { passive: false });
+    
+    // Call the handler
+    try {
+      productForm.onSubmitHandler(submitEvent);
+    } catch (err) {
+      console.error('Merch mobile peek: error calling onSubmitHandler', err);
+      // Fallback: dispatch the event
+      form.dispatchEvent(submitEvent);
+    }
+    
+    // Clean up scroll prevention after form processes
+    setTimeout(() => {
+      clearInterval(scrollInterval);
+      window.removeEventListener('scroll', scrollListener);
+      document.removeEventListener('scroll', scrollListener);
+      lockScroll(); // Final restore
+    }, 2000);
+  } else {
+    // Fallback: use requestSubmit
+    if (form.requestSubmit) {
+      const lockScroll = () => window.scrollTo(scrollX, scrollY);
+      const scrollInterval = setInterval(lockScroll, 10);
+      form.requestSubmit();
+      setTimeout(() => clearInterval(scrollInterval), 2000);
+    } else {
+      // Last resort: dispatch event
+      form.dispatchEvent(submitEvent);
+    }
+  }
+}
+
+// Handle click events (desktop/web inspector)
+atcBtn?.addEventListener('click', handlePeekAddToCart);
+
+// Handle touch events for mobile Safari
+// The drawer's touchstart handler prevents click events on mobile Safari
+// So we need to handle touchend directly
+atcBtn?.addEventListener('touchstart', function(e){
+  // Prevent the drawer from intercepting this touch
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  // Don't preventDefault here - let the touchend fire naturally
+}, { passive: false, capture: true });
+
+atcBtn?.addEventListener('touchend', function(e){
+  // Prevent the drawer from handling this
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  // Trigger form submission
+  handlePeekAddToCart(e);
+}, { passive: false, capture: true });
+
+
+
+
+  /* --- Event wiring (single source of truth) --- */
+
+  // 1) Variant changes from theme/picker
+  ['variant:change','variant:changed'].forEach(evt=>{
+    document.addEventListener(evt, (e)=>{
+      const v = e.detail && (e.detail.variant || e.detail);
+      if (!v) return;
+      setPrice(v);
+      const name = v.option1 || v.options?.[0] || '';
+      const hex  = v?.metafields?.custom?.color_hex || v?.color_hex || '';
+      // Only update if it's a real name (not a number)
+      if (!isNumeric(name)) setColor(name, hex);
+    });
+  });
+
+  // 2) Gallery slide announcements — update color when slide changes
+  let gallerySlideTimeout;
+  let lastColorName = '';
+  let lastColorHex = '';
+  
+  document.addEventListener('gallery:slide', (e)=>{
+    const d = e.detail || {};
+    const name = d.colorName || d.color || '';
+    const hex  = d.colorHex || '';
+    
+    // Skip if color hasn't actually changed (prevents unnecessary updates)
+    if (name === lastColorName && hex === lastColorHex) {
+      return;
+    }
+    
+    // Debounce rapid updates to prevent jitter during scrolling
+    clearTimeout(gallerySlideTimeout);
+    gallerySlideTimeout = setTimeout(() => {
+      // Always update if we have a name (even if empty hex), but skip if both are empty
+      if (name || hex) {
+        lastColorName = name;
+        lastColorHex = hex;
+        
+        // Use requestAnimationFrame for smooth DOM updates
+        requestAnimationFrame(() => {
+          setColor(name, hex);
+        });
+      }
+    }, 100); // Increased delay to batch rapid updates better
+  });
+
+  // 3) Initial paint from server values
+  setPrice({
+    price: {{ product.selected_or_first_available_variant.price | json }},
+    compare_at_price: {{ product.selected_or_first_available_variant.compare_at_price | default: 0 | json }}
+  });
+  setColor({{ product.selected_or_first_available_variant.option1 | json }});
+
+  // ---- LAST: hard-lock peek color name against numeric writes ----
+  (function lockPeekColorName(){
+    if (!elName) return;
+
+    const isNumeric = (s)=> /^[0-9]+$/.test((s||'').toString().trim());
+    let lastGood = (elName.textContent || '').trim();
+    if (!lastGood || isNumeric(lastGood)) lastGood = {{ product.selected_or_first_available_variant.option1 | json }};
+
+    // Force-set a safe initial value once more
+    if (isNumeric(elName.textContent)) elName.textContent = lastGood;
+
+    const mo = new MutationObserver(() => {
+      const now = (elName.textContent || '').trim();
+      if (!now || isNumeric(now)) {
+        // revert any accidental numeric (e.g., mediaId "463")
+        elName.textContent = lastGood;
+        return;
+      }
+      lastGood = now; // accept new valid names from picker/gallery
+    });
+
+    mo.observe(elName, { characterData: true, childList: true, subtree: true });
+
+    // Also guard programmatic updates via a setter
+    const _setColor = setColor;
+    window.__MCC_setColorGuarded = function(name, hex){
+      if (name && !isNumeric(name)) _setColor(name, hex);
+      else _setColor(lastGood, hex); // keep swatch current, text stable
+    };
+
+    // swap our guarded setter in the two places we call it
+    setColor = window.__MCC_setColorGuarded;
+  })();
+})();
+</script>

@@ -1,0 +1,268 @@
+{% comment %}
+MCC Product Content Sections – SAFE VERSION
+- No inline <script> tags
+- Metafields guarded
+- Riskier sections commented for controlled re-enable
+{% endcomment %}
+
+<div class="product-sections"><!-- keeps padding: 0 32px -->
+
+{%- liquid
+  assign mf = product.metafields
+-%}
+
+  <!-- =========================
+       DETAILS (accordion-wrapped)
+       ========================= -->
+  <section class="coffee-accordion content-section details-section" data-accordion data-acc="details" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title details-title">Details</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-details-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Details</span>
+      </button>
+    </header>
+
+    <div id="acc-details-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      <div class="details-grid">
+        <!-- Col 1 -->
+        <div class="details-col">
+          <div class="kv-row">
+            <div class="kv-label">Varietal:</div>
+            <div class="kv-value">
+              {{ mf.custom.varietal | default: '—' }}
+            </div>
+          </div>
+
+          <!-- Roast meter (render only if snippet exists / you want it) -->
+          {% comment %} UNCOMMENT to test bean meter {% endcomment %}
+          <div class="kv-row kv-row--roast">
+            <div class="kv-label only-desktop">{% render 'mcc-bean-meter', product: product, mode: 'label' %}:</div>
+            <div class="kv-value only-desktop">{% render 'mcc-bean-meter', product: product, mode: 'beans' %}</div>
+            <div class="kv-label only-mobile">{% render 'mcc-bean-meter', product: product, mode: 'label' %}:</div>
+            <div class="kv-value only-mobile">{% render 'mcc-bean-meter', product: product, mode: 'beans' %}</div>
+          </div>
+     
+        </div>
+
+        <!-- Col 2 -->
+        <div class="details-col">
+          <div class="kv-row">
+            <div class="kv-label">End temperature:</div>
+            <div class="kv-value">{{ mf.custom.end_temp | default: '—' }}</div>
+          </div>
+          <div class="kv-row">
+            <div class="kv-label">Grade:</div>
+            <div class="kv-value">{{ mf.custom.grade | default: '—' }}</div>
+          </div>
+        </div>
+
+        <!-- Col 3 -->
+        <div class="details-col">
+          {%- assign dev_raw = mf.custom.development_percentage -%}
+          {%- assign dev_val = dev_raw.value | default: dev_raw | strip -%}
+          <div class="kv-row">
+            <div class="kv-label">Development %:</div>
+            <div class="kv-value">
+              {%- if dev_val != blank -%}
+                {%- if dev_val contains '%' -%}{{ dev_val }}{%- else -%}{{ dev_val }}%{%- endif -%}
+              {%- else -%}—{%- endif -%}
+            </div>
+          </div>
+
+          {%- assign processing_raw = mf.custom.processing
+            | default: mf.custom.processing_method
+            | default: mf.custom.process
+            | default: mf.coffee.processing
+            | default: mf.coffee.processing_method
+            | default: mf.coffee.process -%}
+          {%- assign processing = processing_raw.value | default: processing_raw -%}
+          <div class="kv-row">
+            <div class="kv-label">Processing:</div>
+            <div class="kv-value">{{ processing | default: '—' }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- DESCRIPTION (safe) -->
+  <section class="coffee-accordion content-section" data-accordion data-acc="desc" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title desc-title">How it's made</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-desc-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Description</span>
+      </button>
+    </header>
+    <div id="acc-desc-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      {% render 'mcc-description', product: product %}
+    </div>
+  </section>
+
+  {%- comment -%}
+  ====== STEP 1 to re-enable: FLAVOR PROFILE ======
+  Un-comment this block, test, then proceed.
+  {%- endcomment -%}
+ 
+  <section class="coffee-accordion content-section" data-accordion data-acc="flavor" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title flavor-title">Flavor profile</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-flavor-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Flavor profile</span>
+      </button>
+    </header>
+    <div id="acc-flavor-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      {% render 'mcc-flavor-profiles', product: product %}
+    </div>
+  </section>
+  
+  {%- comment -%}
+  ====== STEP 2: GROWING DETAILS ======
+  {%- endcomment -%}
+  
+  <section class="coffee-accordion content-section" data-accordion data-acc="growing" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title growing-title">Growing details</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-growing-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Growing details</span>
+      </button>
+    </header>
+    <div id="acc-growing-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      {% render 'mcc-growing-details', product: product %}
+    </div>
+  </section>
+  
+
+ {%- comment -%} ====== STEP 3: BREW METHODS (collection-aware) ====== {%- endcomment -%}
+
+{%- assign handles = product.collections | map: 'handle' | join: ',' | downcase -%}
+
+{%- assign in_beans = false -%}
+{%- if handles contains 'beans' -%}
+  {%- assign in_beans = true -%}
+{%- endif -%}
+
+{%- assign in_coldbrew = false -%}
+{%- if handles contains 'cold-brew' or handles contains 'coldbrew' -%}
+  {%- assign in_coldbrew = true -%}
+{%- endif -%}
+
+{%- if in_beans and in_coldbrew == false -%}
+  <!-- BREWING METHODS -->
+  <section class="coffee-accordion content-section" data-accordion data-acc="brew" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title brew-title">Brewing methods</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-brew-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Brewing methods</span>
+      </button>
+    </header>
+    <div id="acc-brew-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      {% render 'mcc-brew-methods', product: product %}
+    </div>
+  </section>
+{%- endif -%}
+{% if in_beans %}
+  {% unless in_coldbrew %}
+  {% endunless %}
+{% endif %}
+ 
+
+  {%- comment -%}
+  ====== STEP 4: REVIEWS (Judge.me) ======
+  Keep this commented until the end; it was the biggest script cluster.
+  When you un-comment, start with just the widget DIV (no helper JS).
+  {%- endcomment -%}
+  <section class="coffee-accordion content-section" data-accordion data-acc="reviews" data-stagger="rows">
+    <header class="coffee-acc-header">
+      <h2 class="coffee-acc-title coffee-reviews-title">Recent reviews</h2>
+      <button class="coffee-acc-trigger" type="button"
+              aria-controls="acc-reviews-{{ section.id }}" aria-expanded="true">
+        <span class="sr-only">Toggle Recent reviews</span>
+      </button>
+    </header>
+    <div id="acc-reviews-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+      <div class="pdp-module pdp-reviews" id="reviews" data-mcc-reviews>
+        <div id="judgeme_product_reviews"
+             class="jdgm-widget jdgm-review-widget"
+             data-product-title="{{ product.title | escape }}"
+             data-id="{{ product.id }}">
+          {{ product.metafields.judgeme.widget }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Load the reviews module 
+<script defer src="{{ 'mcc-reviews.js' | asset_url }}"></script>-->
+
+<!-- Kick it off (after DOMContentLoaded just in case) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.MCC && MCC.Reviews && MCC.Reviews.init({
+      hostSel: '#reviews.pdp-reviews'
+      // You can override flags here if you like
+      // disableDesktopPagerOnMobile: true,
+      // enableMobileMore: true,
+      // enableWideMark: true,
+      // enableAnimate: true,
+    });
+  });
+</script>
+
+ 
+
+  {%- comment -%}
+  ====== STEP 5: RECOMMENDATIONS ======
+  {%- endcomment -%}
+ 
+  <div class="content-section coffee-recs" id="recommendations">
+    {%- assign beans_col    = collections['beans'] -%}
+    {%- assign merch_col    = collections['merch'] -%}
+    {%- assign coldbrew_col = collections['cold-brew'] | default: collections['coldbrew'] -%}
+    {%- assign product_col_handles = product.collections | map: 'handle' | join: ',' | downcase -%}
+
+    {%- assign target_collection = nil -%}
+    {%- if product_col_handles contains 'beans' and beans_col and beans_col.products_count > 1 -%}
+      {%- assign target_collection = beans_col -%}
+    {%- elsif product_col_handles contains 'merch' and merch_col and merch_col.products_count > 1 -%}
+      {%- assign target_collection = merch_col -%}
+    {%- elsif product_col_handles contains 'cold-brew' and coldbrew_col and coldbrew_col.products_count > 1 -%}
+      {%- assign target_collection = coldbrew_col -%}
+    {%- endif -%}
+
+    {%- if target_collection == nil -%}
+      {%- if beans_col and beans_col.products_count > 1 -%}
+        {%- assign target_collection = beans_col -%}
+      {%- elsif merch_col and merch_col.products_count > 1 -%}
+        {%- assign target_collection = merch_col -%}
+      {%- elsif coldbrew_col and coldbrew_col.products_count > 1 -%}
+        {%- assign target_collection = coldbrew_col -%}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- assign rec_products = '' -%}
+    {%- if target_collection and target_collection.products -%}
+      {%- assign rec_products = target_collection.products -%}
+    {%- elsif collections['all'] and collections['all'].products_count > 1 -%}
+      {%- assign rec_products = collections['all'].products -%}
+    {%- endif -%}
+
+    {%- if rec_products != blank -%}
+      {% assign see_more = product.collections.first.url | default: '/collections/all' %}
+      {% render 'mcc-recommended-products',
+        product: product,
+        products: rec_products,
+        title: 'You might also like',
+        limit: 6,
+        see_more_url: see_more
+      %}
+    {%- endif -%}
+  </div>
+</div>
+
+

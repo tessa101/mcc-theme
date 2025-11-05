@@ -1,0 +1,70 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "mcc-landing-hero",
+      "settings": {
+        "image": "shopify://shop_images/Screenshot_2025-09-29_at_8.13.42_PM.png",
+        "heading": "COLD BREW.",
+        "subheading": "",
+        "cta_label": "",
+        "cta_link": "",
+        "desktop_height_vh": 84,
+        "title_size_desktop": 80,
+        "title_size_mobile": 56
+      }
+    },
+    "logos": {
+      "type": "mcc-landing-available",
+      "settings": {
+        "title": "available at"
+      }
+    },
+    "ig": {
+      "type": "mcc-landing-instagram",
+      "blocks": {
+        "post_zWKWdN": {
+          "type": "post",
+          "settings": {
+            "post_url": ""
+          }
+        }
+      },
+      "block_order": [
+        "post_zWKWdN"
+      ],
+      "settings": {
+        "title": "Follow our journey.",
+        "handle": "malibucoffeecompany",
+        "limit": 6
+      }
+    },
+    "signup": {
+      "type": "mcc-landing-newsletter",
+      "settings": {
+        "title": "Stay in the Loop!",
+        "subtitle": "Sign up with your email address to receive news and updates.",
+        "button_label": "Sign Up"
+      }
+    },
+    "footer": {
+      "type": "mcc-landing-footer",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "logos",
+    "ig",
+    "signup",
+    "footer"
+  ]
+}

@@ -1,0 +1,307 @@
+{%- comment -%}
+MCC Merch Media Gallery (desktop, vertical) — self-contained with inline JS
+- Shows ALL media, vertical scroll
+- On variant change, moves the chosen variant’s featured media to the top
+- Merch-only by virtue of being rendered inside .product-merch layouts
+{%- endcomment -%}
+
+{% assign initial_variant = product.selected_or_first_available_variant %}
+{% assign initial_media = initial_variant.featured_media | default: product.featured_media %}
+
+<div id="MerchGallery-{{ section.id }}"
+     class="mcc-merch-gallery"
+     data-section-id="{{ section.id }}"
+     data-product-handle="{{ product.handle }}"
+     data-initial-media-id="{{ initial_media.id }}"
+     data-option-names='{{ product.options | json }}'>
+
+  <!-- JSON for the controller -->
+  <script type="application/json" data-merch-variants>
+    {{ product.variants | json }}
+  </script>
+  <script type="application/json" data-merch-media>
+    {{ product.media | json }}
+  </script>
+
+  <div class="mgg-rail" role="list" >
+    {%- for media in product.media -%}
+      <div class="mgg-item " role="listitem"
+           data-media-id="{{ media.id }}"
+           data-media-position="{{ media.position }}"
+            style="--mcc-stagger: {{ forloop.index0 }};">
+        {% case media.media_type %}
+          {% when 'image' %}
+            {{ media | image_url: width: 2000 | image_tag: loading: 'lazy', class: 'mgg-img', alt: media.alt | escape }}
+          {% when 'video' %}
+            {{ media | video_tag: controls: true, class: 'mgg-video' }}
+          {% when 'external_video' %}
+            {{ media | external_video_tag: class: 'mgg-video' }}
+          {% when 'model' %}
+            {{ media | model_viewer_tag: class: 'mgg-model', reveal: 'interaction' }}
+          {% else %}
+            {{ media | media_tag }}
+        {% endcase %}
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+
+<script>
+/* ===== MCC MERCH GALLERY — bulletproof controller (final clean) ===== */
+(() => {
+  const log = (...a) => console.log('[MCC Gallery]', ...a);
+
+  // Locate this gallery root
+  const root =
+    document.getElementById('MerchGallery-{{ section.id }}') ||
+    (document.currentScript && document.currentScript.closest('.mcc-merch-gallery')) ||
+    (document.currentScript && document.currentScript.previousElementSibling && document.currentScript.previousElementSibling.classList?.contains('mcc-merch-gallery') ? document.currentScript.previousElementSibling : null);
+  if (!root || root.__mccInited) return;
+  root.__mccInited = true;
+
+  // Utils
+  const qs  = (r, s) => (r || document).querySelector(s);
+  const qsa = (r, s) => Array.from((r || document).querySelectorAll(s));
+
+  // Data blobs
+  const variants = (() => { try { return JSON.parse(qs(root, 'script[data-merch-variants]').textContent || '[]'); } catch(e){ return []; } })();
+  const mediaList = (() => { try { return JSON.parse(qs(root, 'script[data-merch-media]').textContent || '[]'); } catch(e){ return []; } })();
+  const optionNames = (() => { try { return JSON.parse(root.getAttribute('data-option-names') || '[]'); } catch(e){ return []; } })();
+  const colorIdx = optionNames.findIndex(n => String(n).toLowerCase() === 'color');
+
+  // Normalizers
+  const normSrc = (u) => String(u || '').replace(/^https?:\/\//, '').replace(/[_-]+/g,'-').toLowerCase();
+  const normTxt = (t) => String(t || '').trim().toLowerCase();
+
+  // Media lookups
+  const MEDIA_BY_POS = new Map();
+  const MEDIA_BY_SRC = new Map();
+  mediaList.forEach(m => {
+    if (m?.position != null) MEDIA_BY_POS.set(Number(m.position), m);
+    const src = m.preview_image?.src || m.src || '';
+    if (src) MEDIA_BY_SRC.set(normSrc(src), m);
+  });
+
+  // Color → media fallback
+  const COLOR_TO_MEDIA = {};
+  if (colorIdx >= 0) {
+    const colors = Array.from(new Set(variants.map(v => (v.options?.[colorIdx] || '').trim()).filter(Boolean)));
+    colors.forEach(color => {
+      const key = normTxt(color);
+      let hit = null;
+      for (const m of mediaList) {
+        const alt = normTxt(m.alt);
+        const src = normSrc(m.preview_image?.src || m.src);
+        if (alt.includes(key) || src.includes(key)) { hit = m; break; }
+      }
+      if (hit) COLOR_TO_MEDIA[color] = hit.id;
+    });
+  }
+
+  // Variant → media map with fallbacks
+  const VARIANT_TO_MEDIA = {};
+  variants.forEach(v => {
+    let mid = v?.featured_media?.id || null;
+    if (!mid && v?.featured_image) {
+      const vSrc = normSrc(v.featured_image.src || '');
+      if (vSrc && MEDIA_BY_SRC.has(vSrc)) mid = MEDIA_BY_SRC.get(vSrc).id;
+      if (!mid && v.featured_image.position != null) {
+        const m = MEDIA_BY_POS.get(Number(v.featured_image.position));
+        if (m) mid = m.id;
+      }
+    }
+    if (!mid && colorIdx >= 0) {
+      const colorVal = v?.options?.[colorIdx];
+      if (colorVal && COLOR_TO_MEDIA[colorVal]) mid = COLOR_TO_MEDIA[colorVal];
+    }
+    if (v?.id) VARIANT_TO_MEDIA[String(v.id)] = mid || null;
+  });
+  log('Variant→Media map:', VARIANT_TO_MEDIA);
+
+  // Reorder operation
+  function moveMediaToTop(mediaId) {
+    if (!mediaId) return;
+    const rail = qs(root, '.mgg-rail');
+    const item = qs(root, `.mgg-item[data-media-id="${mediaId}"]`);
+    if (!rail || !item) { log('media node not found for', mediaId); return; }
+    if (rail.firstElementChild !== item) {
+      rail.insertBefore(item, rail.firstElementChild);
+      rail.scrollTo?.({ top: 0, behavior: 'smooth' });
+      log('moved media to top:', mediaId);
+    } else {
+      log('already top:', mediaId);
+    }
+  }
+
+  // Option helpers
+  function getCurrentOptions(formEl) {
+    const chosen = {};
+    qsa(formEl, '[name^="options["]').forEach(el => {
+      const m = el.name.match(/^options\[(.+)\]$/);
+      if (!m) return;
+      const key = m[1];
+      if (el.type === 'radio') { if (el.checked) chosen[key] = el.value; }
+      else { chosen[key] = el.value; }
+    });
+    return chosen;
+  }
+  function findVariantByOptions(formEl) {
+    const chosen = getCurrentOptions(formEl);
+    return variants.find(v =>
+      v?.options?.every((optVal, i) => normTxt(chosen[optionNames[i]]) === normTxt(optVal))
+    ) || null;
+  }
+  function resolveMediaId({ variantId, formEl }) {
+    const m1 = VARIANT_TO_MEDIA[String(variantId)];
+    if (m1) return m1;
+    if (colorIdx >= 0 && formEl) {
+      const colorVal = getCurrentOptions(formEl)[optionNames[colorIdx]];
+      const m2 = COLOR_TO_MEDIA[colorVal];
+      if (m2) return m2;
+    }
+    if (formEl) {
+      const v = findVariantByOptions(formEl);
+      if (v) return VARIANT_TO_MEDIA[String(v.id)] || null;
+    }
+    return null;
+  }
+
+  // Initial hero placement
+  const initialId = root.getAttribute('data-initial-media-id');
+  if (initialId) moveMediaToTop(String(initialId));
+
+  // Host + form
+  const infoId = `ProductInfo-${root.getAttribute('data-section-id')}`;
+  const hostSection = root.closest('.product-merch, [data-section-id]') || document;
+  const form = document.getElementById(infoId) || hostSection;
+  if (!form) { log('form not found'); return; }
+
+  // Variant id inputs
+  const idInputs = qsa(form, 'input[name="id"], select[name="id"]');
+  const hiddenId = idInputs.find(el => el.type === 'hidden') || null;
+
+  // Readers
+  function getCurrentVariantId() {
+    const checkedRadio = idInputs.find(el => el.type === 'radio' && el.checked);
+    if (checkedRadio?.value) return checkedRadio.value;
+    const sel = qs(form, 'select[name="id"]');
+    if (sel?.value) return sel.value;
+    if (hiddenId?.value) return hiddenId.value;
+    const v = findVariantByOptions(form);
+    return v?.id ? String(v.id) : '';
+  }
+
+  // Actions
+  function updateFromVariantId(vid) {
+    const mid = resolveMediaId({ variantId: vid, formEl: form });
+    log('updateFromVariantId →', vid, 'media', mid);
+    if (mid) moveMediaToTop(String(mid));
+  }
+
+  // Debounced sync
+  let syncTimer = null;
+  function syncNow() {
+    if (syncTimer) cancelAnimationFrame(syncTimer);
+    syncTimer = requestAnimationFrame(() => {
+      const vid = getCurrentVariantId();
+      if (vid) updateFromVariantId(vid);
+      else {
+        const v = findVariantByOptions(form);
+        if (v?.id) updateFromVariantId(String(v.id));
+      }
+    });
+  }
+
+  // Bindings
+  qsa(form, '[name^="options["]').forEach(el => {
+    el.addEventListener('change', syncNow);
+    el.addEventListener('input',  syncNow);
+  });
+
+  idInputs.forEach(el => {
+    el.addEventListener('change', syncNow);
+    el.addEventListener('input',  syncNow);
+  });
+
+  if (hiddenId) {
+    const mo = new MutationObserver(() => { if (hiddenId.value) syncNow(); });
+    mo.observe(hiddenId, { attributes: true, attributeFilter: ['value'] });
+  }
+
+  // Listen on both <product-form> (if present) and document
+  const productForms = [qs(form, 'product-form'), ...qsa(form, 'product-form')].filter(Boolean);
+  const onVariantChange = (e) => {
+    const v = e?.detail?.variant;
+    if (v?.id) {
+      log('heard variant:change →', v.id, v.options);
+      updateFromVariantId(String(v.id));   // use event id directly
+    } else {
+      syncNow();                            // fallback re-read
+    }
+  };
+  document.addEventListener('variant:change', onVariantChange, true);
+  productForms.forEach(pf => pf.addEventListener('variant:change', onVariantChange));
+
+  document.addEventListener('shopify:section:load', (ev) => {
+    if (root.contains(ev.target)) syncNow();
+  });
+
+  // Initial sync
+  syncNow();
+
+    /* ===== Hard guard: variant id change watcher (polling) ===== */
+   /* ===== Hard guard: variant id change watcher (polling) ===== */
+  if (!window.__MCC_HAS_DRIVER__) {
+    let lastVid = '';
+    function readVid() {
+      const radios = Array.from(form.querySelectorAll('input[name="id"]'));
+      const rChecked = radios.find(el => el.type === 'radio' && el.checked);
+      if (rChecked && rChecked.value) return rChecked.value;
+      const sel = form.querySelector('select[name="id"]');
+      if (sel && sel.value) return sel.value;
+      if (hiddenId && hiddenId.value) return hiddenId.value;
+      const v = findVariantByOptions(form);
+      return v && v.id ? String(v.id) : '';
+    }
+    function watchLoop() {
+      const vid = readVid();
+      if (vid && vid !== lastVid) {
+        lastVid = vid;
+        updateFromVariantId(vid);
+      }
+      setTimeout(watchLoop, 500); // slower to be gentle
+    }
+    setTimeout(watchLoop, 0);
+    form.addEventListener('change', () => setTimeout(watchLoop, 0), true);
+    form.addEventListener('input',  () => setTimeout(watchLoop, 0), true);
+  }
+
+
+  /*function watchLoop() {
+    if (watchStop) return;
+    const vid = readVid();
+    if (vid && vid !== lastVid) {
+      lastVid = vid;
+      updateFromVariantId(vid);
+    }
+    // check ~5x/sec; light-weight and safe
+    setTimeout(watchLoop, 200);
+  }
+
+  // kick it off after page settles
+  setTimeout(watchLoop, 0);
+
+  // also nudge the watcher after any option/id interaction
+  form.addEventListener('change', () => setTimeout(watchLoop, 0), true);
+  form.addEventListener('input',  () => setTimeout(watchLoop, 0), true);*/
+
+  // Reveal nicety
+  const items = qsa(root, '.mgg-item');
+  const io = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('is-inview'); obs.unobserve(entry.target); } });
+  }, { threshold: 0.12 });
+  items.forEach((el, i) => i ? io.observe(el) : el.classList.add('is-inview'));
+})();
+</script>
+

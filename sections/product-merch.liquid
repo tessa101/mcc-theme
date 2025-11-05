@@ -1,0 +1,240 @@
+{% comment %}
+WORK IN PROGRESS 10.06.25
+See old version product-merch.liquid (sept 25) for reference
+removed subscription widget, accordion, 
+Based on product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
+{% endcomment %}
+
+{% comment %}
+MCC Merch Product Detail Page — v1 (safe starter)
+- Copies coffee layout (gallery left, sidebar right)
+- Uses shared assets (mcc-product-styles.css, mcc-product-functionality.js)
+- No coffee-accordion inline CSS/JS here (keeps it clean)
+- Scoped root: .product-merch
+{% endcomment %}
+
+<section class="mcc-product product-merch only-desktop"
+  data-product-id="{{ product.id }}"
+  data-section="{{ section.id }}">
+
+
+  <!-- Mobile Hero Image (keep for now; adjust later if merch mobile uses a drawer-only hero) -->
+  <div class="product-hero-mobile">
+    {% assign mobile_image = product.media[3] | default: product.featured_media %}
+    {% if mobile_image %}
+      <img
+        src="{{ mobile_image | image_url: width: 800 }}"
+        alt="{{ mobile_image.alt | escape }}"
+        class="product-image-mobile">
+    {% endif %}
+  </div>
+
+  <div class="product-container">
+    <!-- Left: Gallery & Content -->
+    <div class="product-main">
+      {%- comment -%} Reuse for now; merch-gallery is a long form gallery {%- endcomment -%}
+      {% render 'mcc-merch-gallery', product: product %}
+
+      {%- comment -%} LEFT COLUMN CONTENT (shared container). Replace with merch metafield panels later. {%- endcomment -%}
+      {% render 'mcc-merch-product-content', product: product %}
+    </div>
+
+    <!-- Right: Product Info Sidebar -->
+    <div class="product-sidebar">
+      <div class="sidebar-content">
+        {%- comment -%} Reuse header for now; we can duplicate to mcc-merch-header if copy/badges diverge {%- endcomment -%}
+        {% render 'mcc-merch-product-header', product: product %}
+
+        {%- comment -%} Optional: Judge.me badge block (kept consistent with coffee) {%- endcomment -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'reviews_badge' -%}
+            <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="margin-top:{{ block.settings.top_margin | default: 12 }}px">
+              {%- if block.settings.show_label and block.settings.label_text != blank -%}
+                <a class="pdp-reviews-badge__link" href="#reviews">{{ block.settings.label_text }}</a>
+              {%- endif -%}
+              <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
+                {{ product.metafields.judgeme.badge }}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- comment -%} Dynamic Price (shared) {%- endcomment -%}
+        {% if product.available %}
+          <div class="product-price-display" data-product-price>
+            <span class="current-price" id="current-subtotal" data-subtotal>
+              {{ product.selected_or_first_available_variant.price | money }}
+            </span>
+            {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}
+              <span class="compare-price" id="compare-price-display">
+                {{ product.selected_or_first_available_variant.compare_at_price | money }}
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {%- comment -%} Product Form (shared for now). Later: swap to mcc-merch-form if needed {%- endcomment -%}
+        {% render 'mcc-merch-product-form', product: product, section: section %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if request.design_mode %}
+  <script>
+    (() => {
+      const root = document.documentElement;
+      {% if section.settings.editor_force_mobile %} root.classList.add('design-pretend-mobile'); {% endif %}
+      {% if section.settings.editor_force_desktop %} root.classList.add('design-pretend-desktop'); {% endif %}
+    })();
+  </script>
+{% endif %}
+
+
+<!-- Shared MCC assets (keep) -->
+<script src="{{ 'mcc-product-functionality.js' | asset_url }}" defer></script>
+{{ 'mcc-product-styles.css' | asset_url | stylesheet_tag }}
+
+
+{% render 'mcc-merch-gallery-driver' %}
+
+{%- comment -%}
+Schema mirrors coffee so Theme Editor behaves the same.
+You can prune/add blocks later (e.g., size chart, features) without breaking layout.
+{%- endcomment -%}
+{% schema %}
+{
+  "name": "product-merch",
+  "tag": "section",
+  "class": "section",
+  "limit": 1,
+  "settings": [
+    { "type": "checkbox", "id": "enable_image_zoom", "label": "Enable image zoom on hover", "default": false }
+  ],
+  "blocks": [
+  { "type": "@app" },
+
+  {
+    "type": "reviews_badge",
+    "name": "Reviews badge (Judge.me)",
+    "limit": 1,
+    "settings": [
+      { "type": "checkbox", "id": "show_label", "label": "Show link label", "default": false },
+      { "type": "text", "id": "label_text", "label": "Label text", "default": "See all reviews" },
+      { "type": "range", "id": "top_margin", "label": "Top spacing (px)", "min": 0, "max": 48, "step": 4, "default": 12 }
+    ]
+  },
+
+  { "type": "variant_picker", "name": "Variant Picker", "limit": 1 },
+
+  {
+    "type": "quantity_selector",
+    "name": "Quantity Selector",
+    "limit": 1,
+    "settings": [
+      { "type": "text", "id": "quantity_label", "label": "Quantity Label", "default": "QUANTITY" }
+    ]
+  },
+
+  { "type": "buy_buttons", "name": "Buy Buttons", "limit": 1 },
+
+  {
+    "type": "wishlist",
+    "name": "Wishlist / Favorites",
+    "limit": 1,
+    "settings": [
+      { "type": "text", "id": "label", "label": "Accessible label", "default": "Add to favorites" },
+      { "type": "range", "id": "top_margin", "label": "Top spacing (px)", "min": 0, "max": 40, "step": 4, "default": 12 }
+    ]
+  },
+
+  { "type": "custom_liquid", "name": "Custom liquid", "limit": 2,
+    "settings": [ { "type": "liquid", "id": "custom_liquid", "label": "Custom liquid" } ]
+  },
+
+  { "type": "text", "name": "Text", "limit": 4,
+    "settings": [ { "type": "text", "id": "text", "label": "Text" } ]
+  }
+],
+  "presets": [
+    {
+    "name": "product-merch",
+    "blocks": [
+      { "type": "reviews_badge" },
+      { "type": "variant_picker" },
+      { "type": "quantity_selector" },
+      { "type": "buy_buttons" },
+      { "type": "wishlist" }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+
+{%- comment -%} === Merch-only subtotal updater (scoped by section) === {%- endcomment -%}
+
+{%- comment -%} Minimal variants JSON for price math {%- endcomment -%}
+<script type="application/json" id="mcc-merch-variants-{{ section.id }}">
+  {{ product.variants | json }}
+</script>
+
+<script>
+(() => {
+  const root = document.querySelector('.mcc-product.product-merch[data-section="{{ section.id }}"]');
+  if (!root || root.__mccMerchSubtotalBound) return; root.__mccMerchSubtotalBound = true;
+
+  const subtotalEl = root.querySelector('#current-subtotal');
+  if (!subtotalEl) return;
+
+  // ---- helpers (NO in here) ----
+  const toInt = (v, fb=0) => { const n = parseInt(v,10); return Number.isFinite(n) ? n : fb; };
+  const fmt = (cents) => {
+    const c = Math.max(0, Math.round(cents));
+    if (window.Shopify && typeof Shopify.formatMoney === 'function') {
+      try { return Shopify.formatMoney(c); } catch(e) {}
+    }
+    const curr = (window.Shopify && Shopify.currency && Shopify.currency.active) || 'USD';
+    return (c/100).toLocaleString(undefined, { style:'currency', currency: curr });
+  };
+
+  const variants = (() => {
+    const el = document.getElementById('mcc-merch-variants-{{ section.id }}');
+    try { return JSON.parse(el.textContent) || []; } catch(e) { return []; }
+  })();
+
+  const currentVariantId = () =>
+    toInt((root.querySelector('input[name="id"]:checked') || root.querySelector('input[name="id"][type="hidden"]') || root.querySelector('select[name="id"]'))?.value, variants[0]?.id);
+
+  const findVariant = (id) => variants.find(v => String(v.id) === String(id)) || null;
+
+  const selectedPlanId = () => {
+    const inp = root.querySelector('input[name="selling_plan"]') || root.querySelector('#mcc-selling-plan-input');
+    const val = inp && (inp.value || '').trim();
+    return val && val !== 'null' ? val : '';
+  };
+
+  const unitPriceCents = () => {
+    const v = findVariant(currentVariantId());
+    if (!v) return 0;
+    const pid = selectedPlanId();
+    if (pid && Array.isArray(v.selling_plan_allocations)) {
+      const a = v.selling_plan_allocations.find(x => String(x.selling_plan_id) === String(pid));
+      if (a && typeof a.final_price === 'number') return a.final_price;
+    }
+    return v.price || 0;
+  };
+
+  const qtyInput = root.querySelector('input[name="quantity"], .qty-input');
+  const qty = () => Math.max(1, toInt(qtyInput && qtyInput.value, 1));
+  const update = () => { subtotalEl.textContent = fmt(unitPriceCents() * qty()); };
+
+  if (qtyInput) { qtyInput.addEventListener('input', update); qtyInput.addEventListener('change', update); }
+  root.addEventListener('click', (e) => { if (e.target.closest('.qty-btn')) setTimeout(update, 0); });
+  root.querySelectorAll('input[name="id"], select[name="id"]').forEach(el => el.addEventListener('change', () => setTimeout(update,0)));
+  root.querySelectorAll('input[name="selling_plan"]').forEach(el => el.addEventListener('change', () => setTimeout(update,0)));
+
+  update();
+})();
+</script>

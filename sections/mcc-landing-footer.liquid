@@ -1,0 +1,27 @@
+{% comment %} MCC Landing — Footer (Contact, Wholesale, Partnerships) {% endcomment %}
+<section class="mcc-cta-footer" data-mcc-landing="footer">
+  <nav class="mcf-nav">
+    {% if section.settings.contact_link != blank %}<a href="{{ section.settings.contact_link }}">Contact Us</a>{% endif %}
+    {% if section.settings.wholesale_link != blank %}<a href="{{ section.settings.wholesale_link }}">Wholesale</a>{% endif %}
+    {% if section.settings.partnerships_link != blank %}<a href="{{ section.settings.partnerships_link }}">Partnerships</a>{% endif %}
+  </nav>
+</section>
+
+<style>
+.mcc-cta-footer{ padding:40px 16px 60px; background:var(--color-base-bg,#fff); }
+.mcf-nav{ display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+.mcf-nav a{ font-weight:700; text-decoration:none; color:#111; border-bottom:1px solid transparent; }
+.mcf-nav a:hover{ border-bottom-color:#111; }
+</style>
+
+{% schema %}
+{
+  "name": "MCC Landing — Footer",
+  "settings": [
+    { "type": "url", "id": "contact_link",       "label": "Contact Us link" },
+    { "type": "url", "id": "wholesale_link",     "label": "Wholesale link" },
+    { "type": "url", "id": "partnerships_link",  "label": "Partnerships link" }
+  ],
+  "presets": [{ "name": "MCC Landing — Footer" }]
+}
+{% endschema %}

@@ -1,0 +1,14 @@
+{%- comment -%}
+Renders product.metafields.custom.merch_details
+Supports rich_text, html, and multi_line_text
+{%- endcomment -%}
+
+{%- assign mf = product.metafields.custom.merch_details -%}
+{%- if mf != blank -%}
+  <!-- Add the same classes the description uses -->
+  <section class="mcc-merch-details details-section description-section">
+    <div class="details-content description-content rte">
+      {{ mf | metafield_tag }}
+    </div>
+  </section>
+{%- endif -%}

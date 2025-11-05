@@ -1,0 +1,42 @@
+{%- comment -%}
+Usage:
+  {% render 'mcc-brew-icon', type: 'machine' %}
+Types: machine, french_press, pour_over, espresso
+Note: We use asset_url so you don't need full links.
+{%- endcomment -%}
+
+{%- case type | downcase -%}
+
+{%- when 'pour_over' -%}
+  <img
+    class="brew-icon"
+    src="{{ 'brew-pourover@2x.png' | asset_url }}"
+    width="160" height="160"
+    alt=""
+    loading="lazy" decoding="async">
+
+{%- when 'espresso' -%}
+  <img
+    class="brew-icon"
+    src="{{ 'brew-espresso@2x.png' | asset_url }}"
+    width="160" height="160"
+    alt=""
+    loading="lazy" decoding="async">
+
+{%- when 'french_press' -%}
+  <img
+    class="brew-icon"
+    src="{{ 'brew-frenchpress@2x.png' | asset_url }}"
+    width="160" height="160"
+    alt=""
+    loading="lazy" decoding="async">
+
+{%- when 'machine' -%}
+  <img
+    class="brew-icon"
+    src="{{ 'brew-machine@2x.png' | asset_url }}"
+    width="160" height="160"
+    alt=""
+    loading="lazy" decoding="async">
+
+{%- endcase -%}

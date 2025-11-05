@@ -1,0 +1,99 @@
+{% comment %} MCC Landing — Hero (page-scoped transparent header + controllable title sizes) {% endcomment %}
+<section
+  class="mcc-hero"
+  data-mcc-landing="hero"
+  data-invert-header="{{ section.settings.invert_header_colors }}"
+  style="
+    --vh: {{ section.settings.desktop_height_vh | default: 88 }}vh;
+    --mcc-hero-title-mobile: {{ section.settings.title_size_mobile | default: 56 }}px;
+    --mcc-hero-title-desktop: {{ section.settings.title_size_desktop | default: 80 }}px;
+  "
+>
+  {% if section.settings.image != blank %}
+    {{ section.settings.image | image_url: width: 2400 | image_tag: class: 'mcc-hero__img', alt: section.settings.image.alt | escape }}
+  {% endif %}
+
+  <div class="mcc-hero__overlay" >
+    {% if section.settings.logo != blank %}
+      {{ section.settings.logo | image_url: width: 320 | image_tag: class: 'mcc-hero__logo', alt: section.settings.logo.alt | escape }}
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h1 class="mcc-hero__title">{{ section.settings.heading }}</h1>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+      <p class="mcc-hero__sub">{{ section.settings.subheading }}</p>
+    {% endif %}
+    {% if section.settings.cta_label != blank and section.settings.cta_link != blank %}
+      <a class="mcc-hero__cta" href="{{ section.settings.cta_link }}">{{ section.settings.cta_label }}</a>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.mcc-hero{ position:relative; height:var(--vh,88vh); min-height:560px; display:grid; place-items:center; overflow:hidden; }
+.mcc-hero__img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.mcc-hero__overlay{ position:relative; z-index:1; text-align:center; color:#fff; padding:clamp(24px,4vw,48px); }
+.mcc-hero__logo{ display:block; margin:0 auto 16px; height:auto; }
+.mcc-hero__title{
+  font-family: 'Passion One', var(--font-sans); 
+  font-weight:400; letter-spacing:-.01em; line-height:1.1; color: #fff; margin:8px 0;
+  font-size: var(--mcc-hero-title-mobile,56px);
+}
+@media (min-width: 740px){
+  .mcc-hero__title{ font-size: var(--mcc-hero-title-desktop,80px); }
+}
+.mcc-hero__sub{ font-size:clamp(16px,2.2vw,20px); opacity:.9; margin:8px 0 20px; }
+.mcc-hero__cta{ display:inline-block; padding:12px 20px; border-radius:999px; background:#fff; color:#111; text-decoration:none; font-weight:600; }
+</style>
+
+
+
+<script>
+(() => {
+  const body = document.body;
+  if (!body.classList.contains('is-landing-mcc')) return;
+
+  // Find this hero section node
+  const hero = document.currentScript.closest('.shopify-section') || document.querySelector('[data-mcc-landing="hero"]');
+  if (!hero) return;
+
+  const invertOn = hero.dataset.invertHeader === 'true';
+
+  const apply = (inView) => {
+    body.classList.toggle('mcc-landing-header--transparent', inView);
+    body.classList.toggle('mcc-landing-header--solid', !inView);
+    body.classList.toggle('mcc-landing-header--invert', inView && invertOn);
+  };
+
+  const reassess = () => {
+    const r = hero.getBoundingClientRect();
+    const inView = r.bottom > 0 && r.top < window.innerHeight;
+    apply(inView);
+  };
+
+  // Run immediately, then on scroll/resize (belt & suspenders)
+  reassess();
+  window.addEventListener('scroll', reassess, { passive: true });
+  window.addEventListener('resize', reassess);  // ✅ fixed
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "MCC Landing — Hero",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Hero image" },
+    { "type": "image_picker", "id": "logo", "label": "Optional logo over hero" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "COLD BREW." },
+    { "type": "text", "id": "subheading", "label": "Subheading" },
+    { "type": "text", "id": "cta_label", "label": "Button label" },
+    { "type": "url", "id": "cta_link", "label": "Button link" },
+    { "type": "range", "id": "desktop_height_vh", "min": 60, "max": 100, "step": 1, "label": "Height (vh)", "default": 88 },
+    { "type": "number", "id": "title_size_desktop", "label": "Title size (desktop px)", "default": 80 },
+    { "type": "number", "id": "title_size_mobile",  "label": "Title size (mobile px)",  "default": 56 },
+    { "type": "checkbox", "id": "invert_header_colors", "label": "Invert header colors over hero", "default": true }
+  ],
+  "presets": [{ "name": "MCC Landing — Hero" }]
+}
+{% endschema %}

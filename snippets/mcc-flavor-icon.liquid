@@ -1,0 +1,24 @@
+{%- assign original = flavor | default: '' -%}
+{%- assign alt_text = alt | default: original | default: 'Flavor icon' -%}
+{%- assign class_attr = class | default: 'flavor-icon' -%}
+{%- assign prefix = prefix | default: 'flavor-' -%}
+
+{%- assign slug = original | downcase | strip
+  | replace: '"','' | replace: "'",''
+  | replace: '&',' and ' | replace: '/', ' '
+  | replace: '.', '' | replace: ',', '' | replace: ':', '' | replace: ';', ''
+  | replace: '–','-' | replace: '—','-'
+  | replace: '  ',' ' | replace: ' ','-'
+-%}
+{%- assign file1x = prefix | append: slug | append: '.png' -%}
+{%- assign file2x = prefix | append: slug | append: '@2x.png' -%}
+
+{% comment %} theme-check-disable ImgWidthAndHeight {% endcomment %}
+<img
+  src="{{ file1x | asset_url }}"
+  srcset="{{ file1x | asset_url }} 1x, {{ file2x | asset_url }} 2x"
+  alt="{{ alt_text | escape }}"
+  class="{{ class_attr }}"
+  loading="lazy"
+  decoding="async">
+{% comment %} theme-check-enable ImgWidthAndHeight {% endcomment %}

@@ -1,0 +1,441 @@
+/* ===== MCC Merch — Bottom Sheet CSSREVERT BACK TO 10.20.25 STABLE ===== */
+#product_merch_mobile{
+  --mm-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --mm-peek-height: 200px; /* JS overwrites; safe default */
+  overscroll-behavior-y: none;
+}
+
+/* Gallery (unchanged) */
+#product_merch_mobile .mm-gallery{
+  position: absolute; 
+  left: 0;
+  right: 0;
+  top: 0;                        /* JS will override with calculated position */
+  width:100%; 
+  height:72vh;                  /* fallback; JS will override dynamically */
+  overflow:hidden; 
+  background:#f1f1f1;
+  z-index: 1;                    /* Ensure gallery stays below drawer */
+}
+#product_merch_mobile .mm-gallery .mm-image,
+#product_merch_mobile .mm-gallery img{
+  width:100%; height:100%; object-fit:contain; object-position:center; display:block;
+}
+
+/* Drawer frame — never scrolls, we animate translateY on this 
+#product_merch_mobile .mm-drawer{
+  position: fixed; left:0; right:0; bottom:0;
+  height: 100vh; max-height: 100vh;       
+  background:#fff; border-radius:16px 16px 0 0;
+  box-shadow: 0 -10px 30px rgba(0,0,0,.14);
+  transform: translateY(calc(100% - var(--mm-peek-height)));
+  transition: transform 360ms cubic-bezier(.16,1,.3,1);
+  will-change: transform; backface-visibility: hidden;
+  z-index: 4000; overflow: hidden;
+  padding-bottom: calc(var(--mm-safe-bottom) + 8px);
+}
+#product_merch_mobile .mm-drawer.is-open{ transform: translateY(0); }
+*/
+
+/* Sheet: See FINAL OVERRIDES section for consolidated rules */
+
+/* Peek + handle */
+#product_merch_mobile .mm-peek{ flex:0 0 auto; min-height:64px;
+  padding:12px 16px calc(12px + var(--mm-safe-bottom));
+  -webkit-user-select:none; user-select:none;
+}
+#product_merch_mobile .mm-handle{
+  position:absolute; left:50%; top:8px; transform:translateX(-50%);
+  width:44px; height:6px; border-radius:6px; background:#D6D6D6; cursor:grab;
+}
+
+#product_merch_mobile .mm-sheet { background:#fff; }
+#product_merch_mobile .content-section { background:none; }
+
+/* Content takes the remaining sheet space; it scrolls with the sheet (no extra overflow here) */
+#product_merch_mobile .mm-content{ flex:1 1 auto; min-height:0; }
+
+/* Lock page when the drawer is open/dragging (JS toggles these) */
+/* Scoped to mobile only to prevent desktop scrolling issues */
+@media (max-width: 767.98px){
+  html.mm-locked, body.mm-locked{
+    overflow:hidden !important; height:100% !important; touch-action:none !important;
+  }
+}
+ /*
+#product_merch_mobile .mm-sheet{
+  overscroll-behavior: contain;       
+  -webkit-overflow-scrolling: touch;
+}*/
+
+
+/* Gesture hygiene 
+#product_merch_mobile .mm-handle{ touch-action: none; }
+#product_merch_mobile .mm-sheet{  touch-action: pan-y; }*/
+
+/* Belt & suspenders: the drawer should only ever be moved by JS 
+#product_merch_mobile .mm-drawer{
+  will-change: transform;
+}*/
+
+
+
+/* === MERCH MOBILE: force white blocks, no tiles === */
+@media (max-width: 767.98px){
+  /* Drawer surface */
+  #product_merch_mobile .mm-sheet { background:#fff; }
+
+  /* Accordions */
+  #product_merch_mobile .coffee-accordion { background:#fff !important; border:none !important; box-shadow:none !important; }
+  #product_merch_mobile .coffee-acc-header { background:transparent !important; }
+  #product_merch_mobile .coffee-acc-panel  { background:#fff !important; }
+
+  /* Description/Details/any section wrappers */
+  #product_merch_mobile .content-section { background:#fff !important; border:none !important; box-shadow:none !important; }
+
+  /* Product form bits (variant/qty/buy) — theme-specific wrappers */
+  #product_merch_mobile [data-product-form],
+  #product_merch_mobile [data-product-form] fieldset,
+  #product_merch_mobile [data-product-form] .product-form__input,
+  #product_merch_mobile [data-product-form] .product-form__controls-group,
+  #product_merch_mobile [data-product-form] .select,
+  #product_merch_mobile [data-product-form] .quantity,
+  #product_merch_mobile [data-product-form] .product-form__buttons {
+    background:#fff !important; border:none !important; box-shadow:none !important;
+  }
+
+  /* Reviews area (incl. Judge.me if/when enabled) */
+  #product_merch_mobile #reviews,
+  #product_merch_mobile .jdgm-rev-widg,
+  #product_merch_mobile .jdgm-widget {
+    background:#fff !important; border:none !important; box-shadow:none !important;
+  }
+
+  /* Recommended products (varies by snippet) */
+  #product_merch_mobile #recommendations,
+  #product_merch_mobile #recommendations .recommended-section,
+  #product_merch_mobile #recommendations .recommended-products__header,
+  #product_merch_mobile #recommendations .recommended-products__grid,
+  #product_merch_mobile #recommendations .recs-grid,
+  #product_merch_mobile #recommendations .product-card,
+  #product_merch_mobile #recommendations .card,
+  #product_merch_mobile #recommendations .rec-card {
+    background:#fff !important; border:none !important; box-shadow:none !important;
+  }
+}
+/* === MERCH MOBILE: description text block fix === */
+@media (max-width: 767.98px){
+  #product_merch_mobile .rte,
+  #product_merch_mobile .product__description,
+  #product_merch_mobile .description-content {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Optional: unify padding if it looks uneven */
+  #product_merch_mobile .description-content {
+    padding: 0 0 !important;
+  }
+}
+
+/* === FIX: Drawer shouldn't block gallery when closed/peeking === */
+/* Note: Final pointer-events rules are in "FINAL OVERRIDES" section at bottom */
+
+#product_merch_mobile .mmv-track {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+}
+
+
+/* DRAWER scoped 11/1/25 */
+/* Note: Final drawer rules are consolidated in "FINAL OVERRIDES" section at bottom */
+
+
+
+/* ===== MCC Merch Drawer (single source of truth) ===== */
+/* Note: Final drawer rules are consolidated in "FINAL OVERRIDES" section at bottom */
+
+/* Safety: prevent any global rule from zeroing the height */
+#product_merch_mobile [data-mm-sheet]{ height: auto !important; }
+
+
+
+/* === Merch Mobile — Coffee-style accordions (scoped) === */
+@media (max-width: 767.98px){
+  #product_merch_mobile .coffee-accordion{
+    background:#fff;               /* white blocks per merch */
+    border:none; box-shadow:none;
+    margin: 28px 0 0;
+  }
+
+  #product_merch_mobile .coffee-acc-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin:0 0 10px;
+  }
+
+  #product_merch_mobile .coffee-acc-title{
+    font-weight:800; letter-spacing:-0.02em;
+    font-size:18px; line-height:1.2; margin:0;
+  }
+
+  /* plus/minus icon (same markup as coffee) */
+  #product_merch_mobile .coffee-acc-trigger{
+    position:relative; width:20px; height:20px; padding:0;
+    border:0 !important; background:none !important; box-shadow:none !important;
+  }
+  #product_merch_mobile .coffee-acc-trigger::before,
+  #product_merch_mobile .coffee-acc-trigger::after{
+    content:""; position:absolute; inset:0; margin:auto;
+    background:#000; transition:all .25s ease;
+  }
+  #product_merch_mobile .coffee-acc-trigger::before{ height:2px; width:100%; }
+  #product_merch_mobile .coffee-acc-trigger::after { width:2px; height:100%; }
+  #product_merch_mobile .coffee-acc-trigger[aria-expanded="true"]::after{
+    opacity:0; transform:rotate(90deg);
+  }
+
+  /* smooth panel open/close */
+  #product_merch_mobile .coffee-acc-panel{
+    overflow:hidden; height:0; transition:height .24s cubic-bezier(.16,1,.3,1); /* match coffee feel */
+  }
+  #product_merch_mobile .coffee-acc-panel[data-open="true"]{
+    height:auto; /* JS will set explicit px for the transition then clear to auto */
+  }
+
+  /* tidy inner spacing like coffee */
+  #product_merch_mobile .coffee-acc-panel > *{ margin-top:0 !important; }
+}
+@media (max-width: 767.98px){
+  /* keep a comfy hit target */
+  #product_merch_mobile .coffee-acc-trigger{
+    width:36px; height:36px; padding:0; display:inline-flex;
+    align-items:center; justify-content:center;
+  }
+
+  /* the actual plus sign is smaller */
+  #product_merch_mobile .coffee-acc-trigger::before,
+  #product_merch_mobile .coffee-acc-trigger::after{
+    width:14px; height:2px;           /* horizontal bar defaults (14 × 2) */
+    background:#000; border-radius:1px;
+    transition:transform .24s cubic-bezier(.16,1,.3,1),
+               opacity   .24s cubic-bezier(.16,1,.3,1);
+  }
+  /* vertical bar: 2 × 14, centered */
+  #product_merch_mobile .coffee-acc-trigger::after{
+    width:2px; height:14px;
+  }
+
+  /* when expanded, hide vertical bar (looks like a “–”) */
+  #product_merch_mobile .coffee-acc-trigger[aria-expanded="true"]::after{
+    opacity:0; transform:rotate(90deg);
+  }
+}
+
+/* MERCH: normalize accordion trigger back to Coffee size */
+#product_merch_mobile .coffee-acc-trigger{
+  width:20px !important;
+  height:20px !important;
+  padding:0 !important;
+}
+
+/* MERCH — disable accordion transitions until JS enables them */
+#product_merch_mobile .coffee-acc-panel{
+  height: 0; overflow: hidden;
+  transition: none;                 /* off at boot = no first-tap flash */
+  will-change: height;
+}
+
+/* When JS marks the page ready, only animate height (like Coffee) */
+#product_merch_mobile.acc-ready .coffee-acc-panel{
+  transition: height .30s cubic-bezier(.16,1,.3,1);
+}
+
+/* Keep the +/– icon transitions narrow (no 'all') to avoid flicker */
+#product_merch_mobile .coffee-acc-trigger::before,
+#product_merch_mobile .coffee-acc-trigger::after{
+  transition: opacity .30s cubic-bezier(.16,1,.3,1),
+              transform .30s cubic-bezier(.16,1,.3,1);
+}
+
+/* Ensure the icon isn’t oversized */
+#product_merch_mobile .coffee-acc-trigger{
+  width:20px !important; height:20px !important; padding:0 !important;
+}
+
+
+
+/* === Merch Mobile → inherit Coffee “full-width Favorites” styling === */
+
+/* Ensure the same full-width layout */
+.product-merch-mobile .mm-wishlist-row { padding-top: .5rem; }
+.product-merch-mobile .mm-wishlist-row,
+.product-merch-mobile .mm-wishlist-row #wishlisthero-product-page-button-container,
+.product-merch-mobile .mm-wishlist-row .block-wishlist { width: 100%; }
+
+/* Reuse Coffee selectors inside Merch scope */
+.product-merch-mobile #wishlisthero-product-page-button-container button,
+.product-merch-mobile .block-wishlist button,
+.product-merch-mobile .block-wishlist.mm-fave-btn,
+.product-merch-mobile .swym-add-to-wishlist.block-wishlist {
+  width: 100%;
+  color: #333;
+  border: 1px solid #333;           /* solid (Coffee had just 'border: #333') */
+  padding: 16px 24px;
+  border-radius: 50px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff;
+}
+
+/* Hover/disabled states to mirror Coffee */
+.product-merch-mobile #wishlisthero-product-page-button-container button:hover:not(:disabled),
+.product-merch-mobile .block-wishlist button:hover:not(:disabled),
+.product-merch-mobile .block-wishlist.mm-fave-btn:hover:not(:disabled),
+.product-merch-mobile .swym-add-to-wishlist.block-wishlist:hover:not(:disabled) {
+  background: #FAFAFA;
+}
+
+.product-merch-mobile #wishlisthero-product-page-button-container button:disabled,
+.product-merch-mobile .block-wishlist button:disabled,
+.product-merch-mobile .swym-add-to-wishlist.block-wishlist:disabled {
+  border-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Fallback heart icon size to match Coffee vibe */
+.product-merch-mobile .mm-fave-btn .mm-fave-icon { font-size: 18px; transform: translateY(-1px); }
+.product-merch-mobile .mm-fave-btn.is-active { border-color: #333; }
+
+/* Space between Add to cart and Favorites */
+.product-merch-mobile .content-section[aria-label="Purchase"] { margin-bottom: 0; } /* reset if needed */
+.product-merch-mobile .content-section[aria-label="Purchase"] + .mm-wishlist-row {
+  margin-top: 0px;   /* <- tweak this value */
+}
+
+/* Optional: space below Favorites before accordions */
+.product-merch-mobile .mm-wishlist-row { margin-bottom: 16px; } /* tweak */
+
+
+
+/* Change color variant on drawer: Optional: hint that gallery changed */
+.mmv-gallery[data-mmvg] .mmv-img,
+.mmv-gallery[data-mmvg] .mmv-video,
+.mmv-gallery[data-mmvg] .mmv-model { transition: opacity .18s ease; }
+
+#product_merch_mobile[data-mmvg-busy="1"] .mmv-gallery .mmv-img,
+#product_merch_mobile[data-mmvg-busy="1"] .mmv-gallery .mmv-video,
+#product_merch_mobile[data-mmvg-busy="1"] .mmv-gallery .mmv-model { opacity: .9; }
+
+
+
+
+
+
+
+/* === Cart Drawer Layer Fix (for Merch Mobile) === */
+/* Ensure cart drawer z-index is above merch mobile drawer */
+cart-drawer,
+#CartDrawer,
+[data-cart-drawer] {
+  z-index: 12000 !important;    
+}
+
+/* Note: Drawer z-index handled in FINAL OVERRIDES section */
+
+header.header,
+#shopify-section-header {
+  z-index: 2000; /* if needed to ensure header still above peek but below cart drawer */
+}
+
+/* Optional: when cart drawer opens, you can dim the merch drawer underneath */
+body.cart-drawer-open .mm-drawer[data-mm-drawer] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+
+
+/* === MCC Merch — Drawer FINAL OVERRIDES (single source of truth) === */
+#product_merch_mobile .mm-drawer,
+#product_merch_mobile [data-mm-drawer]{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 100vh; 
+  max-height: 100vh;
+  transform: translateY(calc(100% - var(--mm-peek-height))) translateZ(0);
+  transition: transform 360ms cubic-bezier(.16,1,.3,1);
+  will-change: transform;
+  backface-visibility: hidden; /* Prevent flickering during transform */
+  overflow: hidden;
+  z-index: 10020;                   /* above header, below cart drawer (12000) */
+
+  /* visuals */
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 30px rgba(0,0,0,.14);
+  padding-bottom: calc(var(--mm-safe-bottom) + 8px);
+}
+
+/* Sheet: single scroll container */
+#product_merch_mobile .mm-sheet,
+#product_merch_mobile [data-mm-sheet]{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                 /* closed: no scroll */
+  background: #fff;
+  touch-action: pan-y;              /* allow vertical scroll */
+  /* JS sets --mm-sheet-max based on visualViewport */
+  max-height: var(--mm-sheet-max, 80vh);
+}
+
+#product_merch_mobile .mm-drawer.is-open .mm-sheet,
+#product_merch_mobile .mm-drawer.is-open [data-mm-sheet]{
+  overflow-y: auto;                 /* open: the sheet scrolls */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+#product_merch_mobile .mm-content{
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Gesture hygiene */
+#product_merch_mobile .mm-handle,
+#product_merch_mobile [data-mm-handle]{ 
+  touch-action: none;               /* drag only, no scroll */
+}
+#product_merch_mobile .mm-peek,
+#product_merch_mobile [data-mm-peek]{ 
+  -webkit-user-select: none; 
+  user-select: none; 
+  touch-action: none;               /* drag only */
+}
+
+/* Pointer events: don't block gallery while closed; allow handle/peek taps */
+#product_merch_mobile .mm-drawer,
+#product_merch_mobile [data-mm-drawer] { 
+  pointer-events: none;             /* closed: doesn't block gallery */
+}
+#product_merch_mobile .mm-drawer.is-open,
+#product_merch_mobile [data-mm-drawer].is-open { 
+  pointer-events: auto;             /* open: fully interactive */
+}
+#product_merch_mobile .mm-drawer [data-mm-handle],
+#product_merch_mobile .mm-drawer [data-mm-peek],
+#product_merch_mobile [data-mm-drawer] [data-mm-handle],
+#product_merch_mobile [data-mm-drawer] [data-mm-peek] { 
+  pointer-events: auto;             /* always tappable for drag */
+}

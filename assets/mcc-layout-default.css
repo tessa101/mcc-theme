@@ -1,0 +1,36 @@
+/* ==========================================================
+   MCC — Default Layout (placement only)
+   Scope: <body class="layout-default"> and any page not coffee/merch
+   Keep this light; let Dawn handle most layout.
+   ========================================================== */
+
+/* Page shell / gutters */
+.layout-default .page-width,
+.layout-default .container,
+.layout-default .pdp{
+  max-width:1200px;margin-inline:auto;padding-inline:16px
+}
+@media (min-width:1024px){
+  .layout-default .page-width,
+  .layout-default .container,
+  .layout-default .pdp{padding-inline:20px}
+}
+
+/* Section rhythm */
+.layout-default .section{margin-block:40px}
+@media (min-width:768px){.layout-default .section{margin-block:56px}}
+
+/* Fallback PDP grid (if any default products use this) */
+.layout-default .default-pdp{max-width:1200px;margin:0 auto;padding:0 16px}
+.layout-default .default-pdp-grid{display:grid;grid-template-columns:4fr 3fr;gap:48px}
+@media (max-width:1024px){.layout-default .default-pdp-grid{grid-template-columns:1fr;gap:32px}}
+.layout-default .default-buy{position:sticky;top:24px}
+
+/* Collection / PLP grid */
+.layout-default .collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (min-width:768px){.layout-default .collection-grid{grid-template-columns:repeat(3,1fr);gap:20px}}
+@media (min-width:1200px){.layout-default .collection-grid{grid-template-columns:repeat(4,1fr);gap:24px}}
+
+/* Sidebar layout (filters/blog) */
+.layout-default .with-sidebar{display:grid;grid-template-columns:260px 1fr;gap:24px}
+@media (max-width:1024px){.layout-default .with-sidebar{grid-template-columns:1fr}}

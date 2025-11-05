@@ -1,0 +1,69 @@
+{% comment %}
+MCC Recommended Products
+- Desktop: 3 items (single row)
+- Mobile: 2 columns × 2 rows (max 4 visible)
+- Non-scrollable
+- "See more" button inline with title (right aligned)
+Params:
+  product (required), products (array), title (optional), limit (default 6), see_more_url (optional)
+{% endcomment %}
+
+{% assign rec_title = title | default: product.metafields.custom.recommended_section_title | default: 'You might also like' %}
+{% assign rec_limit = limit | default: 6 %}
+{% assign rec_products = products %}
+
+{% if rec_products and rec_products.size > 0 %}
+  <div class="content-section recommended-section">
+    <div class="recommended-header">
+      <h3 class="recommended-title">{{ rec_title }}</h3>
+      {% assign see_more_target = see_more_url | default: product.collections.first.url | default: '/collections/all' %}
+      <a class="recommended-see-more" href="{{ see_more_target }}">See more</a>
+    </div>
+
+    <div class="recommended-grid">
+      {% assign shown = 0 %}
+      {% for item in rec_products %}
+        {% if item.id != product.id %}
+          {% assign shown = shown | plus: 1 %}
+          {% if shown > rec_limit %}{% break %}{% endif %}
+
+          <div class="rec-card">
+            <a class="rec-media" href="{{ item.url }}" aria-label="{{ item.title | escape }}">
+              {% assign img = item.featured_image | default: item.images.first %}
+              {% if img %}
+                <img
+                  src="{{ img | image_url: width: 600 }}"
+                  alt="{{ img.alt | default: item.title | escape }}"
+                  loading="lazy"
+                  width="600" height="600">
+              {% endif %}
+            </a>
+
+            <div class="rec-info">
+              <a class="rec-title" href="{{ item.url }}">{{ item.title }}</a>
+
+              <div class="rec-price">
+                {% if item.compare_at_price_min > item.price_min %}
+                  <span class="rec-price-current">{{ item.price_min | money }}</span>
+                  <span class="rec-price-compare">{{ item.compare_at_price_min | money }}</span>
+                {% else %}
+                  <span class="rec-price-current">{{ item.price_min | money }}</span>
+                {% endif %}
+              </div>
+
+              {% assign atc_variant = item.selected_or_first_available_variant %}
+              {% if atc_variant and atc_variant.available %}
+                <form method="post" action="/cart/add" class="rec-atc-form" data-product-id="{{ item.id }}">
+                  <input type="hidden" name="id" value="{{ atc_variant.id }}">
+                  <button type="submit" class="rec-atc-btn">Add to cart</button>
+                </form>
+              {% else %}
+                <button class="rec-atc-btn" disabled>Sold out</button>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

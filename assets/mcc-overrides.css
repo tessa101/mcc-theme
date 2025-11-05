@@ -1,0 +1,53 @@
+/* === MCC typography usage (LAST) === */
+
+/* 1) H2 everywhere + common “title” classes */
+:is(h2,
+    .section-title,
+    .rich-text__heading,
+    .pdp-h2,
+    .coffee-acc-title,
+    .brew-title,
+    .growing-details h2,
+    .description-section h2,
+    .flavor-title) {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: var(--display-track) !important;
+  font-feature-settings: 'case' 1 !important;
+  font-size: var(--h2-size) !important;
+  line-height: var(--h2-lh) !important;
+}
+
+@media (max-width: 768px){
+  :is(h2,
+      .section-title,
+      .rich-text__heading,
+      .pdp-h2,
+      .coffee-acc-title,
+      .brew-title,
+      .growing-details h2,
+      .description-section h2,
+      .flavor-title){
+    font-size: var(--h2-size-m) !important;
+  }
+}
+
+/* 2) PDP H1 — both variants you have */
+body.template-product :is(h1.product-title, .product__title > h1){
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: var(--display-track) !important;
+  font-feature-settings: 'case' 1 !important;
+  font-size: var(--h1-pdp-size) !important;
+  line-height: var(--h1-pdp-lh) !important;
+}
+
+/* 3) Remove legacy heading forces that might reassert Suisse */
+.h0,.h1,.h2,.h3,.h4,.h5,.h6,
+h1,h2,h3,h4,h5,h6,
+.product__title,.product-title,
+.section-title,.rich-text__heading {
+  font-family: initial; /* release to our rules above */
+}

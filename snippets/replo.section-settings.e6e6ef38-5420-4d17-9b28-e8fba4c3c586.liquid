@@ -1,0 +1,8 @@
+{%- comment -%}replo-liquid-chunk-begin{%- endcomment -%}
+    <script id="replo-deps-section-settings" data-section-id="{{ section.id }}">{
+      {%- assign replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 = section.settings['replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8'] -%}
+    {%- capture default_replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 -%}<p>About</p>{%- endcapture -%}
+    {%- assign replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 = replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 | default: default_replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 -%}
+    "replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8": {{ replo_text_ff1e81e6-b442-42b4-a7fe-5fca6b7a64d8 | json }}
+    }</script>
+  {%- comment -%}replo-liquid-chunk-end{%- endcomment -%}

@@ -1,0 +1,2264 @@
+/* MCC Product Styles */
+
+.mcc-product {
+  max-width: none;
+  
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.product-container {
+  display: grid;
+  grid-template-columns: 5fr 3fr;
+  gap: 60px;
+  margin-top: 80px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-right: 20px;
+}
+
+/* Recharge parts */
+recharge-subscription-widget::part(rc-purchase-option__selector) {
+  font-size: 16px !important;
+  padding-top: 0 !important;
+  font-weight: 600 !important;
+  align-items: center !important;
+}
+
+recharge-subscription-widget::part(rc-benefits__list) {
+  font-size:12px;
+  letter-spacing:0.5px; 
+  color:rgb(139, 139, 139); 
+
+}
+recharge-subscription-widget::part(rc-plans__label) {
+  display: none !important;
+}
+
+recharge-subscription-widget::part(rc-purchase-option__badge) { 
+position: absolute !important;
+display: inline-block !important; 
+top: 18px !important;
+left: 136px !important;
+width: 70px !important;
+text-transform: uppercase;
+text-align: center !important;
+color: rgb(255, 255, 255)!important;
+background:rgb(27, 135, 63)!important;
+} 
+
+recharge-subscription-widget::part(rc-plans-button__discount) {
+text-transform: uppercase;
+font-weight: 800;
+letter-spacing: -0.02em;
+text-align: center !important;
+color: rgb(27, 135, 63)!important;
+}
+
+
+recharge-subscription-widget::part(rc-purchase-option__sub-container) {
+  display: flex !important;
+  flex-direction: column-reverse !important; /* flips order of children */
+}
+
+recharge-subscription-widget::part(rc-purchase-option__original-price) {
+  font-size: 10px !important;
+}
+
+recharge-subscription-widget::part(rc-learn-more__trigger-compact){
+  display: none !important;
+}
+
+
+
+/* Favorites button */
+button[aria-label="Add to favorites"] {
+  color: rgb(51, 51, 51) !important;
+  background: #fff !important;
+  margin: 0 !important;
+  opacity: 1 !important; /*was 0.65*/
+  line-height: normal !important;
+  height: 40px !important;
+  display: block !important;
+  padding: 0 20px !important;
+  text-align: center !important;
+  overflow: visible !important;
+  outline: none !important;
+  position: relative !important;
+  cursor: pointer !important;
+  border-radius: 9999px !important;
+}
+
+button[aria-label="Added to favorites"] {
+color: rgb(255, 0, 140) !important;
+background: #fff !important;
+margin: 0px !important;
+opacity: 0.65 !important;
+line-height: normal !important;
+height: 40px !important;
+display: block !important;
+padding: 0px 20px !important;
+text-align: center !important;
+overflow: visible !important; 
+outline: none !important;
+position: relative !important;
+cursor: pointer !important;
+}
+
+/* Mobile Hero */
+.product-hero-mobile {
+  display: none;
+}
+
+.product-image-mobile {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Gallery */
+.product-gallery {
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin-left: 0;
+  max-width: none;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 4fr 1fr;
+  gap: 2px;
+  height: 85vh;
+  min-height: 700px;
+  max-height: 1000px;
+  position: relative;
+}
+
+.gallery-main {
+  grid-column: 1 / 3;
+  grid-row: 1 / 2;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid #e5e5e5;
+  height: 100%;
+  width: 100%;
+}
+
+.gallery-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.gallery-main:hover img {
+  transform: scale(1.02);
+}
+
+.gallery-secondary {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.gallery-thumb {
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  position: relative;
+  border: 1px solid #e5e5e5;
+  height: 100%;
+  width: 100%;
+}
+
+.gallery-thumb:hover {
+  opacity: 0.9;
+}
+
+.gallery-thumb:hover img {
+  transform: scale(1.02);
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.gallery-placeholder {
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 1px solid #e5e5e5;
+  height: 100%;
+  width: 100%;
+}
+
+.placeholder-bg {
+  width: 60%;
+  height: 60%;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+
+/* Content Sections */
+.product-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  position: relative;
+  z-index: 1;
+  /*background: #f1f1f1;*/
+  padding: 0 40px 0 40px;
+}
+
+.content-section {
+  position: relative;
+  background: #f1f1f1 !important;
+  padding: 0;
+}
+
+.content-section h3 {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ================================
+   DETAILS (accordion) — CLEAN SINGLE SOURCE
+   Desktop: 3 cols, stacked labels
+   Mobile: sentence style, no column gaps
+   ================================ */
+
+/* Desktop first */
+.details-section { margin: 0px 0; }
+.details-section .details-title { margin: 0; }
+
+.details-section .details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0px;
+  padding: 0px 0;
+  border-top: none;   /* no horizontal rules */
+  border-bottom: none;
+}
+
+/* vertical dividers only (desktop) */
+.details-section .details-col { padding: 0 32px; }
+.details-section .details-col:first-child { padding-left: 0; }
+.details-section .details-col:last-child  { padding-right: 0; }
+.details-section .details-col + .details-col { border-left: 1px solid #ddd; }
+
+/* stacked label/value (desktop) */
+.details-section .kv-row { margin: 14px 0 18px; }
+.details-section .kv-label {
+  display: block;
+  font-weight: 600;       /* match other section labels */
+  color: #111;
+  margin: 0 0 6px;
+  letter-spacing: 0em;
+  line-height: 1.2;
+}
+.details-section .kv-value {
+  display: block;
+  color: #333;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* bean meter inside Details (desktop) */
+.details-section .bean-meter { margin-bottom: 0; }
+.details-section .kv-row--roast .only-desktop .bean-icons { gap: 3px; }
+
+/* visibility helpers (desktop default) */
+.details-section .only-desktop { display: block; }
+.details-section .only-mobile  { display: none; }
+
+/* ================================
+   Mobile (<=768px) — sentence style
+   ================================ */
+@media (max-width: 768px) {
+  /* collapse grid so there are no leftover column gaps */
+  .details-section .details-grid {
+    display: block;       /* was grid */
+    padding: 0px 0;
+  }
+  .details-section .details-col {
+    display: contents;    /* pass children through */
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  /* sentence structure for all rows */
+  .details-section .only-desktop { display: none !important; }
+  .details-section .only-mobile  { display: inline !important; }
+
+  .details-section .kv-row { margin: 8px 0; }
+  .details-section .kv-label {
+    display: inline;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.55;
+  }
+  .details-section .kv-value {
+    display: inline;
+    margin: 0 0 0 .25rem;   /* small space after label */
+    line-height: 1.55;
+  }
+
+  /* Roast: “Medium roast:” + bean icons inline */
+  .details-section .kv-row--roast .only-mobile.kv-label { margin-right: 6px; }
+  .details-section .kv-row--roast .only-mobile .bean-icons {
+    display: inline-flex !important;
+    gap: 3px;
+    vertical-align: text-bottom;
+  }
+}
+
+
+
+/* ==============================
+   FLAVOR PROFILES — CLEANED
+   - Fixed cards: 106×144 (mobile), 184×215 (desktop)
+   - Grid gap: 8px (both)
+   - Inside card padding (desktop): 16px 8px 24px 8px  ← edit here
+   - Internal element gap (desktop): 4px              ← edit here
+   ============================== */
+
+:root {
+  --card-w-mobile: 106px;
+  --card-h-mobile: 144px;
+
+  --card-w-desktop: 148px;
+  --card-h-desktop: 215px;
+
+  --media-mobile: 80px;
+  --media-desktop: 106px;
+
+  --gap-row: 8px;
+  --gap-col: 8px;
+
+  --radius: 10px;
+  --border: rgba(0,0,0,0.08);
+  --bg: #fff;
+
+  --title-color: #111;
+  --desc-color: #333;
+
+  /* Desktop spacing knobs */
+  --card-pad-desktop: 16px 8px 24px 8px; /* edges around content */
+  --inside-gap-desktop: 2px;             /* media ↔ text */
+}
+
+/* Section & title */
+.flavor-profiles { margin-top: 16px; }
+.flavor-profiles .flavor-title {
+  font-size: 24px; letter-spacing: -0.02em; margin:40px 0 16px; font-weight: 700; line-height: 1.2;
+}
+
+/* ───── Mobile-first (3-up, fixed 106×144) ───── */
+.flavor-profiles .flavor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, var(--card-w-mobile));
+  gap: var(--gap-row) var(--gap-col);
+  justify-content: flex-start;
+  align-items: start;
+}
+
+.flavor-profiles .flavor-card {
+  width: var(--card-w-mobile);
+  height: var(--card-h-mobile);
+  box-sizing: border-box;
+  background: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;  
+  letter-spacing: -0.01em;             
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;                     /* mobile internal gap */
+  overflow: hidden;
+}
+
+.flavor-profiles .flavor-media {
+  width: var(--media-mobile);
+  height: var(--media-mobile);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+}
+.flavor-profiles .flavor-media img,
+.flavor-profiles .flavor-media picture,
+.flavor-profiles .flavor-media svg,
+.flavor-profiles .flavor-media .flavor-icon {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+
+.flavor-profiles .flavor-name {
+  margin: 0 0 2px 0;
+  font-size: 16px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: #111; font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+}
+.flavor-profiles .flavor-desc {
+  margin: 0;
+  font-size: 14px; font-weight: 400; line-height: 1.35; color: var(--desc-color);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ───── Desktop (≥768px): 5-up, fixed 148×215, editable padding ───── */
+@media (min-width: 768px) {
+  .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(5, var(--card-w-desktop));
+    gap: var(--gap-row) var(--gap-col);
+    justify-content: flex-start;
+    align-items: start;
+  }
+
+  .flavor-profiles .flavor-card {
+    width: var(--card-w-desktop);
+    height: var(--card-h-desktop);
+    padding: var(--card-pad-desktop);  /* ← change this to adjust edges */
+    gap: var(--inside-gap-desktop);    /* ← change this to adjust internal spacing */
+  }
+
+  .flavor-profiles .flavor-media {
+    width: var(--media-desktop);
+    height: var(--media-desktop);
+  }
+
+  .flavor-profiles .flavor-title {
+    font-size: clamp(18px, 1.2vw + 14px, 22px);
+    margin-bottom: 14px;
+  }
+}
+
+/* ---- FLAVOR: Mobile spec (≤760px) ---- */
+@media (max-width: 768px) {
+  /* 3-up with 4px row/column gap */
+  .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(3, var(--card-w-mobile));
+    gap: 4px 4px;
+    justify-content: flex-start;
+    align-items: start;
+  }
+
+  /* Fixed card + exact inside padding; no internal gap */
+  .flavor-profiles .flavor-card {
+    width: var(--card-w-mobile);   /* 106px */
+    height: var(--card-h-mobile);  /* 144px */
+    padding: 8px 2px 8px 2px;
+    gap: 2px;                        /* no extra space between elements */
+    /* ensure no rogue margins inflate spacing */
+  }
+  .flavor-profiles .flavor-media { margin: 0; }
+  .flavor-profiles .flavor-name  { margin: 0; }
+  .flavor-profiles .flavor-desc  { margin: 0; }
+
+  /* Typography per spec */
+  .flavor-profiles .flavor-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;            /* tight for small size */
+    
+  }
+  .flavor-profiles .flavor-desc {
+    font-size: 11px;            /* may render as 10–11px depending on device */
+    font-weight: 500;
+    line-height: 1.2;  
+    letter-spacing: -0.02em;           /* compact */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;        /* keep rows even */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Art stays 80×80 and contained */
+  .flavor-profiles .flavor-media {
+    width: var(--media-mobile);   /* 80px */
+    height: var(--media-mobile);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  .flavor-profiles .flavor-media img,
+  .flavor-profiles .flavor-media picture,
+  .flavor-profiles .flavor-media svg,
+  .flavor-profiles .flavor-media .flavor-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+/* =========================================
+   HOW IT'S MADE / DESCRIPTION (clean)
+   Wrapper: .description-section
+   Mobile: sentence-style   Desktop: 2 cols stacked
+   ========================================= */
+
+/* Merch + Coffee description: unify all text color */
+.mcc-product .description-section .description-content {
+  color:#222;                /* parent sets the tone for all children */
+}
+
+/* Ensure common children inherit (beats Dawn/base rules) */
+.mcc-product .description-section .description-content p,
+.mcc-product .description-section .description-content li,
+.mcc-product .description-section .description-content ul,
+.mcc-product .description-section .description-content ol{
+  color: inherit;
+}
+/* Headings / bold lines like “Materials:” */
+.mcc-product .description-section .description-content h1,
+.mcc-product .description-section .description-content h2,
+.mcc-product .description-section .description-content h3,
+.mcc-product .description-section .description-content h4,
+.mcc-product .description-section .description-content h5,
+.mcc-product .description-section .description-content h6,
+.mcc-product .description-section .description-content b,
+.mcc-product .description-section .description-content strong{
+  color:#111;                /* darker for emphasis, matches Coffee */
+  font-weight:700;
+}
+
+/* Title & copy */
+.description-section h3{
+  margin:16px 0 16px;
+  padding-bottom:8px;
+  font: 700 24px/1.1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing:-0.02em; color:#111;
+}
+.description-section .description-content p{ color:var(--color-body,#222); }
+.description-section .description-content p{ margin:0 0 12px; }
+
+/* ---------- Mobile (default): Label: Value ---------- */
+.description-section .made-grid{ display:block; margin-top:12px; }
+.description-section .detail-item{
+  display:block; margin:8px 0; font-size:14px; line-height:1.55;
+}
+.description-section .kv-label,
+.description-section .detail-item>strong{
+  display:inline; font-weight: 600; color:#111; margin:0;
+}
+.description-section .kv-label::after,
+.description-section .detail-item>strong::after{ content:": "; }
+.description-section .kv-value{ display:inline; color:#333; line-height:inherit; margin:0; }
+.description-section .kv-value *{ margin:0; display:inline; line-height:inherit; }
+
+/* ---------- Desktop / Tablet: two columns, stacked ---------- */
+@media (min-width: 860px){
+  .description-section .made-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(260px,1fr));
+    column-gap:64px; row-gap:20px; margin-top:16px;
+  }
+  .description-section .detail-item{ margin:0; font-size:16px; line-height:1.6; }
+  .description-section .kv-label,
+  .description-section .detail-item>strong{
+    display:block; margin:0 0 6px; font-weight: 600; color:#111;
+  }
+  /* remove colon when stacked */
+  .description-section .kv-label::after,
+  .description-section .detail-item>strong::after{ content:""; }
+  .description-section .kv-value{ display:block; color:#333; }
+  .description-section .kv-value *{ margin:0; line-height:inherit; }
+}
+
+/* =========================================
+   DESCRIPTION — ensure mobile matches "Growing details"
+   (place AFTER any other .description-section rules)
+   ========================================= */
+@media (max-width: 768px) {
+
+  /* Render list as simple stacked rows, not a grid with row-gap */
+  .description-section .made-grid { display: block; margin-top: 12px; }
+
+  /* Uniform row rhythm + 14px type */
+  .description-section .detail-item {
+    display: block;
+    margin: 8px 0;              /* controls spacing between rows */
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .description-section .detail-item:first-child { margin-top: 0; }
+
+  /* Sentence style: bold label + colon + value (14px) */
+  .description-section .kv-label,
+  .description-section .detail-item > strong {
+    display: inline;            /* <-- neutralizes old 'display:block' rules */
+    font-weight: 600;
+    color: #111;
+    margin: 0;                  /* kill legacy bottom margin */
+    font-size: 14px;
+    line-height: 1.55;
+    letter-spacing: -0.01em
+  }
+  .description-section .kv-label::after,
+  .description-section .detail-item > strong::after { content: ": "; }
+
+  .description-section .kv-value {
+    display: inline;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #333;
+    letter-spacing: -0.01em
+  }
+  /* prevent nested <p> etc. from reintroducing gaps */
+  .description-section .kv-value * {
+    margin: 0;
+    display: inline;
+    line-height: inherit;
+    font-size: inherit;
+  }
+
+  /* Explicitly override any old global rule targeting strong inside items */
+  .description-section .made-grid .detail-item strong {
+    display: inline;
+    margin: 0;
+  }
+}
+
+
+/* ================================
+   GROWING DETAILS (Consolidated)
+   ================================ */
+
+/* Section heading */
+.growing-details h3 {
+  margin: 16px 0 16px;
+  padding-bottom: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #111;
+}
+
+/* Layout */
+.growing-details .growing-wrap {
+  display: grid;
+  grid-template-columns: 1fr 300px; /* map left, facts right */
+  gap: 24px 32px;
+  align-items: start;
+}
+
+/* Map area */
+.growing-details .growing-map {
+  border-radius: 10px;
+  overflow: hidden;            /* keeps corners rounded for images */
+}
+
+/* The image should size by width only */
+.growing-details .growing-map img {
+  display: block;
+  width: 100%;
+  height: auto;                /* IMPORTANT: prevents tall blank space */
+  max-width: 100%;
+  object-fit: contain;         /* preserve proportions without cropping */
+  border-radius: 10px;
+}
+
+/* Optional placeholder (when no image) */
+.growing-details .map-placeholder {
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-bg-secondary, #111);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+/* Details list */
+.growing-details .growing-list {
+  display: grid;
+  gap: 16px;
+}
+
+/* Label/value */
+.growing-details .kv-label {
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 4px;
+  color: #333;
+  
+}
+.growing-details .kv-value {
+  line-height: 1.5;
+  color: #333;
+}
+
+
+/* ================================
+   GROWING DETAILS — mobile (<=768px)
+   single-column, sentence-style
+   ================================ */
+@media (max-width: 768px) {
+  /* stack map then list */
+  .growing-details .growing-wrap {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 16px;
+    background: #f1f1f1;
+  }
+  .growing-details .growing-map { order: 1; }
+  .growing-details .growing-list { order: 2; }
+
+  /* list renders as simple blocks (no grid gaps) */
+  .growing-details .growing-list { display: block; }
+
+  /* uniform row spacing + bigger, readable type */
+  .growing-details .growing-list > * {
+    display: block;
+    margin: 8px 0;          /* controls vertical rhythm */
+    font-size: 14px;  
+    line-height: 1.55;
+  }
+  .growing-details .growing-list > *:first-child { margin-top: 0; }
+
+  /* sentence-style: Label + Value inline */
+  .growing-details .kv-label {
+    display: inline;
+    font-weight: 600;
+    color: #111;
+    margin: 0;
+    line-height: inherit;
+    letter-spacing: -0.01em
+  }
+  .growing-details .kv-value {
+    display: inline;
+    margin: 0;
+    line-height: inherit;
+    color: #333;
+    letter-spacing: -0.01em
+  }
+
+  /* kill stray margins inside values (e.g., <p>) */
+  .growing-details .kv-value * {
+    margin: 0;
+    display: inline;
+    line-height: inherit;
+  }
+
+  /* If your labels already include ":" in the HTML, keep none here.
+     If not, swap to content: ": " instead. */
+  .growing-details .kv-label::after { content: none; }
+}
+
+
+
+/* --- Brew Methods --- */
+.brew-methods { margin-top: 16px; }
+.brew-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 20px; padding-bottom: 8px; color: #333;}
+
+.brew-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.brew-card {
+  background: #FAFAFA; /* light gray card */
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  padding: 8px 0 16px;
+  text-align: center;
+}
+
+.brew-icon {
+  width: 110px; height: 110px;
+  display: block; margin: 0 auto 0px;
+}
+
+.brew-name { font-weight: 700; font-size: 16px; margin: 0 0 8px; letter-spacing: -0.01em; color: #111; }
+.brew-list { list-style: none; padding: 0; margin: 0; font-size: 14px; letter-spacing: -0.01em; text-align: center; color: #333;}
+.brew-list li { margin-bottom: 4px; line-height: 1.2; }
+.brew-label { font-weight: 600; margin-right: 4px; }
+
+
+/* Mobile: stack, icon left, content right */
+/* --- Mobile (<768px): 2-up grid, stacked content --- */
+@media (max-width: 768px) {
+  .brew-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 8px; /* 8px between cards both row & column */ }
+  .brew-card { padding: 8px; gap: 0px; }
+  .brew-icon { width: 80px; height: 80px; margin: 0 auto; }
+  .brew-name { font-size: 14px; font-weight: 700; } 
+  .brew-list { font-size: 12px; letter-spacing: -0.01em}
+}
+
+/* Override h3 Brew card: lock title size & spacing (wins vs .content-section h3) */
+.brew-card .brew-name{
+  font-size: 16px; 
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 6px 0 8px;
+  color: #111 !important;
+}
+@media (max-width: 767.98px){
+  .brew-card .brew-name{ font-size: 14px; margin: 0 0 8px; font-weight: 800;}
+}
+
+
+/* ============ MCC Reviews — Lean CSS ============ */
+/* Host: #reviews.pdp-reviews  (embedded in PDP)    */
+
+/* ---------- Design tokens (tune here) ---------- */
+#reviews.pdp-reviews{
+  /* Layout */
+  --mcc-fixed-h: 520px;                        /* viewport height (desktop) */
+  --mcc-peek: 0px;                             /* fade height (set via JS) */
+  --mcc-page-bg: var(--color-base-bg, #f1f1f1);
+
+  /* Card */
+  --rev-card-bg: #fafafa;
+  --rev-card-br: 10px;
+  --rev-card-bc: rgba(0,0,0,.08);
+  --rev-pad-x: 16px;
+  --rev-pad-y: 16px;
+  --rev-gap:   8px;                            /* vertical gaps inside card */
+
+  /* Type */
+  --rev-font: var(--font-sans, 'SuisseIntl', system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  --rev-title-size: 16px;
+  --rev-title-weight: 700;
+  --rev-title-track: -0.01em;
+  --rev-title-color: #111;
+  --rev-body-size: 14px;
+  --rev-body-line: 1.45;
+  --rev-body-color: #333;
+  --rev-meta-size: 14px;
+  --rev-meta-weight: 400;
+  --rev-meta-line: 1.2;
+  --rev-meta-color: #888;
+
+  /* Stars */
+  --rev-star-size: 11px;
+  --rev-star-gap: 2px;
+
+  /* Masonry */
+  --cols-d: 3;                                 /* ≥960px */
+  --cols-t: 2;                                 /* 640–959px */
+  --cols-m: 2;                                 /* ≤639px */
+  --col-gap: 8px;
+}
+
+/* ---------- Hide Judge.me UI we don't use ---------- */
+#reviews.pdp-reviews .jdgm-histogram,
+#reviews.pdp-reviews .jdgm-rev-widg__summary,
+#reviews.pdp-reviews .jdgm-divider,
+#reviews.pdp-reviews .jdgm-rev-widg__title,
+#reviews.pdp-reviews .jdgm-preview-badge,
+#reviews.pdp-reviews .jdgm-write-rev-widg,
+#reviews.pdp-reviews .jdgm-write-rev-widget,
+#reviews.pdp-reviews .jdgm-row-actions,
+#reviews.pdp-reviews .jdgm-rev-widg__sort,
+#reviews.pdp-reviews .jdgm-sort-dropdown,
+#reviews.pdp-reviews .jdgm-paginate,
+#reviews.pdp-reviews .jdgm-rev-widg__footer,
+#reviews.pdp-reviews .jdgm-rev-widg__actions,
+#reviews.pdp-reviews .jdgm-link-to-all-reviews{
+  display: none !important;
+}
+
+/* ---------- Widget shell ---------- */
+#reviews.pdp-reviews .jdgm-rev-widg{
+  padding: 0; border: 0; max-width: 100%;
+  margin-top: 0 !important; /* neutralize theme spacing */
+}
+
+/* ---------- Masonry list ---------- */
+#reviews.pdp-reviews .jdgm-rev-widg__reviews{
+  column-gap: var(--col-gap);
+  margin: 0;
+}
+@media (min-width:960px){
+  #reviews.pdp-reviews .jdgm-rev-widg__reviews{ column-count: var(--cols-d); }
+}
+@media (min-width:640px) and (max-width:959.98px){
+  #reviews.pdp-reviews .jdgm-rev-widg__reviews{ column-count: var(--cols-t); }
+}
+@media (max-width:639.98px){
+  #reviews.pdp-reviews .jdgm-rev-widg__reviews{ column-count: var(--cols-m); }
+}
+
+/* ---------- Cards ---------- */
+#reviews.pdp-reviews .jdgm-rev{
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;    /* stars, title, body, author */
+  row-gap: var(--rev-gap);
+  break-inside: avoid;
+  background: var(--rev-card-bg);
+  border: 1px solid var(--rev-card-bc);
+  border-radius: var(--rev-card-br);
+  margin: 0 0 var(--col-gap);
+  padding: var(--rev-pad-y) var(--rev-pad-x);
+  font-family: var(--rev-font);
+}
+#reviews.pdp-reviews .jdgm-rev.is-hidden{ display: none; }
+
+/* Reset direct children margins then own the rhythm */
+#reviews.pdp-reviews .jdgm-rev > *{ margin: 0; }
+
+/* ---------- Typography ---------- */
+#reviews.pdp-reviews .jdgm-rev__rating{
+  grid-row: 1; display: inline-flex; gap: var(--rev-star-gap);
+  align-items: center; line-height: 1; margin: 4px 0 6px;
+}
+#reviews.pdp-reviews .jdgm-rev__rating .jdgm-star{
+  width: var(--rev-star-size); height: var(--rev-star-size);
+  font-size: var(--rev-star-size); display: inline-flex; align-items: center; justify-content: center;
+}
+#reviews.pdp-reviews .jdgm-rev__rating .jdgm-star,
+#reviews.pdp-reviews .jdgm-rev__rating .jdgm-star svg{
+  color: #4F8F95; fill: #4F8F95;
+}
+#reviews.pdp-reviews .jdgm-rev__rating .jdgm-star.jdgm--off svg{ opacity:.25; }
+
+#reviews.pdp-reviews .jdgm-rev__title{
+  grid-row: 2;
+  font: var(--rev-title-weight) var(--rev-title-size)/1.2 var(--rev-font);
+  letter-spacing: var(--rev-title-track);
+  color: var(--rev-title-color);
+  text-transform: none;
+  word-break: break-word;
+  text-align: left;
+  margin: 0 0 6px;
+}
+
+#reviews.pdp-reviews .jdgm-rev__body,
+#reviews.pdp-reviews .jdgm-rev__content{
+  grid-row: 3;
+  font: 400 var(--rev-body-size)/var(--rev-body-line) var(--rev-font);
+  color: var(--rev-body-color);
+  text-align: left;
+  margin: 0 0 8px;
+}
+#reviews.pdp-reviews .jdgm-rev__body p,
+#reviews.pdp-reviews .jdgm-rev__content p{ margin: 0 0 4px; }
+#reviews.pdp-reviews .jdgm-rev__body p:last-child,
+#reviews.pdp-reviews .jdgm-rev__content p:last-child{ margin-bottom: 0; }
+#reviews.pdp-reviews .jdgm-rev__body a,
+#reviews.pdp-reviews .jdgm-rev__content a{
+  color: inherit; text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* Author line pinned to bottom row */
+#reviews.pdp-reviews .jdgm-rev__author,
+#reviews.pdp-reviews .jdgm-rev__buyer-name,
+#reviews.pdp-reviews .jdgm-rev__author-wrapper{
+  grid-row: 4; width: 100%; margin: 0;
+  font: var(--rev-meta-weight) var(--rev-meta-size)/var(--rev-meta-line) var(--rev-font);
+  color: var(--rev-meta-color);
+  text-align: left;
+}
+
+/* Hide clutter */
+#reviews.pdp-reviews .jdgm-rev__timestamp{ display: none; }
+#reviews.pdp-reviews .jdgm-rev__custom-form,
+#reviews.pdp-reviews .jdgm-rev__actions,
+#reviews.pdp-reviews .jdgm-rev__votes,
+#reviews.pdp-reviews .jdgm-rev__replies,
+#reviews.pdp-reviews .jdgm-rev__reply,
+#reviews.pdp-reviews .jdgm-rev__pics,
+#reviews.pdp-reviews .jdgm-photo-list,
+#reviews.pdp-reviews .jdgm-rev__social,
+#reviews.pdp-reviews .jdgm-row-extra{ display: none !important; }
+
+/* Remove JDGM divider variant noise */
+#reviews.pdp-reviews .jdgm-rev.jdgm-divider-top{
+  border-top: 0; margin-top: 0; padding-top: var(--rev-pad-y);
+}
+
+/* ---------- Fixed-height viewport + bottom fade ---------- */
+#reviews.pdp-reviews .mcc-reviews-viewport{
+  position: relative; overflow: hidden; width: 100%;
+  height: var(--mcc-fixed-h); contain: layout paint;
+}
+#reviews.pdp-reviews .mcc-reviews-viewport::after{
+  content:""; position:absolute; left:0; right:0; bottom:0;
+  height: var(--mcc-peek); pointer-events:none;
+  background: linear-gradient(180deg, rgba(241,241,241,0) 0%, var(--mcc-page-bg) 100%);
+}
+
+/* ---------- Pager buttons (desktop) ---------- */
+#reviews.pdp-reviews .mcc-reviews-controls{
+  display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;
+}
+#reviews.pdp-reviews .mcc-reviews-controls button{
+  padding:12px 18px; border:1px solid #111; border-radius:9999px;
+  background:#fff; color:#111; font-weight:600; line-height:1;
+  transition: transform .2s ease, opacity .2s ease;
+}
+#reviews.pdp-reviews .mcc-reviews-controls button:hover{ transform: translateY(-1px); }
+#reviews.pdp-reviews .mcc-reviews-controls button[disabled]{ opacity:.35; cursor:not-allowed; transform:none; }
+
+/* ---------- Mobile: single “See more reviews” button hook ---------- */
+#reviews.pdp-reviews .mcc-mobile-more{
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-top:12px; padding:12px 16px; width:100%;
+  border:1px solid #111; border-radius:9999px; background:#fff; font-weight:600;
+}
+#reviews.pdp-reviews .mcc-mobile-more[aria-disabled="true"]{ opacity:.4; cursor:not-allowed; }
+
+/* ---------- Mobile tuning (≤639.98px) ---------- */
+@media (max-width:639.98px){
+  #reviews.pdp-reviews{
+    --mcc-fixed-h: 380px;            /* shorter viewport on phones */
+    --rev-title-size: 16px;
+  }
+  /* Safer wrapping in narrow columns */
+  #reviews.pdp-reviews .jdgm-rev__title,
+  #reviews.pdp-reviews .jdgm-rev__body,
+  #reviews.pdp-reviews .jdgm-rev__content{
+    overflow-wrap:anywhere; word-break:break-word;
+  }
+  /* Slightly tighter leading for compact cards */
+  #reviews.pdp-reviews .jdgm-rev__body,
+  #reviews.pdp-reviews .jdgm-rev__content{ line-height:1.35; }
+}
+
+/* ---------- Masonry swap animation (optional, desktop only) ---------- */
+/* Desktop-only soft stagger on swap */
+@media (min-width: 960px){
+  #reviews.pdp-reviews .mcc-reviews-viewport.is-anim .jdgm-rev{
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    animation: mccFadeUpSoft 520ms cubic-bezier(.16,1,.3,1) both !important;
+    animation-delay: calc(var(--i, 0) * 36ms);
+  }
+  @keyframes mccFadeUpSoft{
+    0%   { opacity: 0; transform: translateY(24px) scale(.995); filter: blur(1px); }
+    70%  { opacity: 1; transform: translateY(-2px) scale(1);   filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0)      scale(1); }
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  #reviews.pdp-reviews .mcc-reviews-viewport.is-swap .jdgm-rev{
+    animation: none !important; transform: none !important; opacity: 1 !important;
+  }
+}
+/* ====== PATCH: hide any JDGM footer/controls that sneak in on page 2 ====== */
+#reviews.pdp-reviews :is(.jdgm-paginate,
+                         .jdgm-rev-widg__footer,
+                         .jdgm-rev-widg__actions,
+                         .jdgm-link-to-all-reviews){ display:none !important; }
+
+/* Safety: if JDGM renders a one-off full-width review container outside masonry */
+#reviews.pdp-reviews .jdgm-rev-widg > .jdgm-rev { display:none !important; }
+
+/* Kill any legacy peek rail if your JS still injects it */
+#reviews.pdp-reviews .mcc-peek-rail{ display:none !important; }
+
+/* ====== PATCH: author pinned to bottom, resilient to theme overrides ====== */
+#reviews.pdp-reviews .jdgm-rev{
+  display:grid;
+  grid-template-rows:auto auto 1fr auto; /* stars, title, body, author */
+}
+
+/* Neutralize theme/order rules JDGM/Dawn might add */
+#reviews.pdp-reviews .jdgm-rev__header,
+#reviews.pdp-reviews .jdgm-rev__footer{ display:contents; }
+#reviews.pdp-reviews .jdgm-rev__author,
+#reviews.pdp-reviews .jdgm-rev__buyer-name,
+#reviews.pdp-reviews .jdgm-rev__author-wrapper{
+  grid-row:4 !important;
+  order: initial !important;
+  margin-top: 0 !important;
+  align-self:end;
+  width:100%;
+}
+
+/* Fallback if some browser/CSS elsewhere forces non-grid */
+@supports not (display: grid){
+  #reviews.pdp-reviews .jdgm-rev{ display:flex; flex-direction:column; }
+  #reviews.pdp-reviews .jdgm-rev__author,
+  #reviews.pdp-reviews .jdgm-rev__buyer-name,
+  #reviews.pdp-reviews .jdgm-rev__author-wrapper{ margin-top:auto !important; }
+}
+
+/* === Author line style: "– Kevin C." (400 weight) === */
+#reviews.pdp-reviews .jdgm-rev__author,
+#reviews.pdp-reviews .jdgm-rev__buyer-name{
+  font-weight: 400 !important;
+  text-transform: none;          /* keep whatever case JDGM provides */
+}
+
+/* prepend an en dash before the name text */
+#reviews.pdp-reviews .jdgm-rev__author::before,
+#reviews.pdp-reviews .jdgm-rev__buyer-name::before{
+  content: "– ";
+  opacity: .9;
+  margin-right: .1em;
+}
+
+/* if Judge.me renders an empty author/buyer node, don’t show the dash */
+#reviews.pdp-reviews .jdgm-rev__author:empty::before,
+#reviews.pdp-reviews .jdgm-rev__buyer-name:empty::before{
+  content: none;
+}
+
+/* keep the wrapper neutral and on the bottom row */
+#reviews.pdp-reviews .jdgm-rev__author-wrapper{
+  display: contents;  /* so the dash attaches to the actual name node */
+}
+
+/* ===== FLEXIBLE VIEWPORT HEIGHT ===== */
+#reviews.pdp-reviews .mcc-reviews-viewport {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  /* Let content define height up to a cap */
+  height: auto;
+  max-height: var(--mcc-fixed-h, 520px);
+  contain: layout paint;
+}
+
+/* When short, remove bottom fade */
+#reviews.pdp-reviews .mcc-reviews-viewport::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--mcc-peek, 0px);
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(241,241,241,0) 0%, var(--mcc-page-bg, #f1f1f1) 100%);
+}
+
+/* When content doesn't overflow, fade is hidden */
+#reviews.pdp-reviews .mcc-reviews-viewport:not(.is-overflow)::after {
+  display: none;
+}
+
+
+
+
+/* --- Recommended (scoped) --- */
+.product-sections .recommended-section { padding: 40px 0 40px; }
+.product-sections .recommended-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 40px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 20px; padding-bottom: 8px; color: #333;
+}
+.product-sections .recommended-title { margin: 0; }
+.product-sections .recommended-see-more {
+  font-size: 12px; text-decoration: underline; color: #666; white-space: nowrap;
+}
+
+/* Mobile default: 2 columns, 2 rows (max 4 visible) */
+.product-sections .recommended-grid {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;}
+.product-sections .recommended-grid > .rec-card:nth-child(n+5) { display: none; }
+
+@media (min-width: 769px) {
+  /* Desktop: exactly 3 visible in one row */
+  .product-sections .recommended-grid {grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;}
+  .product-sections .recommended-grid > .rec-card:nth-child(n+4) { display: none; }
+}
+.product-sections .rec-card { display: flex; flex-direction: column; gap: 8px; }
+.product-sections .rec-media {
+  width: 100%;
+  height: 180px; /* pick a consistent height */
+  border-radius: 8px;
+  overflow: hidden; /* crop overflow */
+  display: flex;
+}
+.product-sections .rec-media img {
+  width: 100%;
+  height: 100%;        /* force image to fill container */
+  object-fit: cover;   /* crop edges while keeping aspect ratio */
+  border-radius: 8px;
+}
+.product-sections .rec-info { display: flex; flex-direction: column; gap: 6px; }
+.product-sections .rec-title { color: #333; text-decoration: none; font-size: 14px; font-weight: 500; }
+.product-sections .rec-title:hover { text-decoration: underline; }
+.product-sections .rec-price { display: flex; gap: 8px; align-items: center; }
+.product-sections .rec-price-current { font-weight: 600; color: #333; }
+.product-sections .rec-price-compare { color: #999; text-decoration: line-through; }
+.product-sections .rec-atc-form { margin-top: 2px; }
+.product-sections .rec-atc-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px; border-radius: 60px; border: 1px solid #333; background: #333;
+  font-size: 12px; color: white; letter-spacing: 0px; cursor: pointer;
+}
+
+.product-sections .rec-atc-btn:hover:not(:disabled) {
+  background: #555;
+  transform: translateY(-1px);
+}
+
+.product-sections .rec-atc-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* PDP: Recommendations header (scoped) */
+#recommendations { margin-top: 8px; padding-top: 0; }
+#recommendations .recommended-products__header,
+#recommendations .recs-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin: 0 0 12px; padding: 0;
+}
+@media (max-width: 767.98px) {
+  #recommendations .recommended-products__title,
+  #recommendations .recs-title,
+  #recommendations h2 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 20px;              /* set 18px if desired */
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #111;
+  }
+  #recommendations .recs-see-more,
+  #recommendations a[href*="/collections"] {
+    font-size: 14px; line-height: 1;
+  }
+}
+/* Section spacing (single source of truth) */
+@media (min-width: 768px){
+  .content-section { margin-top: 48px; }
+  .content-section + .content-section { margin-top: 64px; }
+  .content-section .coffee-acc-header { margin-bottom: 16px; }
+}
+@media (max-width: 767.98px){
+  .content-section { margin-top: 28px; }
+  .content-section .coffee-acc-header { margin-bottom: 10px; }
+}
+
+
+/* Sidebar */
+.product-sidebar {
+  height: fit-content;
+  width: 100%;
+}
+
+.sidebar-content {
+  position: fixed;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 12px 30px 30px 30px;
+  border-radius: 12px;
+  width: 30%;
+  max-width:500px;
+  box-sizing: border-box;
+
+}
+
+/* Product Header */
+.product-title {
+  /*font-family: 'Passion One', var(--font-sans) !important;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  line-height: 1.2;*/
+  
+  /* H1 override for Passion one - SYNC THIS WITH TOKENS */
+  font-family: 'Passion One', var(--font-sans) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+  font-feature-settings: 'case' 1 !important;
+  font-size: 58px !important;
+  line-height: 1.1 !important;
+  color: #222 !important;
+  margin-block-start: 16px !important;
+  margin-block-end: 0px !important;
+}
+
+/* Roast subhead — coffee PDP only */
+.mcc-product .product-header .roast-subhead{
+  margin: 0px 0 0;
+  font-family: var(--font-suisse, "Suisse Intl", system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  font-size: 22px;
+  font-weight: 400; /* Medium */
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--color-ink, #333);
+}
+
+
+/* Add this if we want the sold out tag to right of product name on PDP, otherwise it'll appear below
+.product-header .product-title-wrap{
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+}*/
+
+
+/* Bean Meter */
+.bean-meter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0px;
+}
+
+.roast-label {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #666;
+  letter-spacing: -0.02em;
+}
+
+.bean-icons {
+  display: flex;
+  gap: 2px;
+  line-height: 0; 
+  align-items: center;
+}
+
+.bean-icon {
+  width: 14px;
+  height: 14px;
+  color: rgba(51, 51, 51, 0.3);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bean-icon.filled {
+  color: rgba(51, 51, 51, 1);
+}
+
+.bean-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Price Display */
+.product-price-display {
+  margin-bottom: 0px;
+  margin-top: 16px;
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: block;
+}
+
+.product-price-display .current-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.product-price-display .compare-price {
+  font-size: 18px;
+  font-weight: 400;
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 0;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Form */
+.product-form {
+  display: flex;
+  flex-direction: column;
+ /* gap: 16px;*/
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Variants */
+.variant-label {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.variant-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.variant-options input[type="radio"] {
+  display: none;
+}
+
+.variant-option {
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  transition: all 0.2s;
+  background: white;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.variant-options input[type="radio"]:checked + .variant-option {
+  background: #121212;
+  color: white;
+  border-color: #121212;
+}
+
+/* Caption under disabled chips — force 2 lines */
+.variant-options input[type="radio"][disabled] + .variant-option::after {
+  content: "Out of\Astock";   /* force break */
+  white-space: pre-line;       /* \A renders as newline */
+  position: absolute;
+  left: 0; top: 100%;
+  margin-top: 6px;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: .5px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--oos-label);
+}
+
+
+
+/* Cart Actions */
+/* === Updated Buy Buttons - Stacked Layout === */
+
+/* Hide old cart-actions if it exists */
+.cart-actions {
+  display: none !important;
+}
+
+.product-quantity-section .variant-label {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 8px;
+  margin-top: 16px;
+  display: block;
+}
+
+.product-quantity-section .quantity-wrapper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  overflow: hidden;
+  background: white;
+  width: auto;
+}
+
+.product-quantity-section .qty-btn {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.product-quantity-section .qty-btn:hover {
+  background: #f5f5f5;
+}
+
+.product-quantity-section .qty-input {
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
+  height: 40px;
+  border: none;
+  text-align: center;
+  background: white;
+  font-family: 'SuisseIntl', sans-serif;
+  font-weight: 400;
+}
+
+/* Hide number input spinners */
+.product-quantity-section input[type="number"]::-webkit-outer-spin-button,
+.product-quantity-section input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+.product-quantity-section input[type="number"] {
+  -moz-appearance: textfield !important;
+}
+
+/* Stacked Cart Actions */
+.cart-actions-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Full-width Add to Cart Button */
+.add-to-cart-full {
+  width: 100%;
+  background: #121212;
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 25px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SuisseIntl', sans-serif;
+}
+
+.add-to-cart-full:hover:not(:disabled) {
+  background: #555;
+  transform: translateY(-1px);
+}
+
+.add-to-cart-full:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Full-width Favorites Button */
+.product-sidebar .wishlist-anchor { margin-top: 0px !important; }
+#wishlisthero-product-page-button-container { width: 100%; }
+
+.product-main #wishlisthero-product-page-button-container,
+.product-main [id^="wishlisthero-"][class*="product-page-button-container"] { display:none !important; }
+.product-sidebar #wishlisthero-product-page-button-container { width:100%; }
+
+/* Wishlist button styled as outline variant of Add to Cart */
+#wishlisthero-product-page-button-container button,
+.block-wishlist button {
+  width: 100%;
+  color: #333;
+  border: #333;
+  padding: 16px 24px;
+  border-radius: 50px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SuisseIntl', sans-serif;
+}
+
+#wishlisthero-product-page-button-container button:hover:not(:disabled),
+.block-wishlist button:hover:not(:disabled) {
+  background: #FAFAFA;     /* filled on hover */
+
+}
+
+#wishlisthero-product-page-button-container button:disabled,
+.block-wishlist button:disabled {
+  border-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* Subscription mode styling */
+.add-to-cart-full.subscription-mode {
+background: #121212;   /* Malibu ocean blue  #2D82B7 */
+color: #fff;
+}
+
+.add-to-cart-full.subscription-mode:hover:not(:disabled) {
+background: #555; /*rgb(19, 134, 206);*/  
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+
+  .product-quantity-section .quantity-wrapper {
+    width: 140px;
+  }
+
+  .cart-actions-stacked {
+    gap: 10px;
+  }
+
+  .add-to-cart-full {
+    padding: 14px 20px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* App Blocks */
+.product-app-block {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 4px 0;
+  margin-top:0px;
+  width: 100%;
+  text-align: left;
+}
+
+.rc-widget-injection-parent {
+  min-height: 1px;
+  width: 100%;
+  margin: 4px 0;
+  text-align: left;
+}
+
+/* Hidden blocks */
+.hidden-block {
+  display: none;
+}
+
+/* Shipping Info */
+.shipping-info {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 20px;
+}
+
+.shipping-info a {
+  color: #333;
+  text-decoration: underline;
+}
+
+/* Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .mcc-product {
+    padding: 0;
+    width: 100%;
+  }
+
+  .product-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  .product-hero-mobile {
+    display: block;
+    margin-bottom: 20px;
+    width: 100%;
+    order: 1;
+  }
+
+  .product-image-mobile {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 0;
+  }
+
+  .product-gallery {
+    display: none;
+  }
+
+  .product-main {
+    width: 100%;
+    order: 3;
+  }
+
+  .product-sidebar {
+    width: 100%;
+    order: 2;
+    position: static;
+  }
+
+  .sidebar-content {
+    position:relative !important;
+    margin: 0 20px 20px;
+    width: calc(100% - 40px);
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .product-title {
+    font-size: 44px !important;
+    font-family: 'Passion One', var(--font-sans) !important;
+    letter-spacing: -0.1em;
+  }
+
+  .product-sections {
+    padding: 0 32px 0 32px;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .content-section {
+    background: white;
+    padding: 0px;
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .flavor-grid {
+    gap: 0px;
+    justify-content: center;
+  }
+}
+
+/* ==============================
+   MCC PDP tokens (scope once)
+   ============================== */
+.mcc-product {
+  --chip-disabled-text:   #9CA3AF;  /* ~3.4:1 on white */
+  --chip-disabled-line:   #9CA3AF;
+  --chip-disabled-bg:     #F5F6F7;
+  --chip-disabled-border: #E5E7EB;
+  --oos-label:            #8B8B8B;  /* darker for a11y */
+  background: #f1f1f1;
+}
+
+/* ==============================
+   Product-level status chip
+   ============================== */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  line-height: 1;
+  vertical-align: middle;
+  border: 1px solid var(--chip-border, #FCA5A5);
+  background: var(--chip-bg, #FEE2E2);
+  color: var(--chip-text, #7F1D1D);
+}
+.status-chip::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .8;
+}
+
+/* ==============================
+   Variant picker foundation
+   ============================== */
+.variant-options { border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+.variant-options > legend {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* ==============================
+   Disabled chip (default behavior)
+   - long, thin strike
+   - “Out of stock” caption below
+   ============================== */
+.variant-options input[type="radio"][disabled] + .variant-option {
+  color: var(--chip-disabled-text);
+  background: var(--chip-disabled-bg);
+  border-color: var(--chip-disabled-border);
+  opacity: 1;                    /* keep contrast */
+  cursor: not-allowed;
+  position: relative;
+  pointer-events: none;
+  margin-bottom: 18px;           /* room for caption */
+  text-decoration: none;         /* no native line-through */
+}
+
+/* strike */
+.variant-options input[type="radio"][disabled] + .variant-option::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1px;
+  background: var(--chip-disabled-line);
+  pointer-events: none;
+}
+
+/* caption (force to two lines) */
+.variant-options input[type="radio"][disabled] + .variant-option::after {
+  content: "Out of stock";      /* newline between words */
+  white-space: pre-line;          /* make \A render as a line break */
+  display: block;                 /* helps Safari honor the break */
+  position: absolute;
+  left: 0; right: 0;              /* easier centering than width:100% */
+  top: 100%;
+  margin-top: 6px;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: .5px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--oos-label);
+}
+
+
+/* If a disabled radio ends up :checked from cache, keep it visually disabled */
+.variant-options input[type="radio"][disabled]:checked + .variant-option {
+  background: var(--chip-disabled-bg);
+  color: var(--chip-disabled-text);
+  border-color: var(--chip-disabled-border);
+}
+
+
+
+/* ==============================
+   All-sold-out state
+   - hide per-chip captions + strike
+   - remove extra spacing
+   - neutralize any selected styling
+   ============================== */
+.variant-options.all-sold-out input[type="radio"][disabled] + .variant-option::before,
+.variant-options.all-sold-out input[type="radio"][disabled] + .variant-option::after {
+  display: none;
+}
+.variant-options.all-sold-out input[type="radio"][disabled] + .variant-option {
+  margin-bottom: 0;
+}
+.variant-options.all-sold-out input[type="radio"]:checked + .variant-option {
+  background: var(--chip-disabled-bg);
+  color: var(--chip-disabled-text);
+  border-color: var(--chip-disabled-border);
+}
+
+/* ==============================
+   CTA: Notify state (no modal)
+   ============================== */
+#main-cta-button.is-notify{
+  background:#fff;
+  color:#111;
+  border:2px solid #111;
+  font-weight:700;
+}
+
+/* ==============================
+   Hide price when the entire product is OOS
+   (works with Dawn .price or your custom .product-price)
+   ============================== */
+.product__info-container[data-oos="true"] .price,
+.product__info-container[data-oos="true"] .product-price {
+  display: none !important;
+}
+
+
+/* Hide price when the entire product is sold out */
+.product__info-container[data-oos="true"] .price,
+.product__info-container[data-oos="true"] .product-price,
+.product__info-container[data-oos="true"] [data-product-price] {
+  display: none !important;
+}
+/* Hide Quantity UI when entire product is sold out */
+.product__info-container[data-oos="true"] .block-quantity-selector { 
+  display: none !important; 
+}
+
+
+/* === Fix accordion header → content gap for Flavor, Growing, Description === */
+/* Small, consistent gap after the accordion header */
+.coffee-acc-header { margin-bottom: 8px; }
+@media (min-width: 768px){ .coffee-acc-header { margin-bottom: 12px; } }
+
+/* Kill top margins on the first child inside any accordion panel */
+.coffee-acc-panel > * { margin-top: 0 !important; }
+
+/* Modules that add their own top margin: neutralize only inside panels */
+.coffee-acc-panel .flavor-profiles,
+.coffee-acc-panel .growing-details,
+.coffee-acc-panel .description-section { margin-top: 0 !important; }
+
+/* Make the section-title style apply ONLY to top-level h3, not nested ones */
+.content-section > h3 {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: #333;
+}
+/* If you still have `.content-section h3 { … }`, replace that selector with `.content-section > h3` */
+
+
+/* Accordion headers: mobile & desktop sizes */
+@media (max-width: 767.98px){
+  .coffee-acc-title{ font-size: 18px; line-height: 1.2; } /* was 20px in section inline CSS */
+}
+@media (min-width: 768px){
+  .coffee-acc-title{ font-size: 22px; line-height: 1.2; }
+}
+
+
+/* Coffee PDP background — scoped by the section being present */
+body.template-product:has(.product-coffee) {
+  background: #FAFAFA;
+}
+
+.coffee-accordion {
+margin: 8px 0;
+/*background: #f1f1f1;*/
+}
+
+/* Accordian Buttons */
+.coffee-acc-trigger {
+/*background:#f1f1f1 !important;*/ 
+border-radius: 0px !important;
+}
+
+/* Remove border/background from accordion +/- buttons */
+.coffee-acc-trigger {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Optional: reset padding if you want tighter icons */
+.coffee-acc-trigger {
+  padding: 0;
+}
+
+/* Base trigger setup */
+.coffee-acc-trigger {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The bars of the plus sign */
+.coffee-acc-trigger::before,
+.coffee-acc-trigger::after {
+  content: "";
+  position: absolute;
+  background-color: #000;
+  transition: all 0.3s ease;
+}
+
+/* Horizontal bar */
+.coffee-acc-trigger::before {
+  width: 100%;
+  height: 2px;
+}
+
+/* Vertical bar */
+.coffee-acc-trigger::after {
+  height: 100%;
+  width: 2px;
+}
+
+/* When accordion is expanded, morph into a minus */
+.coffee-acc-trigger[aria-expanded="true"]::after {
+  transform: rotate(90deg);
+  opacity: 0;
+}
+
+.coffee-acc-trigger[aria-expanded="true"] {
+  transform: rotate(180deg);
+  transition: transform 0.4s ease;
+}
+
+
+
+/* Accordion base – neutral */
+.coffee-accordion { margin: 8px 0; }          /* no background here */
+.coffee-acc-header { margin-bottom: 8px; }
+@media (min-width:768px){ .coffee-acc-header { margin-bottom: 12px; } }
+
+.coffee-acc-panel > * { margin-top: 0 !important; } /* kill first-child gaps */
+
+/* +/- button visuals (neutral) */
+.coffee-acc-trigger{
+  border:none !important; background:none !important; box-shadow:none !important; padding:0;
+  position:relative; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center;
+}
+.coffee-acc-trigger::before,
+.coffee-acc-trigger::after{
+  content:""; position:absolute; background-color:#000; transition:all .3s ease;
+}
+.coffee-acc-trigger::before{ width:100%; height:2px; } /* horizontal */
+.coffee-acc-trigger::after { width:2px;   height:100%; } /* vertical */
+.coffee-acc-trigger[aria-expanded="true"]::after{ transform:rotate(90deg); opacity:0; } /* minus */
+
+@media (max-width:767.98px){ .coffee-acc-title{ font-size:18px; line-height:1.2; } }
+@media (min-width:768px){ .coffee-acc-title{ font-size:22px; line-height:1.2; } }
+
+/* Section rhythm (single source of truth) */
+.content-section + .content-section{ margin-top:28px; }
+@media (min-width:768px){ .content-section + .content-section{ margin-top:48px; } }
+
+
+
+
+
+/* Make sure Favorites is clickable under the CTA */
+.product-merch .block-buy-buttons { position: relative; z-index: 1; }
+.product-merch .block-wishlist { position: relative; z-index: 2; }
+.product-merch .wishlist-anchor { display: inline-flex; margin-top: var(--wishlist-margin-top, 12px); pointer-events: auto; }
+
+
+
+/* ===== MCC — Unified Favorites Button (Coffee + Merch) ===== */
+.mcc-product #mcc-wishlist-anchor {
+  display: block;
+  margin-top: var(--wishlist-margin-top, 0px);
+}
+
+/* Normalize container the app injects */
+.mcc-product #mcc-wishlist-anchor [id^="wishlisthero-"],
+.mcc-product #mcc-wishlist-anchor [class*="wishlisthero"] {
+  display: block;
+  width: 100%;
+}
+
+/* Style the actual clickable control (button or link) */
+.mcc-product #mcc-wishlist-anchor :where(button, a){
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 18px;
+  border-radius: 9999px;
+
+  font-family: var(--font-sans, inherit);
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-decoration: none;
+
+  /* Outline pill like Coffee */
+  background: transparent;
+  border: 1.5px solid var(--color-border, #e6e6e6);
+  color: var(--color-ink, #111);
+  box-shadow: none;
+}
+
+/* Hover/active to match Coffee */
+.mcc-product #mcc-wishlist-anchor :where(button, a):hover{
+  border-color: #d4d4d4;
+  background: #fafafa;
+}
+.mcc-product #mcc-wishlist-anchor :where(button, a):active{
+  transform: translateY(0.5px);
+}
+
+/* Reset any inline styles the app might add */
+.mcc-product #mcc-wishlist-anchor :where(button, a)[style]{
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* If the app injects an icon, size + align nicely */
+.mcc-product #mcc-wishlist-anchor svg{
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+
+
+/* ===== MCC MERCH ONLY -----
+—------- MEDIA GALLERY ---------
+(desktop, vertical) ===== */
+
+/* ===== MERCH PDP — flowing gallery (no inner scrollbar) ===== */
+.product-merch .mcc-merch-gallery {
+  --mcc-merch-gap: 2px; /* keep the coffee-sized gap */
+}
+
+/* Flowing grid: first item full width, rest two columns */
+.product-merch .mcc-merch-gallery .mgg-rail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mcc-merch-gap);
+
+  /* remove the internal scroller */
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+
+  /* optional: tighter packing if you have mixed image heights */
+  grid-auto-flow: row dense;
+}
+
+/* Top media spans both columns */
+.product-merch .mcc-merch-gallery .mgg-item:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Media basics */
+.product-merch .mcc-merch-gallery .mgg-item > * {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ===== MERCH PDP — fade-up on scroll (final working version) ===== */
+.product-merch .mcc-merch-gallery .mgg-item {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+    transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+  transition-delay: calc(var(--mcc-stagger, 0) * 80ms);
+}
+
+.product-merch .mcc-merch-gallery .mgg-item.is-inview {
+  opacity: 1;
+  transform: none;
+}
+
+/* show hero immediately */
+.product-merch .mcc-merch-gallery .mgg-item:first-child {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0ms !important;
+}
+
+/* ===== MCC PDP (universal) — reusable fade-up motion ===== */
+.mcc-product [data-reveal="fade-up"] {
+  opacity: 0;
+  transform: translateY(40px);
+  will-change: opacity, transform;
+  transition:
+    opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+    transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+  transition-delay: calc(var(--stagger-index, 0) * 80ms);
+}
+
+.mcc-product .is-inview {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Merch PDP — enforce our small, muted variant label */
+.product-merch .product__info-container .variant-label.variant-label{
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #666;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+
+/* ===== Universal stagger (desktop only) ===== */
+@media (min-width: 960px){
+  .mcc-anim.is-anim [data-anim]{
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    animation: mccFadeUpSoft 520ms cubic-bezier(.16,1,.3,1) both;
+    animation-delay: calc(var(--i, 0) * 36ms);
+  }
+  @keyframes mccFadeUpSoft{
+    0%   { opacity: 0; transform: translateY(24px) scale(.995); filter: blur(1px); }
+    70%  { opacity: 1; transform: translateY(-2px) scale(1);   filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0)      scale(1); }
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  .mcc-anim.is-anim [data-anim]{ animation:none !important; transform:none !important; opacity:1 !important; filter:none !important; }
+}
+
+/* MOBILE: when NOT in merch mode, remove any pushdown above the page */
+@media (max-width:767px){
+  html:not(.mcc-merch-mode) #MainContent,
+  html:not(.mcc-merch-mode) .shopify-section:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  /* Nuke any custom “header spacer” variables some themes use */
+  html:not(.mcc-merch-mode) :root {
+    --header-bottom-position: 0px !important;
+  }
+}
+
+/* ---MERCH MOBILE - Added 10.14.25: desktop to mobile Media gates: no JS needed --- */
+.product-merch-mobile.only-mobile { display: none; }
+@media (max-width: 749px){
+  .product-merch-mobile.only-mobile { display: block; }
+  .mcc-product.product-merch.only-desktop,
+  #shopify-section-product_merch_desktop { display:none !important; }
+}
+@media (min-width: 750px){
+  #product_merch_mobile { display:none !important; }
+}
+
+
+
+

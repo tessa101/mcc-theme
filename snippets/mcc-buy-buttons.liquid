@@ -1,0 +1,65 @@
+{% comment %}
+snippets/mcc-buy-buttons.liquid - Stacked layout with separate quantity and buy buttons
+{% endcomment %}
+
+<!-- Separate Quantity Section 
+<div class="product-quantity-section">
+  <label class="variant-label">QUANTITY</label>
+  <div class="quantity-wrapper">
+    <label for="quantity-{{ section.id }}" class="sr-only">Quantity</label>
+    <button type="button" class="qty-btn minus" data-action="decrease">−</button>
+    <input type="number"
+           id="quantity-{{ section.id }}"
+           name="quantity"
+           value="1"
+           min="1"
+           class="qty-input">
+    <button type="button" class="qty-btn plus" data-action="increase">+</button>
+  </div>
+</div> -->
+
+
+<!-- Stacked Cart Actions -->
+{% comment %}
+snippets/mcc-buy-buttons.liquid - Buy buttons only (quantity moved to separate block)
+{% endcomment %}
+
+
+
+{%- comment -%}
+Main CTA — adapts to product availability and subscriptions
+- When ALL variants are OOS -> button becomes a Notify trigger (not a submit)
+- Otherwise -> normal submit; text toggles to "Subscribe" if a selling_plan is selected
+{%- endcomment -%}
+{%- comment -%} CTA block {%- endcomment -%}
+{%- assign all_oos = false -%}
+{%- unless product.available -%}{%- assign all_oos = true -%}{%- endunless -%}
+{%- assign selected_variant = product.selected_or_first_available_variant -%}
+
+<div class="cart-actions-stacked" data-oos="{{ all_oos }}">
+  {% if all_oos %}
+    <!-- NOTE:
+         - type="button" (not submit)
+         - no name="add"
+         - no disabled / aria-disabled
+         - data-notify-cta marks it for JS hardening below
+    -->
+    <button type="button"
+            class="add-to-cart-full"
+            id="main-cta-button"
+            data-notify-cta="true">
+      <span id="cart-btn-text" aria-live="polite">Notify me when it’s back</span>
+    </button>
+  {% else %}
+    <button type="submit"
+            class="add-to-cart-full"
+            id="main-cta-button"
+            name="add"
+            {% unless selected_variant.available %}disabled aria-disabled="true"{% endunless %}>
+      <span id="cart-btn-text" aria-live="polite">Add to cart</span>
+    </button>
+  {% endif %}
+</div>
+
+
+

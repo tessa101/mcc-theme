@@ -1,0 +1,86 @@
+/* ==========================================================
+   MCC — Merch Layout (placement + behavior, mobile only)
+   Scope: <body class="layout-merch">
+   Desktop uses Dawn sections; mobile shows custom drawer.
+   ========================================================== */
+
+/* ----- Drawer & carousel placement (mobile) ----- */
+.layout-merch .mobile-product-detail{position:fixed;top:200;left:0;width:100%;height:100vh;overflow:hidden;background:#fff;z-index:100}
+.layout-merch .product-carousel{position:relative;height:60vh;overflow:hidden}
+.layout-merch .carousel-container{width:100%;height:100%;overflow:hidden}
+.layout-merch .carousel-track{display:flex;flex-direction:column;width:100%;height:100%;transition:transform .4s ease;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.layout-merch .carousel-track::-webkit-scrollbar{display:none}
+.layout-merch .carousel-slide{min-height:100%;width:100%;display:flex;align-items:center;justify-content:center;scroll-snap-align:start}
+.layout-merch .carousel-indicators{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:1}
+
+
+.layout-merch .product-drawer{position:fixed;top:0;left:0;right:0;will-change:transform;touch-action:none;z-index:1;opacity:0;transform:translateY(calc(100vh - 160px));transition:opacity .4s ease,transform .4s cubic-bezier(.25,.46,.45,.94)}
+.layout-merch .product-drawer.positioned{opacity:1}
+
+/* Peek header + handle */
+.layout-merch .drawer-peek{position:relative;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #f3f4f6;z-index:1;padding:16px;background:#fff;cursor:grab;user-select:none}
+.layout-merch .drawer-handle{padding:12px 0 8px;display:flex;justify-content:center;cursor:grab}
+.layout-merch .drawer-handle:active{cursor:grabbing}
+.layout-merch .handle-bar{width:40px;height:4px;background:#d1d5db;border-radius:2px}
+
+/* Drawer content scroll area */
+.layout-merch .drawer-content{padding:20px;background:#fff;max-height:calc(100vh - 200px);overflow-y:auto;}
+
+/* Related products grid (cards’ visuals are global) */
+.layout-merch .related-products{margin-top:32px}
+.layout-merch .related-products-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* ----- Device switch: hide Dawn on mobile, show drawer; reverse on desktop ----- */
+@media (min-width:768px){
+  .product-merchandise-mobile-section{display:none !important} /* hide mobile drawer */
+}
+@media (max-width:767px){
+  /* Hide Dawn’s product sections on mobile */
+  .shopify-section-product-hero,
+  .shopify-section-product-information,
+  .shopify-section-product-media,
+  .shopify-section-product-recommendations,
+  .shopify-section[id*="template--"][id*="product"]:not(.product-merchandise-mobile-section),
+  .shopify-section[class*="product"]:not(.product-merchandise-mobile-section),
+  main .shopify-section:not(.product-merchandise-mobile-section):not(.shopify-section-header):not(.shopify-section-footer),
+  .page-width .product,
+  .page-width .product-form,
+  .page-width .product-media,
+  .page-width .product__info,
+  .page-width .product__media,
+  .product-recommendations,
+  .product__info-container,
+  .product__media-wrapper { display:none !important }
+
+  /* Keep header/footer/cart visible */
+  .shopify-section-header,
+  .shopify-section-footer,
+  .shopify-section-announcement-bar,
+  .shopify-section-cart-drawer,
+  .shopify-section-cart-notification { display:block !important }
+
+  .shopify-section-header * { display:revert !important; flex:revert !important; grid:revert !important; position:revert !important }
+  .shopify-section-header .header, .shopify-section-header header { display:flex !important }
+
+  /* Show the mobile drawer section */
+  .product-merchandise-mobile-section{display:block !important}
+  .product-merchandise-mobile-section *{pointer-events:auto !important; touch-action:auto !important}
+  .product-merchandise-mobile-section .carousel-track{overflow-y:auto !important; touch-action:pan-y !important}
+}
+
+/* XS tweaks */
+@media (max-width:480px){
+  .layout-merch .product-carousel{height:calc(55vh - var(--header-height,60px)*.55)}
+  .layout-merch .drawer-content{padding:16px}
+}
+
+/* ----- Mobile Cart Drawer — Keep Dawn's right-side behavior ----- */
+/* Note: Dawn cart drawer opens from right side (default behavior) */
+/* Only ensure proper z-index layering for merch mobile context */
+@media (max-width:767px){
+  /* Ensure cart drawer stays above merch mobile drawer but below modals */
+  cart-drawer,
+  .cart-drawer{
+    z-index:9999 !important;
+  }
+}

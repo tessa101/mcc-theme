@@ -1,0 +1,73 @@
+{%- comment -%}
+mcc-growing-details.liquid
+Layout: Map (left) + 4 detail items (right, single vertical column)
+Metafields:
+- Map image:  custom.map  (expected: file/image)
+- Varietal:   custom.varietal | coffee.varietal
+- Origin:     custom.origin   | coffee.origin
+- Altitude:   custom.altitude | coffee.altitude
+- Region:     custom.region   | coffee.region
+{%- endcomment -%}
+
+{%- assign map_image = product.metafields.custom.map -%}
+
+
+{%- assign region_val = product.metafields.custom.region
+  | default: product.metafields.coffee.region -%}
+{%- assign altitude_val = product.metafields.custom.altitude
+  | default: product.metafields.coffee.altitude -%}
+
+
+<div class="content-section growing-details" id="growing-details">
+  <h3>{{ product.metafields.custom.growing_section_title | default: 'Growing details' }}</h3>
+
+  <div class="growing-wrap">
+    <div class="growing-map">
+      {%- if map_image %}
+        <img
+          src="{{ map_image | image_url: width: 900 }}"
+          alt="{{ map_image.alt | default: 'Origin map' | escape }}"
+          loading="lazy">
+      {%- else -%}
+        {%- comment -%} Optional placeholder if no map {%- endcomment -%}
+        <div class="map-placeholder">Map coming soon</div>
+      {%- endif -%}
+    </div>
+
+    <div class="growing-list">
+      
+      {%- comment -%}
+      {%- if origin_val %}
+        <div class="kv">
+          <div class="kv-label">Origin:</div>
+          <div class="kv-value">{{ origin_val }}</div>
+        </div>
+      {%- endif -%}
+       {%- endcomment -%}
+
+      {%- if region_val %}
+        <div class="kv">
+          <div class="kv-label">Region:</div>
+          <div class="kv-value">{{ region_val }}</div>
+        </div>
+      {%- endif -%}
+
+      {%- if altitude_val %}
+        <div class="kv">
+          <div class="kv-label">Altitude:</div>
+          <div class="kv-value">{{ altitude_val |  default: '—'}}</div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%}
+      {%- if varietal_val %}
+        <div class="kv">
+          <div class="kv-label">Varietal:</div>
+          <div class="kv-value">{{ varietal_val }}</div>
+        </div>
+      
+      {%- endif -%}
+       {%- endcomment -%}
+    </div>
+  </div>
+</div>

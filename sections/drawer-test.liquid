@@ -1,0 +1,97 @@
+<section>
+  <div class="product-drawer" id="productDrawer">
+    <div class="drawer-peek" id="drawerToggle">
+      <div>
+        <strong>Title</strong> - $100.00
+      </div>
+      <button class="drawer-cart-btn">+</button>
+    </div>
+    <div class="drawer-expanded">
+      <p>This is expanded drawer content.</p>
+    </div>
+  </div>
+
+  <style>
+    .product-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #ccc;
+      transform: translateY(60%);
+      transition: transform 0.3s ease;
+      z-index: 9999;
+    }
+
+    .product-drawer.open {
+      transform: translateY(0%);
+    }
+
+    #productDrawer .drawer-content{
+    height: 100% !important;              /* fill the drawer height */
+    overflow-y: auto !important;          /* enable scroll */
+    -webkit-overflow-scrolling: touch;    /* momentum scroll on iOS */
+  }
+
+  /* if there’s an inner wrapper you’re using, include it too */
+  #productDrawer .product__info-wrapper{ 
+    overflow: visible !important; /* ensure no extra clipping */
+  }
+
+    .drawer-peek {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+
+    .drawer-expanded {
+      display: none;
+      padding: 1rem;
+    }
+
+    .product-drawer.open .drawer-expanded {
+      display: block;
+    }
+
+    .drawer-cart-btn {
+      background: black;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+    }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const drawer = document.getElementById("productDrawer");
+      const toggle = document.getElementById("drawerToggle");
+
+      if (!drawer || !toggle) {
+        console.warn("Drawer or toggle not found");
+        return;
+      }
+
+      toggle.addEventListener("click", () => {
+        console.log("Drawer toggle clicked");
+        drawer.classList.toggle("open");
+      });
+    });
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Test Drawer",
+  "tag": "section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Drawer Demo"
+    }
+  ]
+}
+{% endschema %}

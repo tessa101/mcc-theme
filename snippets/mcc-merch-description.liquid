@@ -1,0 +1,19 @@
+{%- comment -%}
+MCC Merch Description
+- Dedicated description block for merch PDPs
+- Looks first for rich text metafield `merch.description_html`
+  (namespace: merch, key: description_html)
+- Falls back to the core `product.description` if that metafield is blank
+- Scoped: .product-merch .mcc-merch-description
+{%- endcomment -%}
+
+{% assign merch_desc = product.metafields.merch.description_html | default: blank %}
+{% assign desc_html  = merch_desc | default: product.description %}
+
+{% if desc_html != blank %}
+  <section class="mcc-merch-description description-section">
+    <div class="description-content rte">
+      {{ desc_html }}
+    </div>
+  </section>
+{% endif %}

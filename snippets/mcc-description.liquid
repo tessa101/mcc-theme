@@ -1,0 +1,66 @@
+{%- comment -%}
+mcc-description.liquid
+Module: "How it's made"
+Narrative description + 4 metadata points
+{%- endcomment -%}
+
+<div class="content-section description-section" id="how-its-made">
+  <h3>
+    {{ product.metafields.custom.description_section_title 
+      | default: 'How it’s made' }}
+  </h3>
+
+  <!-- Narrative -->
+  <div class="description-content rte">
+    {%- if product.description != blank -%}
+      {{ product.description }}
+    {%- elsif product.metafields.custom.about_description -%}
+      {{ product.metafields.custom.about_description }}
+    {%- elsif product.metafields.descriptors.detailed_description -%}
+      {{ product.metafields.descriptors.detailed_description }}
+    {%- else -%}
+      <p>This coffee is crafted with care, from harvest to roast, showcasing the story of its origin and process.</p>
+    {%- endif -%}
+  </div>
+{%- comment -%}
+  <!-- Metadata Grid -->
+  {%- assign endtemp_val = product.metafields.custom.end_temp 
+  | default: product.metafields.coffee.end_temperature -%}
+{%- assign devpct_val = product.metafields.custom.development_percentage 
+  | default: product.metafields.coffee.development_percentage -%}
+{%- assign grade_val = product.metafields.custom.grade 
+  | default: product.metafields.coffee.grade -%}
+{%- assign processing_val = product.metafields.custom.processing 
+  | default: product.metafields.coffee.processing_method -%}
+
+{%- if endtemp_val or devpct_val or grade_val or processing_val -%}
+  <div class="made-grid two-by-two" role="group" aria-label="Roast & processing details">
+    <!-- Left column -->
+    <div class="made-col">
+      <div class="kv">
+        <div class="kv-label">End temperature</div>
+        <div class="kv-value">{{ endtemp_val }}</div>
+      </div>
+      <div class="kv">
+        <div class="kv-label">Grade</div>
+        <div class="kv-value">{{ grade_val }}</div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="made-col">
+      <div class="kv">
+        <div class="kv-label">Development %</div>
+        <div class="kv-value">{{ devpct_val }}</div>
+      </div>
+      <div class="kv">
+        <div class="kv-label">Processing</div>
+        <div class="kv-value">{{ processing_val }}</div>
+      </div>
+    </div>
+  </div>
+  
+{%- endif -%}
+ {%- endcomment -%}
+
+</div>

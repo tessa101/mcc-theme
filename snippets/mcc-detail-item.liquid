@@ -1,0 +1,10 @@
+{% comment %}
+snippets/mcc-detail-item.liquid - Detail row with fallback
+{% endcomment %}
+{% assign detail_value = value | default: fallback %}
+{% if detail_value and detail_value != blank %}
+  <div class="detail-item">
+    <span class="detail-label">{{ label }}</span>
+    <span class="detail-value">{{ detail_value }}</span>
+  </div>
+{% endif %}

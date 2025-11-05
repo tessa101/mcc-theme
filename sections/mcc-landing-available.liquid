@@ -1,0 +1,225 @@
+{% comment %} MCC Landing — Available (logos grid) {% endcomment %}
+{% comment %} MCC Landing — Available (logos grid) {% endcomment %}
+<section class="mcc-logos" data-mcc-landing="available">
+  {% if section.settings.title != blank %}
+    <h2 class="ml-title">{{ section.settings.title }}</h2>
+  {% endif %}
+
+  <ul class="ml-grid"
+    data-cascade
+    style="
+      --cols: {{ section.settings.cols | default: 5 }};
+      --cols-m: {{ section.settings.cols_mobile | default: 2 }};
+      --logo-w: {{ section.settings.logo_max_width | default: 140 }}px;
+      --count: {{ section.blocks.size }};
+      --cols-eff: {{ section.blocks.size | at_most: section.settings.cols }};
+      --cols-eff-m: {{ section.blocks.size | at_most: section.settings.cols_mobile }};
+    ">
+
+    {% for block in section.blocks %}
+      <li class="ml-item scroll-trigger animate--fade-in scroll-trigger--offscreen" {{ block.shopify_attributes }}>
+        {% if block.settings.link != blank %}
+          <a href="{{ block.settings.link }}" class="ml-link">
+        {% else %}
+          <div class="ml-link">
+        {% endif %}
+
+          <div class="ml-frame" {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}>
+            {% if block.settings.logo != blank %}
+              {{ block.settings.logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: block.settings.logo.alt | escape }}
+            {% else %}
+              <div class="ml-fpo">Logo</div>
+            {% endif %}
+          </div>
+
+          {% if block.settings.caption != blank %}
+            <div class="ml-cap">{{ block.settings.caption }}</div>
+          {% endif %}
+
+        {% if block.settings.link != blank %}
+          </a>
+        {% else %}
+          </div>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+
+<style>
+.mcc-logos{ padding:80px 0; background:#f1f1f1; text-align:center; }
+.ml-title{ font-weight:800; letter-spacing:.02em; font-size:20px; margin:0 0 24px; }
+
+
+/* Grid */
+.ml-grid{
+  --cols: 5;          /* desired desktop cols */
+  --cols-m: 3;        /* desired mobile cols  */
+  --cols-eff: var(--cols);
+  --cols-eff-m: var(--cols-m);
+  --logo-w: 140px;
+  --logo-h: 120px;
+  --ring: 8px;
+  --gap-x: 60px;
+  --gap-y: 32px;
+  --cell: calc(var(--logo-w) + var(--ring)*2);
+
+  display:grid;
+  grid-template-columns: repeat(var(--cols-eff), minmax(0,1fr));
+  gap: var(--gap-y) var(--gap-x);
+
+  /* shrink container to the needed width so rows center when count < cols */
+  max-width: min(
+    1100px,
+    calc(var(--cols-eff) * var(--cell) + (var(--cols-eff) - 1) * var(--gap-x))
+  );
+  margin: 0 auto;
+  align-items:center;
+  justify-items:center;
+  padding:0;
+  list-style:none;
+}
+@media (max-width: 900px){ .ml-grid{ --cols: 4; } }
+@media (max-width: 740px){
+  .ml-grid{
+    grid-template-columns: repeat(var(--cols-eff-m), 1fr);
+    max-width: calc(var(--cols-eff-m) * var(--cell) + (var(--cols-eff-m) - 1) * var(--gap-x));
+    gap: 18px var(--gap-x);
+  }
+}
+/* Items / Link (tile is the link) */
+.ml-item{ width:100%; display:grid; place-items:center; }
+.ml-link{
+  display:grid; place-items:center; gap:10px;
+  text-decoration:none; color:rgba(0,0,0,.78);
+}
+.ml-link:hover, .ml-link:focus-visible{ color:rgba(0,0,0,.92); }
+.ml-link:focus-visible{ outline:2px solid #111; outline-offset:3px; border-radius:12px; }
+
+/* Card frame + logo */
+.ml-frame{
+  width:calc(var(--logo-w) + var(--ring)*2);
+  height:calc(var(--logo-h) + var(--ring)*2);
+  border-radius:140px;
+  background:#fff;
+  box-shadow:0 1px 0 rgba(0,0,0,.06), inset 0 0 0 1px rgba(0,0,0,.02);
+  display:grid; place-items:center;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.ml-logo{
+  max-width:var(--logo-w);
+  max-height:var(--logo-h);
+  object-fit:contain;
+  filter:grayscale(100%) contrast(1) opacity(.9);
+  transition:filter .18s ease, transform .18s ease;
+}
+
+/* Interactions */
+/*.ml-link:hover .ml-frame{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.08), inset 0 0 0 1px rgba(0,0,0,.06); }*/
+.ml-link:hover .ml-logo{ filter:grayscale(0%) opacity(1); }
+
+/* Caption (no underline by default; tidy underline on hover/focus) */
+.ml-cap{
+  margin-top:10px; font-size:14px; font-weight:600; letter-spacing:.01em; line-height:1.3;
+  border-bottom:1px solid transparent; transition:border-color .18s ease, color .18s ease;
+}
+.ml-link:hover .ml-cap,
+.ml-link:focus-visible .ml-cap{ border-bottom-color:currentColor; }
+
+/* Fallback */
+.ml-fpo{
+  width:calc(var(--logo-w) + var(--ring)*2);
+  height:calc(var(--logo-h) + var(--ring)*2);
+  border-radius:14px; background:#e9e9e9; display:grid; place-items:center; color:#666;
+}
+
+/* --- Kill accidental horizontal scroll on mobile --- */
+@media (max-width: 749px){
+  html, body { overflow-x: hidden; }
+  body { overscroll-behavior-x: none; } /* prevents sideways rubber-banding */
+  
+  /* Clamp the Available/Logos section to the viewport */
+  .mcc-logos, 
+  .mcc-logos .page-width {
+    width: 100%;           /* avoid 100vw overflow */
+    max-width: 100%;
+    overflow-x: clip;       /* hide any stray 1–2px overflow */
+  }
+
+  /* Grid + items must be allowed to shrink inside */
+  .mcc-logos .ml-grid {
+    grid-template-columns: repeat(var(--cols-m, 3), minmax(0, 1fr));
+    padding-inline: 16px;
+  }
+  .mcc-logos .ml-grid > * { min-width: 0; }
+  .mcc-logos .ml-grid img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Mobile: 2-col logos grid, centered */
+@media (max-width: 749px){
+  .mcc-logos .ml-grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns */
+    gap: 24px 16px;
+    align-items: start;        /* keep tops aligned when captions wrap */
+    justify-items: center;     /* center each logo inside its cell */
+    padding-inline: 16px;
+  }
+
+  /* Make sure items can shrink and images don’t overflow */
+  .mcc-logos .ml-grid > * { min-width: 0; }
+  .mcc-logos .ml-grid img{ display:block; max-width:100%; height:auto; }
+
+  /* If there’s an odd number of items, center the last one on its own row */
+  .mcc-logos .ml-grid > *:last-child:nth-child(odd){
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}
+</style>
+
+
+{% schema %}
+{
+  "name": "MCC Landing — Available",
+  "settings": [
+  { "type": "text",  "id": "title", "label": "Title", "default": "AVAILABLE AT" },
+  { "type": "range", "id": "cols", "label": "Columns (desktop)", "min": 2, "max": 6, "step": 1, "default": 5 },
+  { "type": "range", "id": "cols_mobile", "label": "Columns (mobile)", "min": 1, "max": 3, "step": 1, "default": 2 },
+  { "type": "range", "id": "logo_max_width", "label": "Max logo width (px)", "min": 100, "max": 320, "step": 10, "default": 140 }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "image_picker", "id": "logo", "label": "Logo" },
+        { "type": "text", "id": "caption", "label": "Caption (optional)" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "max_blocks": 24,
+  "presets": [
+  {
+    "name": "MCC Landing — Available",
+    "blocks": [
+      { "type": "logo" }, { "type": "logo" }, { "type": "logo" },
+      { "type": "logo" }, { "type": "logo" }, { "type": "logo" }
+    ],
+    "settings": {
+      "title": "AVAILABLE AT",
+      "cols": 5,
+      "cols_mobile": 3,
+      "logo_max_width": 140
+    }
+  }
+]
+
+}
+{% endschema %}

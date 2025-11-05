@@ -1,0 +1,311 @@
+/* ==========================================================
+   MCC Global Styles — visual system (no layout here)
+   Load AFTER Dawn base.css
+   ========================================================== */
+
+/* ---------------------------
+   Base & typography
+   --------------------------- */
+html, body {
+  font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #111;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+.stack > * + * { margin-top: 12px; }
+
+/* Product titles (700 everywhere, incl. Dawn) */
+.product-title,
+.product__title {
+  /*font-weight: 700;
+  letter-spacing: -0.02em;*/
+  color: #111;
+  font-family: 'Passion One', var(--font-sans) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  font-feature-settings: 'case' 1 !important;
+  font-size: 46px !important;
+  line-height: 1.05 !important;
+}
+
+
+/* Product media: neutral background only inside product media containers */
+.product__media model-viewer,
+.product__media iframe,
+.product__media video,
+.product__media .deferred-media { background:#eee; }
+
+
+/* ---------------------------
+   Buttons (Primary / Secondary)
+   - Primary  = Add to Cart
+   - Secondary = Favorites (outlined)
+   - Fills #333; text #111
+   --------------------------- */
+
+/* Base + Dawn mapping + legacy aliases */
+.btn,
+.button,                              /* Dawn */
+.add-to-cart-full,                    /* legacy primary */
+button[aria-label="Add to favorites"] /* legacy secondary */
+{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 16px 24px;
+  min-height: 48px;
+  border-radius: 25px;                /* Coffee pill */
+  border: 1px solid transparent;
+
+  font: 500 16px/1 'SuisseIntl', system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: none;
+  color: #111;
+
+  transition: background 0.3s ease, transform 0.12s ease, filter 0.2s ease;
+}
+.btn-block { width: 100%; }
+
+/* Generic “friendlier” disabled cursor from your base.css
+   (our .btn rule below keeps not-allowed for action buttons) */
+button[disabled], .button[disabled], [aria-disabled="true"] { cursor: default; }
+
+/* Accessibility focus */
+:where(.btn,.button,.add-to-cart-full,button[aria-label="Add to favorites"]):focus-visible {
+  outline: 2px solid #111; outline-offset: 2px;
+}
+
+/* Action buttons keep not-allowed + dimming */
+:where(.btn,.button,.add-to-cart-full,button[aria-label="Add to favorites"]):disabled {
+  cursor: not-allowed; opacity: .6;
+}
+
+/* Primary (fill #333) */
+.btn.primary,
+.button--primary,
+.add-to-cart-full {
+  background: #333; color: #fff; border-color: #333;
+}
+.btn.primary:hover:not(:disabled),
+.button--primary:hover:not(:disabled),
+.add-to-cart-full:hover:not(:disabled) { background: #555; }
+.btn.primary:disabled,
+.button--primary:disabled,
+.add-to-cart-full:disabled { background: #ccc; border-color: #ccc; color: #fff; }
+
+/* Secondary (outlined) */
+.btn.secondary,
+.button--secondary,
+button[aria-label="Add to favorites"] {
+  background: #fff; color: #111; border-color: #111;
+}
+.btn.secondary:hover:not(:disabled),
+.button--secondary:hover:not(:disabled),
+button[aria-label="Add to favorites"]:hover:not(:disabled) { background: #111; color: #fff; }
+
+/* Optional sizes */
+.btn-sm { padding: 12px 16px; min-height: 44px; border-radius: 20px; }
+.btn-lg { padding: 18px 24px; min-height: 52px; border-radius: 28px; }
+
+/* ---------------------------
+   Variant pickers (Coffee baseline)
+   Overrides Dawn pills + supports our .variant-* markup
+   --------------------------- */
+
+/* Label */
+.variant-label,
+.product-form__input .form__label,
+.product-form__input fieldset > legend {
+  display: block; margin: 0 0 8px;
+  font-size: 12px; font-weight: 400; text-transform: uppercase;
+  letter-spacing: .5px; color: #666;
+}
+
+/* Containers (our markup) */
+.variant-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.variant-input { display: none; }
+
+/* Pills — our markup + Dawn input+label */
+.variant-option,
+.product-form__input input[type="radio"] + label,
+.product-form__input input[type="checkbox"] + label {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 44px; height: 44px; padding: 0 16px; box-sizing: border-box; text-align: center;
+  border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+/* Checked (dark everywhere) */
+.variant-input:checked + .variant-option,
+.product-form__input input[type="radio"]:checked + label,
+.product-form__input input[type="checkbox"]:checked + label {
+  background: #333; color: #fff; border-color: #333;
+}
+
+/* Disabled */
+.variant-input:disabled + .variant-option,
+.product-form__input input:disabled + label { opacity: .5; cursor: not-allowed; }
+
+/* ---------------------------
+   Quantity (Coffee pill everywhere)
+   --------------------------- */
+.quantity,
+.quantity-selector,
+.quantity--large,
+.product-form__input .quantity {
+  display: inline-flex; align-items: center; overflow: hidden;
+  background: #fff; border: 1px solid #ddd; border-radius: 25px;
+}
+.quantity-btn, .quantity__button {
+  width: 44px; height: 44px; border: 0; background: #fff;
+  font-size: 18px; font-weight: 600; cursor: pointer;
+}
+.quantity-btn:hover, .quantity__button:hover { background: #f5f5f5; }
+.quantity-input, .quantity__input, .quantity-field {
+  width: 60px; height: 44px; border: 0; text-align: center; background: #fff; font-weight: 400;
+}
+
+/* ---------------------------
+   Inputs / selects (visual skin)
+   --------------------------- */
+.input  { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; background: #fff; }
+.select { width: 100%; padding: 10px 36px 10px 12px; border: 1px solid #ddd; border-radius: 10px; background: #fff; }
+
+/* ---------------------------
+   Price cluster (Coffee sizes)
+   --------------------------- */
+.price { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin: 0; }
+
+.price-now,
+.price .price-item--regular,
+.price .price-item--sale {
+  font-weight: 700; color: #333; font-size: 20px;
+}
+@media (min-width: 768px){
+  .price-now,
+  .price .price-item--regular,
+  .price .price-item--sale { font-size: 24px; }
+}
+
+.price-compare,
+.price .price__compare,
+.price .price-item--compare { color: #999; text-decoration: line-through; font-size: 14px; }
+
+.price-unit { font-size: 12px; color: #666; }
+
+/* Merch naming → shared cluster (keeps older markup working) */
+.product-price { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin: 0; }
+.price-regular, .price-sale { font-weight: 700; color: #333; } /* acts like .price-now */
+.price-per-unit { font-size: 12px; color: #666; }
+
+/* ---------------------------
+   Cards / badges / media rows
+   --------------------------- */
+/* ---------------------------
+   MCC components (namespaced to avoid Dawn collisions)
+   --------------------------- */
+
+/* Cards & badges */
+.mcc-card   { background:#fff; border:1px solid #eee; border-radius:12px; padding:16px; }
+.mcc-badge  { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; background:#f2f2f2; color:#222; }
+.mcc-badge-sale { background:#ffe8e8; color:#b30000; }
+
+/* Media rows (list items with a small thumbnail) */
+.mcc-media       { display:grid; grid-template-columns:56px 1fr; gap:12px; align-items:center; }
+.mcc-media-img   { width:56px; height:56px; border-radius:8px; object-fit:cover; }
+.mcc-media-title { font-weight:700; }
+.mcc-media-meta  { color:#666; font-size:14px; }
+
+/* Flavor & Brew (namespaced skins; placement stays in layout) */
+.mcc-flavor-list, .mcc-brew-list { display:grid; gap:12px; }
+.mcc-flavor-item, .mcc-brew-item { display:grid; grid-template-columns:56px 1fr; gap:12px; align-items:center; }
+.mcc-flavor-name, .mcc-brew-title { font-weight:700; }
+.mcc-flavor-desc, .mcc-brew-meta  { color:#666; font-size:14px; }
+
+
+/* ---------------------------
+   Merch drawer — reusable visuals
+   --------------------------- */
+.related-product { display:block; text-decoration:none; color:inherit; border-radius:8px; overflow:hidden; transition:transform .2s ease; }
+.related-product:hover { transform: translateY(-2px); text-decoration:none; }
+.related-product:active { transform: translateY(0); }
+.related-product-image { width:100%; aspect-ratio:1; overflow:hidden; background:#f9fafb; border-radius:8px; margin-bottom:8px; }
+.related-product-image img { width:100%; height:100%; object-fit:cover; transition: transform .2s ease; }
+.related-product:hover .related-product-image img { transform: scale(1.05); }
+.related-product-title { font-size:18px; font-weight:700; color:#111; margin:0 0 6px; line-height:1.3; letter-spacing:-.01em; }
+.related-price { font-size:14px; font-weight:700; color:#111; }
+
+/* Related products track bg (from base.css custom) */
+.related-products-track { background: #fff; }
+
+/* ---------------------------
+   Toasts (success/error)
+   --------------------------- */
+.success-notification{
+  position:fixed; top:20px; right:20px; background:#10b981; color:#fff;
+  padding:12px 20px; border-radius:8px; z-index:10000; font-weight:500;
+  box-shadow:0 4px 12px rgba(0,0,0,.15); transform:translateX(100%); transition:transform .3s ease;
+  max-width:300px; font-size:14px;
+}
+.success-notification.show{ transform:translateX(0); }
+.error-notification{ background:#ef4444; }
+
+/* ---------------------------
+   Cart Notification animation (moved from base.css custom)
+   --------------------------- */
+cart-notification.mcc-anim{
+  --mcc-open-dur:.24s; --mcc-close-dur:.42s;
+  --mcc-open-distance:60px; --mcc-close-distance:100px;
+  --mcc-open-ease:ease-in-out; --mcc-close-ease:ease-in-out;
+}
+cart-notification.mcc-anim .cart-notification,
+cart-notification.mcc-anim .cart-notification__container{
+  opacity:0; transform:translateY(calc(-1 * var(--mcc-open-distance))) scale(.985);
+  transition: opacity var(--mcc-open-dur) var(--mcc-open-ease),
+              transform calc(var(--mcc-open-dur) + .04s) var(--mcc-open-ease);
+  transform-origin: top center !important; will-change: opacity, transform;
+}
+cart-notification.mcc-anim.mcc-visible .cart-notification,
+cart-notification.mcc-anim.mcc-visible .cart-notification__container{
+  opacity:1; transform:translateY(0) scale(1);
+}
+cart-notification.mcc-anim.mcc-closing .cart-notification,
+cart-notification.mcc-anim.mcc-closing .cart-notification__container{
+  opacity:0; transform:translateY(calc(-1 * var(--mcc-close-distance))) scale(.985);
+  transition: opacity var(--mcc-close-dur) var(--mcc-close-ease),
+              transform calc(var(--mcc-close-dur) + .04s) var(--mcc-close-ease);
+}
+@media (prefers-reduced-motion: reduce){
+  cart-notification.mcc-anim .cart-notification,
+  cart-notification.mcc-anim .cart-notification__container{
+    transition: opacity .15s linear !important;
+    transform: none !important;
+  }
+}
+
+/* ---------------------------
+   Utilities
+   --------------------------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------
+   Scoped app skins (Coffee-specific but centralized)
+   --------------------------- */
+.layout-coffee recharge-subscription-widget::part(rc-purchase-option__selector){ font-size:16px !important; padding-top:0 !important; font-weight:bold !important; align-items:center !important; }
+.layout-coffee recharge-subscription-widget::part(rc-benefits__list){ font-size:12px; letter-spacing:.5px; color:#8b8b8b; }
+.layout-coffee recharge-subscription-widget::part(rc-plans__label){ display:none !important; }
+.layout-coffee recharge-subscription-widget::part(rc-purchase-option__badge){
+  position:absolute !important; display:inline-block !important; top:18px !important; left:136px !important;
+  width:70px !important; text-transform:uppercase; text-align:center !important; color:#fff !important; background:#1b873f !important;
+}
+.layout-coffee recharge-subscription-widget::part(rc-plans-button__discount){ text-transform:uppercase; font-weight:800; letter-spacing:-.02em; text-align:center !important; color:#1b873f !important; }
+.layout-coffee recharge-subscription-widget::part(rc-purchase-option__sub-container){ display:flex !important; flex-direction:column-reverse !important; }
+.layout-coffee recharge-subscription-widget::part(rc-purchase-option__original-price){ font-size:10px !important; }
+.layout-coffee recharge-subscription-widget::part(rc-learn-more__trigger-compact){ display:none !important; }

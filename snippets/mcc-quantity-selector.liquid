@@ -1,0 +1,83 @@
+{% comment %}
+snippets/mcc-quantity-selector.liquid - Standalone quantity selector block
+{% endcomment %}
+
+
+{%- comment -%} snippets/mcc-quantity-selector.liquid {%- endcomment -%}
+
+{%- assign qty_scope = 'mcc-qty-' | append: section.id -%}
+
+<div class="product-quantity-section" id="{{ qty_scope }}">
+  <label class="variant-label">
+    {% if block and block.settings.quantity_label != blank %}
+      {{ block.settings.quantity_label }}
+    {% else %}
+      QUANTITY
+    {% endif %}
+  </label>
+
+  <div class="quantity-wrapper">
+    <label for="quantity-{{ section.id }}" class="sr-only">Quantity</label>
+
+    <button type="button" class="qty-btn minus" aria-label="Decrease">
+      −
+    </button>
+
+    <input
+      id="quantity-{{ section.id }}"
+      class="qty-input"
+      type="number"
+      name="quantity"
+      value="1"
+      min="1"
+      step="1"
+      inputmode="numeric"
+      aria-label="Quantity"
+    >
+
+    <button type="button" class="qty-btn plus" aria-label="Increase">
+      +
+    </button>
+  </div>
+</div>
+
+
+<script>
+(() => {
+  const host = document.getElementById('{{ qty_scope }}');
+  if (!host || host.__mccQtyBound) return; host.__mccQtyBound = true;
+
+  const input = host.querySelector('.qty-input');
+  const minus = host.querySelector('.qty-btn.minus');
+  const plus  = host.querySelector('.qty-btn.plus');
+  if (!input || !minus || !plus) return;
+
+  const fire = () => {
+    input.dispatchEvent(new Event('input',  { bubbles:true }));
+    input.dispatchEvent(new Event('change', { bubbles:true }));
+  };
+
+  minus.addEventListener('click', () => {
+    if (input.disabled) return;
+    // Respect min/step via native API
+    input.stepDown();
+    // Clamp to min manually in case of Safari quirks
+    if (input.min) input.value = String(Math.max(parseInt(input.value||'1',10), parseInt(input.min,10)));
+    fire();
+  });
+
+  plus.addEventListener('click', () => {
+    if (input.disabled) return;
+    input.stepUp();
+    fire();
+  });
+
+  // Normalize manual typing
+  input.addEventListener('input', () => {
+    const min = parseInt(input.min || '1', 10);
+    let val = parseInt(input.value || String(min), 10);
+    if (!Number.isFinite(val)) val = min;
+    input.value = String(Math.max(val, min));
+  });
+})();
+</script>

@@ -1,0 +1,308 @@
+{% comment %}
+MCC — Merch Mobile Vertical Gallery
+- Vertical, paginated scroll (one media per “page”)
+- Dots aligned right; click to jump
+- Supports image, video/external_video, model
+- Mobile-only by CSS (no desktop conflicts)
+10/23/25
+{% endcomment %}
+
+{% comment %}
+MCC — Merch Mobile Vertical Gallery (parser-safe)
+- Removes boolean-in-assign and ternary
+- Works with older theme-check rules
+{% endcomment %}
+
+{% assign medias = product.media %}
+{% if medias.size == 0 and product.featured_media %}
+  {% assign medias = [product.featured_media] %}
+{% endif %}
+
+<div class="mmv-gallery only-mobile" id="MerchGallery-{{ section.id }}" data-mmvg role="region" aria-label="Product media">
+  <div class="mmv-track" data-mmvg-track>
+
+    {% for media in medias %}
+      {%- assign is_img = false -%}
+      {%- assign is_vid = false -%}
+      {%- assign is_3d  = false -%}
+      {%- if media.media_type == 'image' -%}
+        {%- assign is_img = true -%}
+      {%- elsif media.media_type == 'video' or media.media_type == 'external_video' -%}
+        {%- assign is_vid = true -%}
+      {%- elsif media.media_type == 'model' -%}
+        {%- assign is_3d = true -%}
+      {%- endif -%}
+      
+      {%- comment -%} Try to find a variant whose featured_media == this media {%- endcomment -%}
+      {%- assign color_name = blank -%}
+      {%- assign color_hex  = blank -%}
+      {%- if color_index != nil -%}
+        {%- for v in product.variants -%}
+          {%- if v.featured_media and v.featured_media.id == media.id -%}
+            {%- assign color_name = v.options[color_index] -%}
+            {%- assign color_hex  = v.metafields.custom.color_hex.value | default: v.metafields.custom.color_hex | default: blank -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+
+      <figure
+        <figure
+        class="mmv-slide"
+        data-mmvg-slide
+        data-media-id="{{ media.id }}"
+        data-index="{{ forloop.index0 }}"
+        {% if color_name %} data-color-name="{{ color_name | escape }}"{% endif %}
+        {% if color_hex  %} data-color-hex="{{ color_hex  | escape }}"{% endif %}
+        style="--i: {{ forloop.index0 }};"
+        aria-label="Media {{ forloop.index }} of {{ medias.size }}"
+        tabindex="-1">
+
+
+        {% if is_img %}
+          {% if forloop.index0 < 2 %}
+            {% assign loading_mode = 'eager' %}
+          {% else %}
+            {% assign loading_mode = 'lazy' %}
+          {% endif %}
+
+          <img
+            class="mmv-img"
+            src="{{ media | image_url: width: 1200 }}"
+            srcset="
+              {{ media | image_url: width: 600  }} 600w,
+              {{ media | image_url: width: 900  }} 900w,
+              {{ media | image_url: width: 1200 }} 1200w,
+              {{ media | image_url: width: 1600 }} 1600w
+            "
+            sizes="(max-width: 749px) 100vw, 640px"
+            alt="{{ media.alt | escape }}"
+            width="{{ media.preview_image.width }}"
+            height="{{ media.preview_image.height }}"
+            loading="{{ loading_mode }}"
+            decoding="async">
+        {% elsif is_vid %}
+          <div class="mmv-video-wrap">
+            {{ media | video_tag: controls: true, playsinline: true, preload: 'metadata', class: 'mmv-video' }}
+          </div>
+        {% elsif is_3d %}
+          <div class="mmv-model-wrap">
+            {{ media | model_viewer_tag: reveal: 'interaction', loading: 'lazy', camera_controls: true, class: 'mmv-model' }}
+          </div>
+        {% endif %}
+
+      </figure>
+    {% endfor %}
+
+  </div>
+
+  <!-- Indicator bars (right side) -->
+  <div class="mmv-indicators" data-indicators role="group" aria-label="Gallery navigation">
+    {% for media in medias %}
+      <button class="mmv-bar" 
+              type="button"
+              data-mmvg-bar 
+              data-index="{{ forloop.index0 }}"
+              aria-label="Go to image {{ forloop.index }}"
+              aria-current="{% if forloop.first %}true{% else %}false{% endif %}">
+      </button>
+    {% endfor %}
+  </div>
+</div>
+
+
+<style>
+/* ---------- Visibility guard (mobile only) ---------- */
+.only-mobile { display: none; }
+@media (max-width: 749px){
+  .only-mobile { display: block; }
+}
+
+/* ---------- Gallery shell ---------- */
+.mmv-gallery{
+  position: relative;
+  width: 100%;
+  height: 100%;                  /* fill parent wrapper */
+  background: #fff;
+  min-height: 200px;            /* minimum height to ensure usability */
+  overflow: hidden;
+}
+
+/* ---------- Track (scroll container) ---------- */
+.mmv-gallery .mmv-track{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;              /* Firefox: hide scrollbar to avoid duplicate indicators */
+}
+
+/* Hide WebKit scrollbar to avoid looking like a second indicator rail */
+.mmv-gallery .mmv-track::-webkit-scrollbar { width: 0; height: 0; }
+.mmv-gallery .mmv-track::-webkit-scrollbar-track { background: transparent; }
+.mmv-gallery .mmv-track::-webkit-scrollbar-thumb { background: transparent; }
+
+/* ---------- Each slide fills the viewport of the gallery ---------- */
+.mmv-gallery .mmv-slide{
+  flex: 0 0 100%;
+  block-size: 100%;                 /* height of the gallery viewport */
+  display: grid;                    /* easy centering of content */
+  place-items: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;         /* ensures strict paging on iOS */
+  padding: 8px 0;                   /* tiny breathing room */
+  background: #fff;
+}
+
+/* Media elements */
+.mmv-gallery .mmv-img,
+.mmv-gallery .mmv-video,
+.mmv-gallery .mmv-model{
+  max-width: 100%;
+  max-height: calc(100% - 12px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ----- Long vertical indicator adjustments (for MCC merch mobile) ----- */
+
+/* Constrain indicator column to gallery height */
+.mmv-gallery .mmv-indicators,
+.mmv-gallery [data-indicators] {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  /* start from top, not center */
+  align-items: center;
+  gap: 6px;
+  max-height: calc(100% - 16px);  /* leave padding to prevent edge clipping */
+  overflow: hidden;               /* prevent any overflow */
+  z-index: 3;
+  pointer-events: none;           /* allow clicks to pass through container */
+  will-change: contents;          /* optimize for content changes */
+}
+
+/* Each indicator "bar" */
+.mmv-gallery .mmv-bar {
+  width: 3px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.15);
+  transition: background 0.25s ease, transform 0.25s ease;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  pointer-events: auto;        /* enable clicks on bars */
+  transform-origin: center;    /* scale from center */
+  will-change: transform, background; /* optimize transitions */
+}
+
+/* Active indicator state */
+.mmv-gallery .mmv-bar.is-active,
+.mmv-gallery .mmv-bar[aria-current="true"] {
+  background: rgba(0,0,0,.85);
+  transform: scaleY(1.2);      /* use transform instead of height for smoother animation */
+}
+.mmv-gallery {
+  position: relative;
+  height: 72vh; /* or match your gallery container */
+  overflow: hidden;
+}
+
+/* ---------- Dots rail (right side) ---------- 
+.mmv-gallery .mmv-dots{
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mmv-gallery .mmv-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(0,0,0,.25);
+  outline: none;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease;
+}
+.mmv-gallery .mmv-dot.is-active{
+  background: rgba(0,0,0,.9);
+  transform: scale(1.25);
+}
+
+/* Optional: keep dots tappable if drawer overlaps a bit */
+.mmv-gallery .mmv-dots,
+.mmv-gallery .mmv-dot { touch-action: manipulation; }
+</style>
+
+
+
+{%- comment -%} MCC Merch — Variant→Media map (safe, no custom filters) {%- endcomment -%}
+{%- assign color_index = nil -%}
+{%- for opt in product.options_with_values -%}
+  {%- assign opt_name_lc = opt.name | downcase -%}
+  {%- if opt_name_lc == 'color' -%}
+    {%- assign color_index = forloop.index0 -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- assign by_color_items   = '' -%}
+{%- assign by_variant_items = '' -%}
+{%- assign seen_colors      = '' -%}
+
+{%- if color_index != nil -%}
+  {%- for v in product.variants -%}
+    {%- assign color_val = v.options[color_index] | strip -%}
+
+    {%- assign media_id = v.featured_media.id | default: blank -%}
+    {%- if media_id == blank -%}
+      {%- assign found = '' -%}
+      {%- for m in product.media -%}
+        {%- if m.media_type == 'image' -%}
+          {%- assign alt_lc = m.alt | downcase -%}
+          {%- assign col_lc = color_val | downcase -%}
+          {%- if alt_lc contains col_lc -%}{%- assign found = m.id -%}{%- break -%}{%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- assign media_id = found | default: product.featured_media.id -%}
+    {%- endif -%}
+
+    {%- capture variant_pair -%}"{{ v.id }}": {{ media_id }}{%- endcapture -%}
+    {%- if by_variant_items != '' -%}{%- assign by_variant_items = by_variant_items | append: ',' -%}{%- endif -%}
+    {%- assign by_variant_items = by_variant_items | append: variant_pair -%}
+
+    {%- assign token = '|' | append: color_val | append: '|' -%}
+    {%- unless seen_colors contains token -%}
+      {%- capture color_pair -%}{{ color_val | json }}: {{ media_id }}{%- endcapture -%}
+      {%- if by_color_items != '' -%}{%- assign by_color_items = by_color_items | append: ',' -%}{%- endif -%}
+      {%- assign by_color_items = by_color_items | append: color_pair -%}
+      {%- assign seen_colors = seen_colors | append: token -%}
+    {%- endunless -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<script type="application/json" id="VariantMediaMap-{{ section.id }}">
+{
+  "sectionId": "{{ section.id }}",
+  "byColor": { {% if by_color_items != '' %}{{ by_color_items }}{% endif %} },
+  "byVariantId": { {% if by_variant_items != '' %}{{ by_variant_items }}{% endif %} }
+}
+</script>
