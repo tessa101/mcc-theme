@@ -1,5 +1,5 @@
 
-/* ===== TEST HERE against CC Merch — Bottom Sheet JS (sheet model) ===== */
+/* ===== TEST HERE CC Merch — Bottom Sheet JS (sheet model) ===== */
 /* Version: 10.20.25-simple (restored working version) */
 (function () {
   const root   = document.querySelector('#product_merch_mobile');

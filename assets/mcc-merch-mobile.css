@@ -379,7 +379,7 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   will-change: transform;
   backface-visibility: hidden; /* Prevent flickering during transform */
   overflow: hidden;
-  z-index: 10020;                   /* above header, below cart drawer (12000) */
+  z-index: 998;                    /* below announcement bar (999), scrolls under it like header */
 
   /* visuals */
   background: #fff !important;      /* Ensure solid background during drag - prevents gallery showing through */

@@ -177,7 +177,7 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 .mm-sheet { touch-action: pan-y; overscroll-behavior: contain; } /* scroll content normally */
 
   /* Layering */
-  #product_merch_mobile .mm-drawer{ z-index: 4000 !important; }
+  #product_merch_mobile .mm-drawer{ z-index: 998 !important; } /* below announcement bar (999/9999), scrolls under it like header */
 
   /* Mobile-only footer hide */
   @media (max-width: 749px){
@@ -191,7 +191,8 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
   /* Announcement Bar lift for merch mobile template */
   @media (max-width: 749px){
     body.template-product-merch .announcement-bar{
-      position: relative;
+      position: sticky;
+      top: 0;
       z-index: 9999 !important;
     }
   }
