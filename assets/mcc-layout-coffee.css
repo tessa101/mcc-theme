@@ -73,3 +73,22 @@
   .layout-coffee .product-sections{padding:0 20px 20px;gap:20px;width:100%}
   .layout-coffee .content-section{padding:20px;border-radius:12px;width:100%;box-sizing:border-box}
 }
+
+/* Keep cart drawer above header on mobile coffee layout */
+@media (max-width: 767px){
+  .layout-coffee .shopify-section-cart-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  .layout-coffee .shopify-section-cart-drawer cart-drawer {
+    pointer-events: auto;
+  }
+  .layout-coffee cart-drawer,
+  .layout-coffee .cart-drawer{
+    z-index: 9999 !important;
+  }
+}
