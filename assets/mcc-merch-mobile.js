@@ -43,19 +43,141 @@
   /* ---- page lock (block bg; allow sheet to scroll) ---- */
   function lockPage(on){
     const html=document.documentElement, body=document.body;
-    const stopBg=(e)=>{ if (!sheet.contains(e.target)) e.preventDefault(); };
+    // CRITICAL: stopBg should only prevent events if drawer is actually open
+    // This is a safety measure in case listeners aren't removed properly
+    // BUT: Always allow events on drawer, handle, peek, and sheet to allow opening/closing
+    const stopBg=(e)=>{ 
+      const target = e.target;
+      
+      // CRITICAL: Always allow events if we're currently dragging the drawer
+      // This allows the drawer to be opened/closed via drag
+      if (dragging) {
+        return; // Don't prevent - allow drawer drag
+      }
+      
+      // Always allow events on drawer elements (handle, peek, sheet) - these are needed to open/close drawer
+      // Use closest() to check if target or any parent is a drawer element
+      const isDrawerElement = drawer.contains(target) || 
+                              handle.contains(target) || 
+                              peekEl.contains(target) || 
+                              sheet.contains(target) ||
+                              target.closest('[data-mm-drawer]') ||
+                              target.closest('[data-mm-handle]') ||
+                              target.closest('[data-mm-peek]') ||
+                              target.closest('[data-mm-sheet]');
+      
+      // If target is in drawer, never prevent (allows dragging to open/close)
+      if (isDrawerElement) {
+        return; // Don't prevent - allow drawer interactions
+      }
+      
+      // Only prevent if drawer is open AND target is not in drawer/sheet
+      // If drawer is closed, never prevent (allows gallery scrolling and drawer opening)
+      if (drawer.classList.contains('is-open')) {
+        e.preventDefault();
+      }
+    };
+    
+    // CRITICAL: Double-check drawer state - don't lock if drawer is actually closed
+    // BUT: Allow locking during drag (dragging flag is set)
+    const drawerIsOpen = drawer.classList.contains('is-open');
+    if (on && !drawerIsOpen && !dragging) {
+      console.warn('[lockPage] WARNING: Attempted to lock page but drawer is closed and not dragging! Forcing unlock instead.');
+      on = false;
+    }
+    
     if (on){
       html.classList.add('mm-locked'); body.classList.add('mm-locked');
       window.addEventListener('touchmove', stopBg, {passive:false});
       window.addEventListener('wheel',     stopBg, {passive:false});
       lockPage._stop = stopBg;
+      console.log('[lockPage] Locked - added mm-locked class and event listeners', {
+        drawerIsOpen: drawerIsOpen,
+        dragging: dragging
+      });
     } else {
-      html.classList.remove('mm-locked'); body.classList.remove('mm-locked');
+      // CRITICAL: Remove event listeners FIRST before removing class
+      // This prevents the stopBg function from blocking touch events
       if (lockPage._stop){
-        window.removeEventListener('touchmove', lockPage._stop, {passive:false});
-        window.removeEventListener('wheel',     lockPage._stop, {passive:false});
+        try {
+          window.removeEventListener('touchmove', lockPage._stop, {passive:false});
+          window.removeEventListener('wheel',     lockPage._stop, {passive:false});
+        } catch(e) {
+          console.warn('[lockPage] Error removing event listeners:', e);
+        }
         lockPage._stop = null;
       }
+      
+      // Also try to remove any lingering listeners by removing all touchmove/wheel listeners
+      // This is a safety net in case stopBg reference was lost
+      const allListeners = getEventListeners ? getEventListeners(window) : null;
+      if (allListeners && (allListeners.touchmove || allListeners.wheel)) {
+        console.warn('[lockPage] Found lingering event listeners, attempting cleanup');
+      }
+      
+      // Aggressively remove mm-locked class and ALL related styles
+      html.classList.remove('mm-locked'); 
+      body.classList.remove('mm-locked');
+      
+      // Clear ALL overflow styles
+      body.style.overflow = '';
+      html.style.overflow = '';
+      body.style.setProperty('overflow', '', 'important');
+      html.style.setProperty('overflow', '', 'important');
+      
+      // Clear touch-action (CRITICAL: mm-locked sets touch-action: none !important)
+      body.style.setProperty('touch-action', '', 'important');
+      html.style.setProperty('touch-action', '', 'important');
+      
+      // Clear height (mm-locked sets height: 100% !important)
+      body.style.setProperty('height', '', 'important');
+      html.style.setProperty('height', '', 'important');
+      
+      // Force a reflow to ensure styles are applied
+      void body.offsetHeight;
+      
+      // Double-check: verify class is actually removed
+      if (body.classList.contains('mm-locked') || html.classList.contains('mm-locked')) {
+        console.error('[lockPage] WARNING: mm-locked class still present after removal!');
+        body.classList.remove('mm-locked');
+        html.classList.remove('mm-locked');
+      }
+      
+      // Verify computed styles - check multiple times to ensure they're cleared
+      let attempts = 0;
+      const maxAttempts = 5;
+      const verifyAndFix = () => {
+        attempts++;
+        const bodyComputed = window.getComputedStyle(body);
+        const htmlComputed = window.getComputedStyle(html);
+        
+        if (bodyComputed.touchAction === 'none' || htmlComputed.touchAction === 'none') {
+          console.warn('[lockPage] WARNING: touch-action is still none after cleanup! Attempt', attempts, {
+            bodyTouchAction: bodyComputed.touchAction,
+            htmlTouchAction: htmlComputed.touchAction
+          });
+          // Force it again with different values
+          body.style.setProperty('touch-action', 'auto', 'important');
+          html.style.setProperty('touch-action', 'auto', 'important');
+          body.style.setProperty('touch-action', '', 'important');
+          html.style.setProperty('touch-action', '', 'important');
+          
+          if (attempts < maxAttempts) {
+            setTimeout(verifyAndFix, 50);
+          }
+        } else {
+          console.log('[lockPage] Unlocked - removed mm-locked class and cleared all styles', {
+            bodyHasClass: body.classList.contains('mm-locked'),
+            htmlHasClass: html.classList.contains('mm-locked'),
+            bodyTouchAction: bodyComputed.touchAction,
+            htmlTouchAction: htmlComputed.touchAction,
+            attempts: attempts
+          });
+        }
+      };
+      
+      // Start verification
+      setTimeout(verifyAndFix, 0);
     }
   }
 
@@ -95,19 +217,45 @@
     drawer.style.transform  = `translateY(${y}px)`;
   }
   function openDrawer(){ drawer.classList.add('is-open'); lockPage(true);  animateTo(OPEN_Y); }
-  function closeDrawer(){ drawer.classList.remove('is-open');             animateTo(closedY); lockPage(false); }
+  function closeDrawer(){ 
+    drawer.classList.remove('is-open'); 
+    animateTo(closedY); 
+    // CRITICAL: Call lockPage(false) IMMEDIATELY to unlock body/html
+    lockPage(false);
+    console.log('[closeDrawer] Called lockPage(false) - drawer closed');
+    // Restore gallery scrolling after drawer closes
+    setTimeout(() => {
+      const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+      if (galleryTracks.length > 0) {
+        galleryTracks.forEach(track => {
+          track.style.setProperty('overflow-y', 'auto', 'important');
+          track.style.setProperty('overflow', 'auto', 'important');
+          track.style.setProperty('touch-action', 'pan-y', 'important');
+          track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+          track.style.setProperty('pointer-events', 'auto', 'important');
+          void track.offsetHeight;
+        });
+        console.log('[Gallery Cleanup] closeDrawer - Restored scrolling on', galleryTracks.length, 'tracks');
+      }
+    }, 200);
+  }
   const toggleDrawer = () => (drawer.classList.contains('is-open') ? closeDrawer() : openDrawer());
 
   /* ---- drag state ---- */
   let dragging=false, baseY=0, startY=0, lastY=0, lastT=0, vY=0, moved=false;
 
   function startDrag(y){
-    dragging = true; moved = false;
+    // CRITICAL: Set dragging BEFORE calling lockPage
+    // This ensures stopBg allows drag events
+    dragging = true; 
+    moved = false;
     startY = lastY = y;
     lastT  = performance.now();
     baseY  = getY(drawer);
     drawer.style.transition = 'none';
+    // Call lockPage AFTER setting dragging = true
     lockPage(true);
+    console.log('[startDrag] Started drag, dragging =', dragging);
   }
   function moveDrag(y){
     if(!dragging) return;
@@ -129,7 +277,34 @@
     dragging = false;
     drawer.style.transition = '';
 
-    if (!moved){ toggleDrawer(); finish(); return; }
+    if (!moved){ 
+      toggleDrawer(); 
+      // CRITICAL: Check if drawer closed and unlock immediately
+      const isClosed = !drawer.classList.contains('is-open');
+      if (isClosed) {
+        lockPage(false);
+        console.log('[endDrag] Toggle closed drawer - called lockPage(false) immediately');
+      }
+      finish(); 
+      // Restore gallery scrolling if drawer closed
+      if (isClosed) {
+        setTimeout(() => {
+          const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+          if (galleryTracks.length > 0) {
+            galleryTracks.forEach(track => {
+              track.style.setProperty('overflow-y', 'auto', 'important');
+              track.style.setProperty('overflow', 'auto', 'important');
+              track.style.setProperty('touch-action', 'pan-y', 'important');
+              track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+              track.style.setProperty('pointer-events', 'auto', 'important');
+              void track.offsetHeight;
+            });
+            console.log('[Gallery Cleanup] endDrag (toggle) - Restored scrolling on', galleryTracks.length, 'tracks');
+          }
+        }, 200);
+      }
+      return; 
+    }
 
     const yNow = getY(drawer);
     const span = Math.max(1, closedY - OPEN_Y);
@@ -139,16 +314,168 @@
     else if ( vY > SNAP_V) closeDrawer();
     else (progress > SNAP_MID ? openDrawer : closeDrawer)();
 
+    // CRITICAL: Check if drawer closed and unlock immediately
+    const isClosed = !drawer.classList.contains('is-open');
+    if (isClosed) {
+      // Unlock immediately - don't wait for finish()
+      lockPage(false);
+      console.log('[endDrag] Drawer closed - called lockPage(false) immediately');
+    }
+
     finish();
+    
+    // If drawer closed, restore gallery scrolling
+    if (isClosed) {
+      setTimeout(() => {
+        const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+        if (galleryTracks.length > 0) {
+          galleryTracks.forEach(track => {
+            track.style.setProperty('overflow-y', 'auto', 'important');
+            track.style.setProperty('overflow', 'auto', 'important');
+            track.style.setProperty('touch-action', 'pan-y', 'important');
+            track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+            track.style.setProperty('pointer-events', 'auto', 'important');
+            void track.offsetHeight;
+          });
+          console.log('[Gallery Cleanup] endDrag - Restored scrolling on', galleryTracks.length, 'tracks');
+        }
+      }, 200);
+    }
   }
   function finish(){
-    lockPage(drawer.classList.contains('is-open'));
+    const isOpen = drawer.classList.contains('is-open');
+    // CRITICAL: Double-check drawer state before locking/unlocking
+    // Sometimes the class might not be updated yet, so check the actual transform
+    const actualY = getY(drawer);
+    const isActuallyOpen = isOpen && actualY <= OPEN_Y + 10; // Allow 10px tolerance
+    
+    // CRITICAL: Call lockPage BEFORE any delayed cleanup
+    lockPage(isActuallyOpen);
+    console.log('[finish] Called lockPage(' + isActuallyOpen + ')', {
+      isOpen: isOpen,
+      actualY: actualY,
+      isActuallyOpen: isActuallyOpen
+    });
+    
+    // If drawer closed, restore gallery scrolling immediately and after delay
+    if (!isOpen) {
+      // Immediate cleanup
+      document.body.classList.remove('mm-locked');
+      document.documentElement.classList.remove('mm-locked');
+      document.body.style.setProperty('overflow', '', 'important');
+      document.documentElement.style.setProperty('overflow', '', 'important');
+      document.body.style.setProperty('touch-action', '', 'important');
+      document.documentElement.style.setProperty('touch-action', '', 'important');
+      
+      // Restore gallery scrolling with multiple attempts
+      const restoreGallery = () => {
+        // First, ensure body/html are not locked - CRITICAL: mm-locked sets touch-action: none !important
+        document.body.classList.remove('mm-locked');
+        document.documentElement.classList.remove('mm-locked');
+        document.body.style.setProperty('overflow', '', 'important');
+        document.documentElement.style.setProperty('overflow', '', 'important');
+        document.body.style.setProperty('touch-action', '', 'important');
+        document.documentElement.style.setProperty('touch-action', '', 'important');
+        document.body.style.setProperty('height', '', 'important');
+        document.documentElement.style.setProperty('height', '', 'important');
+        
+        // Force a reflow
+        void document.body.offsetHeight;
+        
+        const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+        console.log('[Gallery Cleanup] finish() - Tracks found:', galleryTracks.length);
+        
+        if (galleryTracks.length > 0) {
+          galleryTracks.forEach(track => {
+            // Get computed styles to see what's blocking
+            const computed = window.getComputedStyle(track);
+            const bodyComputed = window.getComputedStyle(document.body);
+            console.log('[Gallery Cleanup] finish() - Track computed styles:', {
+              overflow: computed.overflow,
+              overflowY: computed.overflowY,
+              touchAction: computed.touchAction,
+              pointerEvents: computed.pointerEvents,
+              bodyTouchAction: bodyComputed.touchAction,
+              bodyOverflow: bodyComputed.overflow,
+              bodyHasMmLocked: document.body.classList.contains('mm-locked')
+            });
+            
+            // Force scrolling styles with !important
+            track.style.setProperty('overflow-y', 'auto', 'important');
+            track.style.setProperty('overflow', 'auto', 'important');
+            track.style.setProperty('touch-action', 'pan-y', 'important');
+            track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+            track.style.setProperty('pointer-events', 'auto', 'important');
+            // Remove any conflicting styles
+            track.style.removeProperty('overflow-x');
+            
+            // Also check parent elements - the .mmv-gallery container might be blocking
+            let parent = track.parentElement;
+            while (parent && parent !== document.body) {
+              const parentComputed = window.getComputedStyle(parent);
+              if (parentComputed.overflow === 'hidden' || parentComputed.touchAction === 'none' || parentComputed.pointerEvents === 'none') {
+                console.warn('[Gallery Cleanup] finish() - Parent blocking scroll:', parent, {
+                  overflow: parentComputed.overflow,
+                  touchAction: parentComputed.touchAction,
+                  pointerEvents: parentComputed.pointerEvents
+                });
+                parent.style.setProperty('overflow', 'visible', 'important');
+                parent.style.setProperty('touch-action', 'pan-y', 'important');
+                parent.style.setProperty('pointer-events', 'auto', 'important');
+              }
+              parent = parent.parentElement;
+            }
+            
+            void track.offsetHeight;
+          });
+          console.log('[Gallery Cleanup] finish() - Restored scrolling on', galleryTracks.length, 'tracks');
+        } else {
+          console.warn('[Gallery Cleanup] finish() - No gallery tracks found!');
+        }
+      };
+      
+      // Try immediately
+      restoreGallery();
+      
+      // Try after short delay
+      setTimeout(restoreGallery, 100);
+      
+      // Try after longer delay
+      setTimeout(restoreGallery, 300);
+      
+      // Also try after transition completes (360ms)
+      setTimeout(restoreGallery, 400);
+    }
+    
     // cleanup listeners added during a drag
     window.removeEventListener('pointermove', onPointerMove, {passive:false});
     window.removeEventListener('pointerup',   onPointerUp,   {passive:false});
     document.removeEventListener('touchmove', onTouchMove,   {passive:false});
     document.removeEventListener('touchend',  onTouchEnd,    {passive:true});
   }
+
+  // Global safety check: Watch for mm-locked class being re-added and remove it if drawer is closed
+  const lockPageSafetyObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        const target = mutation.target;
+        // If mm-locked class was added to body/html and drawer is closed, remove it immediately
+        if ((target === document.body || target === document.documentElement) && 
+            target.classList.contains('mm-locked') && 
+            !drawer.classList.contains('is-open')) {
+          console.warn('[lockPage Safety] mm-locked class re-added while drawer is closed - removing it');
+          target.classList.remove('mm-locked');
+          target.style.setProperty('overflow', '', 'important');
+          target.style.setProperty('touch-action', '', 'important');
+          target.style.setProperty('height', '', 'important');
+        }
+      }
+    });
+  });
+  
+  // Observe body and html for class changes
+  lockPageSafetyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  lockPageSafetyObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   /* ---- FIRST-MOVE GATE (make sheet drag down from top) ---- */
 
@@ -751,11 +1078,126 @@
     updateHeight: updateGalleryHeight
   };
 
+  // Restore gallery scrolling after merch drawer closes
+  // The merch drawer uses lockPage() which adds mm-locked class, setting overflow:hidden !important
+  const merchDrawer = document.querySelector('#product_merch_mobile [data-mm-drawer]');
+  if (merchDrawer) {
+    const restoreGalleryScrolling = () => {
+      console.log('[Gallery Cleanup] Merch drawer closed - restoring gallery scrolling...');
+      
+      // Ensure mm-locked class is removed
+      document.body.classList.remove('mm-locked');
+      document.documentElement.classList.remove('mm-locked');
+      
+      // Explicitly clear overflow styles
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.setProperty('overflow', '', 'important');
+      document.documentElement.style.setProperty('overflow', '', 'important');
+      document.body.style.setProperty('touch-action', '', 'important');
+      document.documentElement.style.setProperty('touch-action', '', 'important');
+      
+      // Restore gallery track scrolling explicitly - use setTimeout to ensure it runs after drawer fully closes
+      setTimeout(() => {
+        const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+        console.log('[Gallery Cleanup] Merch drawer - Tracks found:', galleryTracks.length);
+        
+        if (galleryTracks.length === 0) {
+          console.warn('[Gallery Cleanup] Merch drawer - No gallery tracks found! Searching for alternative selectors...');
+          const altTracks = document.querySelectorAll('.mmv-track, [class*="track"]');
+          console.log('[Gallery Cleanup] Merch drawer - Alternative tracks found:', altTracks.length);
+        }
+        
+        galleryTracks.forEach(track => {
+          // Ensure track can scroll - use setProperty with !important to override any conflicting styles
+          track.style.setProperty('overflow-y', 'auto', 'important');
+          track.style.setProperty('overflow', 'auto', 'important');
+          track.style.setProperty('touch-action', 'pan-y', 'important');
+          track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+          track.style.setProperty('pointer-events', 'auto', 'important');
+          // Remove any inline styles that might block scrolling
+          track.style.removeProperty('overflow-x');
+          // Force reflow
+          void track.offsetHeight;
+          console.log('[Gallery Cleanup] Merch drawer - Restored scrolling on track:', track, {
+            overflowY: track.style.overflowY,
+            overflow: track.style.overflow,
+            touchAction: track.style.touchAction,
+            computedOverflow: window.getComputedStyle(track).overflow
+          });
+        });
+        
+        // Also ensure the gallery container can scroll
+        const gallery = document.querySelector('[id^="MerchGallery-"]');
+        if (gallery) {
+          gallery.style.setProperty('overflow', 'visible', 'important');
+          gallery.style.setProperty('touch-action', 'pan-y', 'important');
+          gallery.style.setProperty('pointer-events', 'auto', 'important');
+          console.log('[Gallery Cleanup] Merch drawer - Restored scrolling on gallery:', gallery);
+        } else {
+          console.warn('[Gallery Cleanup] Merch drawer - Gallery container not found!');
+        }
+        
+        // Also check for .mmv-gallery containers
+        const mmvGalleries = document.querySelectorAll('.mmv-gallery');
+        mmvGalleries.forEach(gallery => {
+          gallery.style.setProperty('overflow', 'visible', 'important');
+          gallery.style.setProperty('pointer-events', 'auto', 'important');
+        });
+        
+        // Double-check body overflow is cleared
+        const bodyOverflow = window.getComputedStyle(document.body).overflow;
+        console.log('[Gallery Cleanup] Merch drawer - Body overflow:', {
+          classList: document.body.classList.toString(),
+          style: document.body.style.overflow,
+          computed: bodyOverflow
+        });
+        
+        if (bodyOverflow === 'hidden') {
+          console.warn('[Gallery Cleanup] Merch drawer - Body overflow is still hidden! Forcing removal...');
+          document.body.style.setProperty('overflow', '', 'important');
+          document.documentElement.style.setProperty('overflow', '', 'important');
+        }
+      }, 200); // Delay to ensure drawer is fully closed
+    };
+    
+    // Watch for merch drawer close events - watch for is-open class removal
+    const merchObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target;
+          // Check if merch drawer just closed (removed 'is-open' class)
+          if (target === merchDrawer && !target.classList.contains('is-open')) {
+            console.log('[Gallery Cleanup] Merch drawer - MutationObserver detected drawer closed');
+            restoreGalleryScrolling();
+          }
+        }
+      });
+    });
+    merchObserver.observe(merchDrawer, { attributes: true, attributeFilter: ['class'] });
+    
+    // Also hook into endDrag to restore scrolling when drawer closes
+    const originalEndDrag = window.MCCMerchSheet?.endDrag;
+    if (originalEndDrag) {
+      window.MCCMerchSheet.endDrag = function(...args) {
+        const result = originalEndDrag.apply(this, args);
+        // Check if drawer is now closed
+        if (!merchDrawer.classList.contains('is-open')) {
+          console.log('[Gallery Cleanup] Merch drawer - endDrag detected drawer closed');
+          restoreGalleryScrolling();
+        }
+        return result;
+      };
+    }
+  }
+  
   // Restore gallery scrolling after cart drawer closes
   // The cart drawer adds overflow-hidden to body, which can prevent gallery scrolling
   const cartDrawer = document.querySelector('cart-drawer');
   if (cartDrawer) {
     const cleanupDrawer = () => {
+      console.log('[Gallery Cleanup] Starting cleanup...');
+      
       // Ensure body and html overflow is restored
       document.body.classList.remove('overflow-hidden');
       document.documentElement.classList.remove('overflow-hidden');
@@ -764,7 +1206,7 @@
       document.body.style.setProperty('overflow', '', 'important');
       document.documentElement.style.setProperty('overflow', '', 'important');
       
-      // Explicitly hide overlay with !important
+      // Explicitly hide overlay with !important and disable pointer-events
       const overlay = cartDrawer.querySelector('#CartDrawer-Overlay');
       if (overlay) {
         overlay.style.setProperty('display', 'none', 'important');
@@ -772,11 +1214,15 @@
         overlay.style.setProperty('pointer-events', 'none', 'important');
         overlay.style.display = 'none';
         overlay.style.visibility = 'hidden';
+        // Remove data-overlay-clickable attribute (back to default)
+        overlay.removeAttribute('data-overlay-clickable');
       }
       
-      // Also ensure drawer itself is hidden
-      cartDrawer.style.setProperty('visibility', 'hidden', 'important');
-      cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+      // Only hide drawer if it's actually closed (not active)
+      if (!cartDrawer.classList.contains('active')) {
+        cartDrawer.style.setProperty('visibility', 'hidden', 'important');
+        cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+      }
       
       // Use setTimeout to ensure overlay stays hidden
       setTimeout(() => {
@@ -784,32 +1230,81 @@
           overlay.style.setProperty('display', 'none', 'important');
           overlay.style.setProperty('visibility', 'hidden', 'important');
           overlay.style.setProperty('pointer-events', 'none', 'important');
+          overlay.removeAttribute('data-overlay-clickable');
         }
-        cartDrawer.style.setProperty('visibility', 'hidden', 'important');
-        cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+        // Only hide drawer if it's actually closed (not active)
+        if (!cartDrawer.classList.contains('active')) {
+          cartDrawer.style.setProperty('visibility', 'hidden', 'important');
+          cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+        }
       }, 100);
       
       // Force a reflow to ensure styles are applied
       void document.body.offsetHeight;
       
-      // Restore gallery track scrolling explicitly
-      const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
-      galleryTracks.forEach(track => {
-        // Ensure track can scroll
-        track.style.overflowY = 'auto';
-        track.style.overflow = 'auto';
-        track.style.touchAction = 'pan-y';
-        track.style.webkitOverflowScrolling = 'touch';
-        // Force reflow
-        void track.offsetHeight;
-      });
-      
-      // Also ensure the gallery container can scroll
-      const gallery = document.querySelector('[id^="MerchGallery-"]');
-      if (gallery) {
-        gallery.style.overflow = 'visible';
-        gallery.style.touchAction = 'pan-y';
-      }
+      // Restore gallery track scrolling explicitly - use setTimeout to ensure it runs after drawer fully closes
+      setTimeout(() => {
+        const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+        console.log('[Gallery Cleanup] Tracks found:', galleryTracks.length);
+        
+        if (galleryTracks.length === 0) {
+          console.warn('[Gallery Cleanup] No gallery tracks found! Searching for alternative selectors...');
+          // Try alternative selectors
+          const altTracks = document.querySelectorAll('.mmv-track, [class*="track"]');
+          console.log('[Gallery Cleanup] Alternative tracks found:', altTracks.length);
+        }
+        
+        galleryTracks.forEach(track => {
+          // Ensure track can scroll - use setProperty with !important to override any conflicting styles
+          track.style.setProperty('overflow-y', 'auto', 'important');
+          track.style.setProperty('overflow', 'auto', 'important');
+          track.style.setProperty('touch-action', 'pan-y', 'important');
+          track.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+          track.style.setProperty('pointer-events', 'auto', 'important');
+          // Remove any inline styles that might block scrolling
+          track.style.removeProperty('overflow-x');
+          // Force reflow
+          void track.offsetHeight;
+          console.log('[Gallery Cleanup] Restored scrolling on track:', track, {
+            overflowY: track.style.overflowY,
+            overflow: track.style.overflow,
+            touchAction: track.style.touchAction,
+            computedOverflow: window.getComputedStyle(track).overflow
+          });
+        });
+        
+        // Also ensure the gallery container can scroll
+        const gallery = document.querySelector('[id^="MerchGallery-"]');
+        if (gallery) {
+          gallery.style.setProperty('overflow', 'visible', 'important');
+          gallery.style.setProperty('touch-action', 'pan-y', 'important');
+          gallery.style.setProperty('pointer-events', 'auto', 'important');
+          console.log('[Gallery Cleanup] Restored scrolling on gallery:', gallery);
+        } else {
+          console.warn('[Gallery Cleanup] Gallery container not found!');
+        }
+        
+        // Also check for .mmv-gallery containers
+        const mmvGalleries = document.querySelectorAll('.mmv-gallery');
+        mmvGalleries.forEach(gallery => {
+          gallery.style.setProperty('overflow', 'visible', 'important');
+          gallery.style.setProperty('pointer-events', 'auto', 'important');
+        });
+        
+        // Double-check body overflow is cleared
+        const bodyOverflow = window.getComputedStyle(document.body).overflow;
+        console.log('[Gallery Cleanup] Body overflow:', {
+          classList: document.body.classList.toString(),
+          style: document.body.style.overflow,
+          computed: bodyOverflow
+        });
+        
+        if (bodyOverflow === 'hidden') {
+          console.warn('[Gallery Cleanup] Body overflow is still hidden! Forcing removal...');
+          document.body.style.setProperty('overflow', '', 'important');
+          document.documentElement.style.setProperty('overflow', '', 'important');
+        }
+      }, 200); // Delay to ensure drawer is fully closed
     };
     
     // Watch for cart drawer close events
@@ -819,6 +1314,7 @@
           const target = mutation.target;
           // Check if cart drawer just closed (removed 'active' class)
           if (target === cartDrawer && !target.classList.contains('active')) {
+            console.log('[Gallery Cleanup] MutationObserver detected drawer closed');
             cleanupDrawer();
           }
         }
@@ -827,7 +1323,18 @@
     observer.observe(cartDrawer, { attributes: true, attributeFilter: ['class'] });
     
     // Also listen for close events directly
-    cartDrawer.addEventListener('close', cleanupDrawer);
+    cartDrawer.addEventListener('close', () => {
+      console.log('[Gallery Cleanup] Close event fired');
+      cleanupDrawer();
+    });
+    
+    // Also listen for transitionend on drawer closing
+    cartDrawer.addEventListener('transitionend', (e) => {
+      if (!cartDrawer.classList.contains('active') && e.target === cartDrawer) {
+        console.log('[Gallery Cleanup] Transitionend detected drawer closed');
+        cleanupDrawer();
+      }
+    });
   }
 })();
 

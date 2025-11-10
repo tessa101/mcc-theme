@@ -4,59 +4,25 @@ class CartDrawer extends HTMLElement {
 
     this.addEventListener('keyup', (evt) => evt.code === 'Escape' && this.close());
     
-    // Only close on overlay click, not on drawer content clicks
+    // Simple overlay click handler - overlay has pointer-events: none by default
+    // We'll enable pointer-events only when drawer is open to detect clicks outside
     const overlay = this.querySelector('#CartDrawer-Overlay');
     if (overlay) {
       const handleOverlayClick = (e) => {
-        // Only close if clicking directly on overlay
-        if (e.target === overlay || e.target.closest('#CartDrawer-Overlay') === overlay) {
-          // Make sure we're not clicking inside drawer
-          const drawerInner = this.querySelector('.drawer__inner');
-          if (drawerInner && drawerInner.contains(e.target)) {
-            console.log('[Cart Drawer] Overlay click blocked - inside drawer');
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-          }
-          console.log('[Cart Drawer] Overlay clicked - closing drawer');
-          e.preventDefault();
-          e.stopPropagation();
-          this.close();
+        // Only close if clicking directly on overlay (not inside drawer)
+        const drawerInner = this.querySelector('.drawer__inner');
+        if (drawerInner && drawerInner.contains(e.target)) {
+          // Click is inside drawer - don't close
+          return;
         }
+        console.log('[Cart Drawer] Overlay clicked - closing drawer');
+        e.preventDefault();
+        e.stopPropagation();
+        this.close();
       };
       overlay.addEventListener('click', handleOverlayClick);
       overlay.addEventListener('touchend', handleOverlayClick);
     }
-    
-    // CRITICAL: Prevent ANY clicks inside drawer from closing it - use capture phase on drawer element
-    // Only prevent click events, NOT touch events (needed for scrolling)
-    this.addEventListener('click', (e) => {
-      const drawerInner = this.querySelector('.drawer__inner');
-      if (drawerInner && drawerInner.contains(e.target)) {
-        // Click is inside drawer - prevent it from closing
-        console.log('[Cart Drawer] Click inside drawer blocked at drawer level:', e.target);
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        return false;
-      }
-    }, true); // Use capture phase to run before other handlers
-    
-    // Don't block touch events - they're needed for scrolling
-    // Only block touchend on interactive elements
-    this.addEventListener('touchend', (e) => {
-      const drawerInner = this.querySelector('.drawer__inner');
-      if (drawerInner && drawerInner.contains(e.target)) {
-        // Only prevent if it's on an interactive element (button, link, etc.)
-        if (e.target.closest('button, a, input, select, cart-remove-button, quantity-input')) {
-          console.log('[Cart Drawer] Touch on interactive element blocked:', e.target);
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          return false;
-        }
-        // Otherwise, allow touch events for scrolling
-      }
-    }, true);
     
     this.setHeaderCartIconAccessibility();
   }
@@ -106,14 +72,15 @@ class CartDrawer extends HTMLElement {
     const cartDrawerNote = this.querySelector('[id^="Details-"] summary');
     if (cartDrawerNote && !cartDrawerNote.hasAttribute('role')) this.setSummaryAccessibility(cartDrawerNote);
     
-    // Ensure overlay is visible
+    // Ensure overlay is visible and clickable (enable pointer-events to detect clicks outside drawer)
     const overlay = this.querySelector('#CartDrawer-Overlay');
     if (overlay) {
       overlay.style.display = 'block';
       overlay.style.setProperty('display', 'block', 'important');
       overlay.style.setProperty('visibility', 'visible', 'important');
-      overlay.style.setProperty('pointer-events', 'auto', 'important');
       overlay.style.setProperty('opacity', '1', 'important');
+      // Enable pointer-events on overlay so we can detect clicks outside drawer
+      overlay.setAttribute('data-overlay-clickable', 'true');
     }
     
     // Ensure drawer is visible
@@ -147,7 +114,7 @@ class CartDrawer extends HTMLElement {
           });
         }
         
-        // Ensure cart-drawer-items can scroll even with body overflow-hidden
+        // Ensure cart-drawer-items can scroll even with body overflow-hidden or touch-action: none
         const cartItems = this.querySelector('cart-drawer-items');
         if (cartItems) {
           // Force scrolling styles with !important via setProperty
@@ -158,11 +125,14 @@ class CartDrawer extends HTMLElement {
           cartItems.style.setProperty('height', '100%', 'important');
           cartItems.style.setProperty('max-height', '100%', 'important');
           cartItems.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+          // CRITICAL: Override global touch-action: none from mm-locked class
           cartItems.style.setProperty('touch-action', 'pan-y', 'important');
+          cartItems.style.setProperty('pointer-events', 'auto', 'important');
           cartItems.style.setProperty('visibility', 'visible', 'important'); // Ensure it's visible
           console.log('[Cart Drawer] Applied scrolling styles to cart-drawer-items', {
             overflow: cartItems.style.overflow,
             overflowY: cartItems.style.overflowY,
+            touchAction: cartItems.style.touchAction,
             visibility: cartItems.style.visibility,
             height: cartItems.style.height
           });
@@ -194,11 +164,12 @@ class CartDrawer extends HTMLElement {
       if (overlay) {
         overlay.style.setProperty('display', 'none', 'important');
         overlay.style.setProperty('visibility', 'hidden', 'important');
-        overlay.style.setProperty('pointer-events', 'none', 'important');
         overlay.style.setProperty('opacity', '0', 'important');
         overlay.style.display = 'none';
         overlay.style.visibility = 'hidden';
         overlay.style.opacity = '0';
+        // Disable pointer-events on overlay (back to default)
+        overlay.removeAttribute('data-overlay-clickable');
       }
     };
     
@@ -327,41 +298,8 @@ class CartDrawer extends HTMLElement {
           drawerInner.style.setProperty('flex-direction', 'column', 'important');
           drawerInner.style.setProperty('height', '100%', 'important');
           
-          // CRITICAL: Prevent clicks inside drawer from closing it - use capture phase
-          // Remove any existing handlers first to avoid duplicates
-          const existingClickHandler = drawerInner._mccClickHandler;
-          const existingTouchHandler = drawerInner._mccTouchHandler;
-          if (existingClickHandler) {
-            drawerInner.removeEventListener('click', existingClickHandler, true);
-          }
-          if (existingTouchHandler) {
-            drawerInner.removeEventListener('touchend', existingTouchHandler, true);
-          }
-          
-          // Only prevent click events, NOT touch events (needed for scrolling)
-          const preventClose = (e) => {
-            console.log('[Cart Drawer] Click inside drawer prevented:', e.target, e.type);
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            return false;
-          };
-          drawerInner._mccClickHandler = preventClose;
-          drawerInner.addEventListener('click', preventClose, true);
-          
-          // Only prevent touchend on interactive elements, not for scrolling
-          const preventTouchClose = (e) => {
-            // Only prevent if it's on an interactive element (button, link, etc.)
-            if (e.target.closest('button, a, input, select, cart-remove-button, quantity-input')) {
-              console.log('[Cart Drawer] Touch on interactive element prevented:', e.target);
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-              return false;
-            }
-            // Otherwise, allow touch events for scrolling
-          };
-          drawerInner._mccTouchHandler = preventTouchClose;
-          drawerInner.addEventListener('touchend', preventTouchClose, true);
+          // No need to prevent clicks inside drawer - overlay has pointer-events: none
+          // so clicks inside drawer won't reach the overlay
         } else {
           // Fallback to updating the entire section
           const newHTML = this.getSectionInnerHTML(rawHTML, section.selector);

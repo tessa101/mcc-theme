@@ -168,6 +168,8 @@ cart-drawer {
   bottom: 0;
   left: 0;
   z-index: 1299;
+  /* Disable pointer events by default - only enable when clicking directly on overlay */
+  pointer-events: none;
 }
 
 .cart-drawer__overlay:empty {
@@ -177,11 +179,18 @@ cart-drawer {
 /* Hide overlay when drawer is not active */
 .drawer:not(.active) .cart-drawer__overlay {
   display: none !important;
+  pointer-events: none !important;
 }
 
-/* Show overlay when drawer is active */
+/* Show overlay when drawer is active, but keep pointer-events disabled */
 .drawer.active .cart-drawer__overlay {
   display: block !important;
+  pointer-events: none !important;
+}
+
+/* Only enable pointer events when explicitly set via JS (for overlay click detection) */
+.cart-drawer__overlay[data-overlay-clickable="true"] {
+  pointer-events: auto !important;
 }
 
 .cart-drawer__form {
@@ -217,7 +226,9 @@ cart-drawer-items {
   height: 100%;
   max-height: 100%;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  /* CRITICAL: Override global touch-action: none from mm-locked class */
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
   visibility: visible !important; /* Ensure it's visible when drawer is active */
 }
 
