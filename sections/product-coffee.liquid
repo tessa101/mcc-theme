@@ -75,6 +75,43 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 <script src="{{ 'mcc-product-functionality.js' | asset_url }}" defer></script>
 {{ 'mcc-product-styles.css' | asset_url | stylesheet_tag }}
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.classList.add('layout-coffee');
+
+    const elevateCartDrawer = () => {
+      const drawerSection = document.querySelector('.shopify-section-cart-drawer');
+      if (!drawerSection) return;
+
+      drawerSection.style.position = 'fixed';
+      drawerSection.style.top = '0';
+      drawerSection.style.left = '0';
+      drawerSection.style.width = '100%';
+      drawerSection.style.zIndex = '1200';
+      drawerSection.style.pointerEvents = 'none';
+
+      const cartDrawer = drawerSection.querySelector('cart-drawer');
+      if (cartDrawer) {
+        cartDrawer.style.zIndex = '1201';
+        cartDrawer.style.pointerEvents = 'auto';
+      }
+
+      const drawer = drawerSection.querySelector('.drawer');
+      if (drawer) {
+        drawer.style.zIndex = '1201';
+      }
+
+      const overlay = drawerSection.querySelector('.cart-drawer__overlay');
+      if (overlay) {
+        overlay.style.zIndex = '1200';
+      }
+    };
+
+    elevateCartDrawer();
+    document.addEventListener('shopify:section:load', elevateCartDrawer);
+  });
+</script>
+
 <!-- === Coffee PDP: Accordion CSS (no extra padding; relies on .product-sections) === -->
 <style id="coffee-accordion-css">
 /* Accordion containers */

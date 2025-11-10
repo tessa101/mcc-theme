@@ -750,6 +750,85 @@
     },
     updateHeight: updateGalleryHeight
   };
+
+  // Restore gallery scrolling after cart drawer closes
+  // The cart drawer adds overflow-hidden to body, which can prevent gallery scrolling
+  const cartDrawer = document.querySelector('cart-drawer');
+  if (cartDrawer) {
+    const cleanupDrawer = () => {
+      // Ensure body and html overflow is restored
+      document.body.classList.remove('overflow-hidden');
+      document.documentElement.classList.remove('overflow-hidden');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.setProperty('overflow', '', 'important');
+      document.documentElement.style.setProperty('overflow', '', 'important');
+      
+      // Explicitly hide overlay with !important
+      const overlay = cartDrawer.querySelector('#CartDrawer-Overlay');
+      if (overlay) {
+        overlay.style.setProperty('display', 'none', 'important');
+        overlay.style.setProperty('visibility', 'hidden', 'important');
+        overlay.style.setProperty('pointer-events', 'none', 'important');
+        overlay.style.display = 'none';
+        overlay.style.visibility = 'hidden';
+      }
+      
+      // Also ensure drawer itself is hidden
+      cartDrawer.style.setProperty('visibility', 'hidden', 'important');
+      cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+      
+      // Use setTimeout to ensure overlay stays hidden
+      setTimeout(() => {
+        if (overlay) {
+          overlay.style.setProperty('display', 'none', 'important');
+          overlay.style.setProperty('visibility', 'hidden', 'important');
+          overlay.style.setProperty('pointer-events', 'none', 'important');
+        }
+        cartDrawer.style.setProperty('visibility', 'hidden', 'important');
+        cartDrawer.style.setProperty('pointer-events', 'none', 'important');
+      }, 100);
+      
+      // Force a reflow to ensure styles are applied
+      void document.body.offsetHeight;
+      
+      // Restore gallery track scrolling explicitly
+      const galleryTracks = document.querySelectorAll('[data-mmvg-track]');
+      galleryTracks.forEach(track => {
+        // Ensure track can scroll
+        track.style.overflowY = 'auto';
+        track.style.overflow = 'auto';
+        track.style.touchAction = 'pan-y';
+        track.style.webkitOverflowScrolling = 'touch';
+        // Force reflow
+        void track.offsetHeight;
+      });
+      
+      // Also ensure the gallery container can scroll
+      const gallery = document.querySelector('[id^="MerchGallery-"]');
+      if (gallery) {
+        gallery.style.overflow = 'visible';
+        gallery.style.touchAction = 'pan-y';
+      }
+    };
+    
+    // Watch for cart drawer close events
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target;
+          // Check if cart drawer just closed (removed 'active' class)
+          if (target === cartDrawer && !target.classList.contains('active')) {
+            cleanupDrawer();
+          }
+        }
+      });
+    });
+    observer.observe(cartDrawer, { attributes: true, attributeFilter: ['class'] });
+    
+    // Also listen for close events directly
+    cartDrawer.addEventListener('close', cleanupDrawer);
+  }
 })();
 
 /* ===== MCC Merch — Variant→Media controller (robust, case-insensitive) ===== */
@@ -971,6 +1050,214 @@
   });
 })();
 
+/* === MCC Merch — Variant picker compatibility (aligned with coffee) === */
+(function(){
+  const section = document.getElementById('product_merch_mobile');
+  if (!section || section.__mccMerchVariantCompatV2) return;
+  section.__mccMerchVariantCompatV2 = true;
+
+  const picker = section.querySelector('.mcc-variant-picker');
+  if (!picker) return;
+
+  let variants = [];
+  try {
+    variants = JSON.parse(picker.getAttribute('data-variants') || '[]');
+  } catch (err) {
+    console.warn('[Merch Variant] Failed to parse variants payload', err);
+    variants = [];
+  }
+  if (!Array.isArray(variants) || !variants.length) return;
+
+  const optGroups = Array.from(picker.querySelectorAll('[data-opt-index]'));
+  const idRadios = Array.from(picker.querySelectorAll('.mcc-variant-id-radio'));
+  const form = picker.closest('form');
+  if (!form) return;
+
+  const productFormEl = form.closest('product-form');
+  const submitButton = form.querySelector('[type="submit"], button[name="add"]');
+
+  // Sort variant chips to match gallery image order
+  (function sortVariantChipsByGalleryOrder() {
+    // Get gallery media order from slides
+    const gallery = section.querySelector('[id^="MerchGallery-"]');
+    if (!gallery) return;
+    
+    // Get slides in order (they're already in the correct order in the DOM)
+    const slides = Array.from(gallery.querySelectorAll('[data-mmvg-slide][data-media-id]'));
+    if (!slides.length) return;
+    
+    // Build media position map (media ID -> position) from slide order
+    const mediaPositionMap = new Map();
+    slides.forEach((slide, index) => {
+      const mediaId = slide.getAttribute('data-media-id');
+      if (mediaId) {
+        mediaPositionMap.set(String(mediaId), index);
+      }
+    });
+    
+    // Build variant -> media map from variant data
+    const variantMediaMap = new Map();
+    variants.forEach(variant => {
+      if (variant?.id && variant?.featured_media?.id) {
+        variantMediaMap.set(String(variant.id), String(variant.featured_media.id));
+      }
+    });
+    
+    // Get variant media map from JSON if available (more accurate)
+    const variantMediaMapEl = section.querySelector('[id^="VariantMediaMap-"]');
+    if (variantMediaMapEl) {
+      try {
+        const mapData = JSON.parse(variantMediaMapEl.textContent || '{}');
+        const byVariantId = mapData.byVariantId || {};
+        Object.keys(byVariantId).forEach(variantId => {
+          const mediaId = String(byVariantId[variantId]);
+          variantMediaMap.set(String(variantId), mediaId);
+        });
+      } catch (e) {
+        console.warn('[Merch Variant] Failed to parse variant media map for sorting', e);
+      }
+    }
+    
+    // Sort option groups by the first variant's media position
+    // For each option group, find the first variant that uses each option value
+    // and sort by that variant's media position
+    optGroups.forEach(group => {
+      const optIndex = parseInt(group.getAttribute('data-opt-index') || '0', 10);
+      const inputs = Array.from(group.querySelectorAll('.mcc-opt-input'));
+      const labels = Array.from(group.querySelectorAll('label[for]'));
+      
+      // Build a map of option value -> media position
+      const valueToPosition = new Map();
+      inputs.forEach(input => {
+        const value = input.value;
+        // Find the first variant that uses this option value
+        const variant = variants.find(v => 
+          v.options && 
+          v.options[optIndex] === value &&
+          variantMediaMap.has(String(v.id))
+        );
+        if (variant) {
+          const mediaId = variantMediaMap.get(String(variant.id));
+          const position = mediaPositionMap.get(mediaId);
+          if (position !== undefined) {
+            valueToPosition.set(value, position);
+          }
+        }
+      });
+      
+      // Sort inputs and labels by media position
+      const sortedPairs = inputs.map((input, idx) => ({
+        input,
+        label: labels[idx],
+        value: input.value,
+        position: valueToPosition.get(input.value) ?? Infinity
+      })).sort((a, b) => a.position - b.position);
+      
+      // Reorder in DOM
+      sortedPairs.forEach(({ input, label }) => {
+        group.appendChild(input);
+        if (label) group.appendChild(label);
+      });
+    });
+  })();
+
+  const setSelectedVariantData = (variant) => {
+    if (!variant) {
+      delete form.dataset.selectedVariant;
+      if (productFormEl) delete productFormEl.dataset.selectedVariant;
+      return;
+    }
+    try {
+      const payload = JSON.stringify(variant);
+      form.dataset.selectedVariant = payload;
+      if (productFormEl) productFormEl.dataset.selectedVariant = payload;
+    } catch {
+      // ignore
+    }
+  };
+
+  const findExact = () => {
+    if (!optGroups.length) {
+      const checked = idRadios.find(radio => radio.checked);
+      if (!checked) return null;
+      return variants.find(v => String(v.id) === String(checked.value)) || null;
+    }
+    const selected = optGroups.map(group => {
+      const chosen = group.querySelector('.mcc-opt-input:checked');
+      return chosen ? chosen.value : null;
+    });
+    if (selected.some(value => value == null)) return null;
+    return variants.find(variant =>
+      Array.isArray(variant.options) &&
+      variant.options.length === selected.length &&
+      variant.options.every((value, idx) => value === selected[idx])
+    ) || null;
+  };
+
+  const refreshDisabling = () => {
+    if (!optGroups.length) return;
+    optGroups.forEach((group, idx) => {
+      const others = optGroups.map((otherGroup, otherIdx) => {
+        if (otherIdx === idx) return null;
+        const chosen = otherGroup.querySelector('.mcc-opt-input:checked');
+        return chosen ? chosen.value : null;
+      });
+      group.querySelectorAll('.mcc-opt-input').forEach(input => {
+        const candidate = input.value;
+        const possible = variants.some(variant => {
+          if (!variant.available) return false;
+          if (variant.options[idx] !== candidate) return false;
+          for (let i = 0; i < others.length; i++) {
+            const sel = others[i];
+            if (sel != null && variant.options[i] !== sel) return false;
+          }
+          return true;
+        });
+        input.disabled = !possible;
+        const label = group.querySelector(`label[for="${input.id}"]`);
+        if (label) label.classList.toggle('is-disabled', !possible);
+      });
+    });
+  };
+
+  const syncLegacyId = () => {
+    const exact = findExact();
+    idRadios.forEach(radio => { radio.checked = false; });
+
+    if (!exact) {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-disabled', 'true');
+      }
+      setSelectedVariantData(null);
+      return;
+    }
+
+    const target = picker.querySelector('#legacy-variant-' + exact.id);
+    if (target) {
+      if (target.disabled) target.disabled = false;
+      target.checked = true;
+      target.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (submitButton) {
+      submitButton.disabled = !exact.available;
+      submitButton.setAttribute('aria-disabled', exact.available ? 'false' : 'true');
+    }
+
+    setSelectedVariantData(exact);
+  };
+
+  picker.addEventListener('change', (event) => {
+    if (!event.target.classList.contains('mcc-opt-input')) return;
+    refreshDisabling();
+    syncLegacyId();
+  });
+
+  refreshDisabling();
+  syncLegacyId();
+})();
+
 /* === MCC Merch — Peek <-> Picker color sync (single source of truth) === */
 (function(){
   const section = document.getElementById('product_merch_mobile');
@@ -1114,121 +1401,3 @@
   requestAnimationFrame(syncPeek);
 })();
 
-/* ===== Merch Mobile — Auto-open cart drawer on Add to Cart ===== */
-(function(){
-  // Works for Dawn's native cart drawer or other cart-drawer JS
-  function openCartDrawer(){
-    // Prevent scroll when opening drawer
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
-    
-    // Dawn
-    const cartDrawer = document.querySelector('cart-drawer, #CartDrawer, [data-cart-drawer]');
-    if (cartDrawer && typeof cartDrawer.open === 'function') {
-      cartDrawer.open();
-      // Maintain scroll position
-      requestAnimationFrame(() => {
-        window.scrollTo(scrollX, scrollY);
-      });
-      return true;
-    }
-
-    // Other custom drawers (Loop, Recharge, etc.)
-    const btn = document.querySelector('[data-cart-toggle], .cart-toggle, [aria-controls="CartDrawer"]');
-    if (btn) { 
-      btn.click(); 
-      requestAnimationFrame(() => {
-        window.scrollTo(scrollX, scrollY);
-      });
-      return true; 
-    }
-
-    return false;
-  }
-
-  // 1️⃣ Catch Dawn's cart events (Shopify's standard)
-  document.addEventListener('cart:updated', openCartDrawer);
-  document.addEventListener('cart:change', openCartDrawer);
-
-  // 2️⃣ Fallback: intercept form submissions if Dawn doesn't emit events
-  // Match merch mobile form specifically
-  document.addEventListener('submit', (e)=>{
-    const form = e.target;
-    if (form && (form.matches('form[action*="/cart/add"]') || form.matches('form[data-product-form]') || form.id === 'mcc-merch-form')) {
-      // Prevent scroll
-      const scrollY = window.scrollY;
-      const scrollX = window.scrollX;
-      // small delay so the item is added first
-      setTimeout(() => {
-        openCartDrawer();
-        // Ensure scroll position is maintained
-        requestAnimationFrame(() => {
-          window.scrollTo(scrollX, scrollY);
-        });
-      }, 800);
-    }
-  });
-})();
-
-/* ===== Auto-open Cart Drawer after add ===== */
-(function(){
-  function openCartUI(){
-    // Prevent scroll when opening drawer
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
-    
-    // Dawn v7+ <cart-drawer> component
-    const drawer = document.querySelector('cart-drawer');
-    if (drawer && typeof drawer.open === 'function') { 
-      drawer.open(); 
-      requestAnimationFrame(() => {
-        window.scrollTo(scrollX, scrollY);
-      });
-      return true; 
-    }
-
-    // Older Dawn <cart-notification> component
-    const note = document.querySelector('cart-notification');
-    if (note && typeof note.open === 'function') { 
-      note.open(); 
-      requestAnimationFrame(() => {
-        window.scrollTo(scrollX, scrollY);
-      });
-      return true; 
-    }
-
-    // Common toggles used by themes/apps
-    const toggle = document.querySelector('[data-cart-toggle], .cart-toggle, [aria-controls="CartDrawer"]');
-    if (toggle) { 
-      toggle.click(); 
-      requestAnimationFrame(() => {
-        window.scrollTo(scrollX, scrollY);
-      });
-      return true; 
-    }
-
-    // Last-ditch: emit a custom event some themes listen to
-    document.dispatchEvent(new CustomEvent('open:cart'));
-    return false;
-  }
-
-  // Listen for Shopify/Dawn events
-  document.addEventListener('cart:updated', openCartUI);
-  document.addEventListener('cart:change',  openCartUI);
-
-  // Fallback: after form submit to /cart/add
-  // Match merch mobile form specifically
-  document.addEventListener('submit', (e)=>{
-    const f = e.target;
-    if (f && (f.matches('form[action*="/cart/add"]') || f.matches('form[data-product-form]') || f.id === 'mcc-merch-form')) {
-      const scrollY = window.scrollY;
-      const scrollX = window.scrollX;
-      setTimeout(() => {
-        openCartUI();
-        requestAnimationFrame(() => {
-          window.scrollTo(scrollX, scrollY);
-        });
-      }, 700);
-    }
-  });
-})();

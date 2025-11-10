@@ -74,21 +74,30 @@
   .layout-coffee .content-section{padding:20px;border-radius:12px;width:100%;box-sizing:border-box}
 }
 
-/* Keep cart drawer above header on mobile coffee layout */
+/* Keep cart drawer above header on mobile coffee layoutss */
 @media (max-width: 767px){
   .layout-coffee .shopify-section-cart-drawer {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 9999;
+    z-index: 1200 !important;
     pointer-events: none;
   }
   .layout-coffee .shopify-section-cart-drawer cart-drawer {
     pointer-events: auto;
+    z-index: 1201 !important;
+  }
+  .layout-coffee .shopify-section-cart-drawer .drawer,
+  .layout-coffee cart-drawer.drawer {
+    z-index: 1201 !important;
+  }
+  .layout-coffee .shopify-section-cart-drawer .cart-drawer__overlay,
+  .layout-coffee cart-drawer .cart-drawer__overlay {
+    z-index: 1200 !important;
   }
   .layout-coffee cart-drawer,
   .layout-coffee .cart-drawer{
-    z-index: 9999 !important;
+    z-index: 1201 !important;
   }
 }

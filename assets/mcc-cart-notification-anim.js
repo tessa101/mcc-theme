@@ -92,16 +92,34 @@
       el._mccPatched = true;
     }
 
-    // Close interactions (overlay or explicit close buttons)
-    el.addEventListener('click', (e) => {
-      const isOverlay = e.target?.closest?.('.cart-drawer__overlay');
-      const isCloser  = e.target?.closest?.('[data-cart-drawer-close], [data-drawer-close], button[name="close"]');
-      if (!isOverlay && !isCloser) return;
-      e.preventDefault();
-      closeDrawer();
-    }, { passive: false });
+    // DISABLED: Click handlers for cart-drawer - let cart-drawer.js handle all click interactions
+    // The cart-drawer.js already handles overlay clicks and close button clicks
+    // Adding handlers here causes conflicts and prevents proper functionality
+    
+    // Only prevent clicks inside drawer from bubbling (but don't handle close logic)
+    // Don't block touch events - they're needed for scrolling
+    const drawerInner = el.querySelector('.drawer__inner');
+    if (drawerInner) {
+      drawerInner.addEventListener('click', (e) => {
+        // Stop all clicks inside drawer from bubbling to cart-drawer element
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }, true); // Use capture phase to catch early
+      
+      // Only prevent touchend on interactive elements, not for scrolling
+      drawerInner.addEventListener('touchend', (e) => {
+        // Only prevent if it's on an interactive element (button, link, etc.)
+        if (e.target.closest('button, a, input, select, cart-remove-button, quantity-input')) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+        // Otherwise, allow touch events for scrolling
+      }, true);
+    }
 
-    // If contents change (some themes re-render internally), ensure it’s visible
+    // If contents change (some themes re-render internally), ensure it's visible
     const mo = new MutationObserver(() => markVisible(el));
     mo.observe(el, { childList: true, subtree: true });
   }

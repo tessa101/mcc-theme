@@ -21,9 +21,7 @@
       "type": "product-coffeeviewer-mobile",
       "disabled": true,
       "name": "Mobile Prod Coffee Viewer",
-      "settings": {
-        "section_title": "Product Detail"
-      }
+      "settings": {}
     },
     "product-grid": {
       "type": "main-collection-product-grid",

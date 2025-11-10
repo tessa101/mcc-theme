@@ -289,7 +289,8 @@ function handlePeekAddToCart(e){
   const scrollY = window.scrollY;
   const scrollX = window.scrollX;
 
-  const form = document.querySelector('form[data-product-form]');
+  const section = host?.closest('#product_merch_mobile') || document.getElementById('product_merch_mobile');
+  const form = section?.querySelector('#mcc-merch-form, form[data-product-form], form[action*="/cart/add"]');
   if (!form) {
     console.warn('Merch mobile peek: form not found');
     return;
@@ -302,6 +303,21 @@ function handlePeekAddToCart(e){
     return;
   }
   
+  // Debug instrumentation to capture variant state prior to submit
+  try {
+    const checkedRadio = form.querySelector('input[name="id"]:checked, input[name="id"].mcc-variant-id-radio:checked');
+    const hiddenId = form.querySelector('input[name="id"][type="hidden"]');
+    const datasetVariant = form.dataset?.selectedVariant ? JSON.parse(form.dataset.selectedVariant) : null;
+    console.log('[Merch Peek] Submit debug', {
+      checkedRadio: checkedRadio ? { id: checkedRadio.id, value: checkedRadio.value } : null,
+      hiddenId: hiddenId ? { value: hiddenId.value } : null,
+      datasetVariant,
+      time: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('[Merch Peek] Debug logging failed', err);
+  }
+  
   // Find the submit button
   const submitButton = form.querySelector('[type="submit"], button[name="add"]');
   if (!submitButton) {
@@ -310,59 +326,19 @@ function handlePeekAddToCart(e){
   }
   
   // Check if button is disabled
-  if (submitButton.getAttribute('aria-disabled') === 'true') {
+  if (submitButton.getAttribute('aria-disabled') === 'true' || submitButton.disabled) {
     console.warn('Merch mobile peek: submit button is disabled');
     return;
   }
   
-  // Create a synthetic submit event
-  const submitEvent = new Event('submit', { 
-    bubbles: true, 
-    cancelable: true 
-  });
-  
-  // Directly call Dawn's onSubmitHandler if available
-  // This bypasses any scroll issues from clicking
-  if (typeof productForm.onSubmitHandler === 'function') {
-    // Lock scroll position
-    const lockScroll = () => {
-      window.scrollTo(scrollX, scrollY);
-    };
-    
-    // Set up scroll prevention
-    const scrollInterval = setInterval(lockScroll, 10);
-    const scrollListener = () => lockScroll();
-    window.addEventListener('scroll', scrollListener, { passive: false });
-    document.addEventListener('scroll', scrollListener, { passive: false });
-    
-    // Call the handler
-    try {
-      productForm.onSubmitHandler(submitEvent);
-    } catch (err) {
-      console.error('Merch mobile peek: error calling onSubmitHandler', err);
-      // Fallback: dispatch the event
-      form.dispatchEvent(submitEvent);
-    }
-    
-    // Clean up scroll prevention after form processes
-    setTimeout(() => {
-      clearInterval(scrollInterval);
-      window.removeEventListener('scroll', scrollListener);
-      document.removeEventListener('scroll', scrollListener);
-      lockScroll(); // Final restore
-    }, 2000);
-  } else {
-    // Fallback: use requestSubmit
-    if (form.requestSubmit) {
-      const lockScroll = () => window.scrollTo(scrollX, scrollY);
-      const scrollInterval = setInterval(lockScroll, 10);
-      form.requestSubmit();
-      setTimeout(() => clearInterval(scrollInterval), 2000);
-    } else {
-      // Last resort: dispatch event
-      form.dispatchEvent(submitEvent);
-    }
+  // Prefer native requestSubmit so Dawn’s handler runs with proper timing
+  if (typeof form.requestSubmit === 'function') {
+    form.requestSubmit(submitButton);
+    return;
   }
+  
+  // Fallback: click the real submit button so onSubmitHandler initializes correctly
+  submitButton.click();
 }
 
 // Handle click events (desktop/web inspector)

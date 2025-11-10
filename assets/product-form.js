@@ -57,6 +57,19 @@ onSubmitHandler(evt) {
   delete config.headers['Content-Type'];
 
   const formData = new FormData(this.form);
+  const variantIdFromFormData = formData.get('id');
+  console.log('[Dawn ProductForm] FormData variant ID:', variantIdFromFormData, {
+    formId: this.form.id,
+    hasCart: !!this.cart,
+    cartType: this.cart?.tagName,
+    cartId: this.cart?.id,
+    allIdInputs: Array.from(this.form.querySelectorAll('input[name="id"], select[name="id"]')).map(el => ({
+      type: el.type || el.tagName,
+      value: el.value,
+      checked: el.checked || false,
+      id: el.id
+    }))
+  });
   if (this.cart) {
     formData.append(
       'sections',
@@ -70,6 +83,19 @@ onSubmitHandler(evt) {
   fetch(`${routes.cart_add_url}`, config)
     .then((response) => response.json())
     .then((response) => {
+      console.log('[Dawn ProductForm] Fetch response received:', {
+        hasStatus: !!response.status,
+        item_count: response.item_count,
+        hasCart: !!this.cart,
+        cartType: this.cart?.tagName,
+        hasQuickAddModal: !!this.closest('quick-add-modal'),
+        responseKeys: Object.keys(response).slice(0, 10),
+        hasSections: !!response.sections,
+        sectionKeys: response.sections ? Object.keys(response.sections) : [],
+        responseId: response.id,
+        responseVariantId: response.variant_id,
+        sectionsCartDrawerLength: response.sections?.['cart-drawer']?.length || 0
+      });
       if (response.status) {
         publish(PUB_SUB_EVENTS.cartError, {
           source: 'product-form',
@@ -119,8 +145,10 @@ onSubmitHandler(evt) {
         );
         quickAddModal.hide(true);
       } else {
+        console.log('[Dawn ProductForm] About to render cart contents, variant ID:', formData.get('id'), 'response item_count:', response.item_count);
         CartPerformance.measure("add:paint-updated-sections", () => {
           this.cart.renderContents(response);
+          console.log('[Dawn ProductForm] renderContents completed');
         });
       }
     })

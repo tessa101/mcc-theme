@@ -244,6 +244,8 @@ class QuantityInput extends HTMLElement {
 
   onButtonClick(event) {
     event.preventDefault();
+    event.stopPropagation(); // Prevent event from bubbling up and closing drawer (fix for quantity controls)
+    event.stopImmediatePropagation(); // Also stop other handlers on the same element
     const previousValue = this.input.value;
 
     if (event.target.name === 'plus') {
