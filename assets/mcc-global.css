@@ -84,11 +84,11 @@ button[disabled], .button[disabled], [aria-disabled="true"] { cursor: default; }
   cursor: not-allowed; opacity: .6;
 }
 
-/* Primary (fill #333) */
+/* Primary (fill #121212) */
 .btn.primary,
 .button--primary,
 .add-to-cart-full {
-  background: #333; color: #fff; border-color: #333;
+  background: #121212; color: #fff; border-color: #121212;
 }
 .btn.primary:hover:not(:disabled),
 .button--primary:hover:not(:disabled),
@@ -177,18 +177,29 @@ button[aria-label="Add to favorites"]:hover:not(:disabled) { background: #111; c
 
 /* ---------------------------
    Price cluster (Coffee sizes)
+   Exclude collection grids - they have their own styling
    --------------------------- */
-.price { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin: 0; }
+.price:not(.product-grid .price):not(#product-grid .price):not(.collection .price) { 
+  display: flex; 
+  gap: 8px; 
+  align-items: baseline; 
+  flex-wrap: wrap; 
+  margin: 0; 
+}
 
 .price-now,
-.price .price-item--regular,
-.price .price-item--sale {
-  font-weight: 700; color: #333; font-size: 20px;
+.price:not(.product-grid .price):not(#product-grid .price):not(.collection .price) .price-item--regular,
+.price:not(.product-grid .price):not(#product-grid .price):not(.collection .price) .price-item--sale {
+  font-weight: 700; 
+  color: #333; 
+  font-size: 20px;
 }
 @media (min-width: 768px){
   .price-now,
-  .price .price-item--regular,
-  .price .price-item--sale { font-size: 24px; }
+  .price:not(.product-grid .price):not(#product-grid .price):not(.collection .price) .price-item--regular,
+  .price:not(.product-grid .price):not(#product-grid .price):not(.collection .price) .price-item--sale { 
+    font-size: 24px; 
+  }
 }
 
 .price-compare,
@@ -309,3 +320,4 @@ cart-notification.mcc-anim.mcc-closing .cart-notification__container{
 .layout-coffee recharge-subscription-widget::part(rc-purchase-option__sub-container){ display:flex !important; flex-direction:column-reverse !important; }
 .layout-coffee recharge-subscription-widget::part(rc-purchase-option__original-price){ font-size:10px !important; }
 .layout-coffee recharge-subscription-widget::part(rc-learn-more__trigger-compact){ display:none !important; }
+

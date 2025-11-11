@@ -22,6 +22,37 @@
   <script src="{{ 'quick-order-list.js' | asset_url }}" defer="defer"></script>
 {%- endif -%}
 
+{%- liquid
+  comment
+    Detect collection type: coffee vs merch/couture
+    Coffee collections: coffee, beans, or any collection with "coffee" in handle
+    Merch collections: couture, merch, or any collection with "couture" or "merch" in handle
+  endcomment
+  assign collection_handle = collection.handle | downcase
+  assign is_coffee_collection = false
+  assign is_merch_collection = false
+  
+  if collection_handle contains 'coffee' or collection_handle contains 'beans'
+    assign is_coffee_collection = true
+  elsif collection_handle contains 'couture' or collection_handle contains 'merch'
+    assign is_merch_collection = true
+  endif
+  
+  comment
+    Determine image aspect ratio:
+    - Coffee: square (matching merch)
+    - Merch: square
+    - Default: use section setting
+  endcomment
+  if is_coffee_collection
+    assign card_image_ratio = 'square'
+  elsif is_merch_collection
+    assign card_image_ratio = 'square'
+  else
+    assign card_image_ratio = section.settings.image_ratio
+  endif
+-%}
+
 {%- style -%}
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
@@ -35,6 +66,213 @@
     }
   }
 {%- endstyle -%}
+
+{%- style -%}
+  /* Product Grid Cards — Collection Pages
+     Match peek header styling for title and price
+     Loads after component CSS to ensure overrides work */
+  
+  /* Card heading (title) — Option 3: Passion One font (no uppercase) */
+  .product-grid .card__heading,
+  .product-grid .card__heading.h5,
+  #product-grid .card__heading,
+  #product-grid .card__heading.h5,
+  .collection .card__heading,
+  .collection .card__heading.h5 {
+    margin: 0 !important;
+    font: 700 20px/1.1 'Passion One', var(--font-sans) !important;
+    letter-spacing: 0.05em !important;
+    color: #222 !important;
+    word-break: break-word;
+    font-family: 'Passion One', var(--font-sans) !important;
+    font-weight: 700 !important;
+    font-size: 20px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Price container — match peek header layout */
+  .product-grid .card-information > .price,
+  #product-grid .card-information > .price,
+  .collection .card-information > .price {
+    font-size: 14px !important;
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  .product-grid .card-information .price__container,
+  #product-grid .card-information .price__container,
+  .collection .card-information .price__container {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    flex-wrap: wrap;
+  }
+
+  /* Override base price styles */
+  .product-grid .card-information > .price > *,
+  #product-grid .card-information > .price > *,
+  .collection .card-information > .price > * {
+    display: block !important;
+    vertical-align: baseline !important;
+  }
+
+  /* Regular price (when not on sale) — match peek header */
+  .product-grid .card-information .price__regular .price-item--regular,
+  #product-grid .card-information .price__regular .price-item--regular,
+  .collection .card-information .price__regular .price-item--regular {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Price items — base styling */
+  .product-grid .card-information .price-item,
+  #product-grid .card-information .price-item,
+  .collection .card-information .price-item {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+    display: inline-block !important;
+  }
+
+  /* Compare at price (regular price when on sale) — match peek header */
+  .product-grid .card-information .price--on-sale .price-item--regular,
+  #product-grid .card-information .price--on-sale .price-item--regular,
+  .collection .card-information .price--on-sale .price-item--regular {
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    color: #9a9a9a !important;
+    text-decoration: line-through !important;
+    margin-right: 8px !important;
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Sale price — keep bold and larger */
+  .product-grid .card-information .price-item--sale,
+  #product-grid .card-information .price-item--sale,
+  .collection .card-information .price-item--sale {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Responsive adjustments */
+  @media screen and (min-width: 480px) {
+    .product-grid .card__heading,
+    .product-grid .card__heading.h5,
+    #product-grid .card__heading,
+    #product-grid .card__heading.h5,
+    .collection .card__heading,
+    .collection .card__heading.h5 {
+      font-size: 20px !important;
+      letter-spacing: 0.05em !important;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .product-grid .card__heading,
+    .product-grid .card__heading.h5,
+    #product-grid .card__heading,
+    #product-grid .card__heading.h5,
+    .collection .card__heading,
+    .collection .card__heading.h5 {
+      font-size: 26px !important;
+      letter-spacing: 0.7px !important;
+    }
+    
+    /* Desktop price sizing */
+    .product-grid .card-information .price__regular .price-item--regular,
+    #product-grid .card-information .price__regular .price-item--regular,
+    .collection .card-information .price__regular .price-item--regular {
+      font-size: 16px !important;
+    }
+    
+    .product-grid .card-information .price-item,
+    #product-grid .card-information .price-item,
+    .collection .card-information .price-item {
+      font-size: 16px !important;
+    }
+    
+    .product-grid .card-information .price--on-sale .price-item--regular,
+    #product-grid .card-information .price--on-sale .price-item--regular,
+    .collection .card-information .price--on-sale .price-item--regular {
+      font-size: 14px !important;
+    }
+    
+    .product-grid .card-information .price-item--sale,
+    #product-grid .card-information .price-item--sale,
+    .collection .card-information .price-item--sale {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Hide USD currency text in collection grid prices */
+  .product-grid .card-information .price-item::after,
+  #product-grid .card-information .price-item::after,
+  .collection .card-information .price-item::after {
+    content: '';
+  }
+  
+  .product-grid .card-information .price-item,
+  #product-grid .card-information .price-item,
+  .collection .card-information .price-item {
+    position: relative;
+  }
+  
+  /* Remove USD text using CSS - targets price items containing "USD" */
+  .product-grid .card-information .price-item,
+  #product-grid .card-information .price-item,
+  .collection .card-information .price-item {
+    font-variant-numeric: normal;
+  }
+{%- endstyle -%}
+
+{%- comment -%}
+  Hide USD text in collection grid prices using JavaScript
+  This runs after page load to remove "USD" from price text
+{%- endcomment -%}
+<script>
+(function() {
+  function removeUSD() {
+    const priceItems = document.querySelectorAll('.product-grid .price-item, #product-grid .price-item, .collection .price-item');
+    priceItems.forEach(function(item) {
+      if (item.textContent) {
+        item.textContent = item.textContent.replace(/\s*USD\s*/gi, '').trim();
+      }
+    });
+  }
+  
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', removeUSD);
+  } else {
+    removeUSD();
+  }
+  
+  // Also run after any dynamic updates (e.g., filtering, sorting)
+  const observer = new MutationObserver(function(mutations) {
+    removeUSD();
+  });
+  
+  const gridContainer = document.querySelector('.product-grid, #product-grid, .collection');
+  if (gridContainer) {
+    observer.observe(gridContainer, {
+      childList: true,
+      subtree: true
+    });
+  }
+})();
+</script>
 
 <div class="section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
   {%- paginate collection.products by section.settings.products_per_page -%}
@@ -150,7 +388,10 @@
                 grid product-grid grid--{{ section.settings.columns_mobile }}-col-tablet-down
                 grid--{{ section.settings.columns_desktop }}-col-desktop
                 {% if section.settings.quick_add == 'bulk' %} collection-quick-add-bulk{% endif %}
+                {% if is_coffee_collection %} collection-type-coffee{% endif %}
+                {% if is_merch_collection %} collection-type-merch{% endif %}
               "
+              data-collection-type="{% if is_coffee_collection %}coffee{% elsif is_merch_collection %}merch{% else %}default{% endif %}"
             >
               {% assign skip_card_product_styles = false %}
               {%- for product in collection.products -%}
@@ -167,7 +408,7 @@
                 >
                   {% render 'card-product',
                     card_product: product,
-                    media_aspect_ratio: section.settings.image_ratio,
+                    media_aspect_ratio: card_image_ratio,
                     image_shape: section.settings.image_shape,
                     show_secondary_image: section.settings.show_secondary_image,
                     show_vendor: section.settings.show_vendor,
