@@ -2,9 +2,13 @@
 Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 {% endcomment %}
 
-<section class="mcc-product product-coffee"
+{%- comment -%} Detect product type {%- endcomment -%}
+{% render 'mcc-product-type-detection', product: product %}
+
+<section class="mcc-product product-coffee{% if is_cold_brew %} product-cold-brew{% endif %}"
   data-product-id="{{ product.id }}"
-  data-section="{{ section.id }}">
+  data-section="{{ section.id }}"
+  data-is-cold-brew="{{ is_cold_brew }}">
 
   <!-- Mobile Hero Image -->
   <div class="product-hero-mobile" >
@@ -37,32 +41,36 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 
         {%- comment -%} Right-rail dynamic blocks {%- endcomment -%}
         {%- for block in section.blocks -%}
-          {%- if block.type == 'reviews_badge' -%}
-            <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="margin-top:{{ block.settings.top_margin | default: 12 }}px">
-              {%- if block.settings.show_label and block.settings.label_text != blank -%}
-                <a class="pdp-reviews-badge__link" href="#reviews">{{ block.settings.label_text }}</a>
-              {%- endif -%}
-              <!-- Judge.me Preview Badge (metafield embed) -->
-              <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
-                {{ product.metafields.judgeme.badge }}
+          {%- case block.type -%}
+            {%- when 'reviews_badge' -%}
+              <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="margin-top:{{ block.settings.top_margin | default: 12 }}px">
+                {%- if block.settings.show_label and block.settings.label_text != blank -%}
+                  <a class="pdp-reviews-badge__link" href="#reviews">{{ block.settings.label_text }}</a>
+                {%- endif -%}
+                <!-- Judge.me Preview Badge (metafield embed) -->
+                <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
+                  {{ product.metafields.judgeme.badge }}
+                </div>
               </div>
-            </div>
-          {%- endif -%}
-        {%- endfor -%}
 
-        <!-- Dynamic Price Display -->
-        {% if product.available %}
-          <div class="product-price-display" data-product-price>
-            <span class="current-price" id="current-subtotal" >
-              {{ product.selected_or_first_available_variant.price | money }}
-            </span>
-            {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}
-              <span class="compare-price" id="compare-price-display">
-                {{ product.selected_or_first_available_variant.compare_at_price | money }}
-              </span>
-            {% endif %}
-          </div>
-        {% endif %}
+            {%- when 'price' -%}
+              {%- comment -%} Price block - hidden for cold brew by default, can be shown via Shopify admin block visibility {%- endcomment -%}
+              {% unless is_cold_brew %}
+                {% if product.available %}
+                  <div class="product-price-display" data-product-price {{ block.shopify_attributes }}>
+                    <span class="current-price" id="current-subtotal" >
+                      {{ product.selected_or_first_available_variant.price | money }}
+                    </span>
+                    {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}
+                      <span class="compare-price" id="compare-price-display">
+                        {{ product.selected_or_first_available_variant.compare_at_price | money }}
+                      </span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              {% endunless %}
+          {%- endcase -%}
+        {%- endfor -%}
 
         <!-- Product Form -->
         {% render 'mcc-product-form', product: product, section: section %}
@@ -286,13 +294,13 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 
 /* Mobile-only type scale */
 @media (max-width: 768px) {
-  #recommendations :is(h1,h2,h3,.recommended-products__title,.recs-title,.pdp-h2) {
+  #recommendations :is(h1,h2,h3,.recommended-products__title,.recs-title,.pdp-h2,.recommended-title) {
     margin: 0 0 12px !important;
-    font-weight: 700 !important;
-    font-size: 20px !important;   /* change to 20px if you prefer */
+    font-weight: 400 !important;
+    font-size: 24px !important;
     line-height: 1.2 !important;
-    letter-spacing: -0.02em !important;
-    color: #111 !important;
+    letter-spacing: 0.01em !important;
+    color: #222 !important;
   }
 }
 </style>

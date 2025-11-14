@@ -7,6 +7,9 @@ MCC Variant Picker (compat)
 - Disables impossible values live
 {% endcomment %}
 
+{%- comment -%} Detect product type {%- endcomment -%}
+{% render 'mcc-product-type-detection', product: product %}
+
 {%- assign all_oos = false -%}
 {%- unless product.available -%}{%- assign all_oos = true -%}{%- endunless -%}
 
@@ -66,39 +69,46 @@ MCC Variant Picker (compat)
     {%- for opt in product.options_with_values -%}
       {%- assign opt_index = forloop.index0 -%}
       {%- assign opt_name_downcase = opt.name | downcase -%}
+      {%- comment -%} Hide size variants for cold brew during launch {%- endcomment -%}
+      {%- assign is_size_option = false -%}
+      {%- if is_cold_brew and opt_name_downcase contains 'size' -%}
+        {%- assign is_size_option = true -%}
+      {%- endif -%}
 
-      <label id="mcc-opt-label-{{ section.id }}-{{ opt_index }}" class="variant-label">
-        {{ opt.name }}
-      </label>
+      {% unless is_size_option %}
+        <label id="mcc-opt-label-{{ section.id }}-{{ opt_index }}" class="variant-label">
+          {{ opt.name }}
+        </label>
 
-      <fieldset class="variant-options{% if all_oos %} all-sold-out{% endif %}"
-                {% if all_oos %}disabled aria-disabled="true"{% endif %}
-                aria-labelledby="mcc-opt-label-{{ section.id }}-{{ opt_index }}"
-                data-opt-index="{{ opt_index }}"
-                data-opt-name="{{ opt.name | escape }}">
+        <fieldset class="variant-options{% if all_oos %} all-sold-out{% endif %}"
+                  {% if all_oos %}disabled aria-disabled="true"{% endif %}
+                  aria-labelledby="mcc-opt-label-{{ section.id }}-{{ opt_index }}"
+                  data-opt-index="{{ opt_index }}"
+                  data-opt-name="{{ opt.name | escape }}">
 
-        {%- for val in opt.values -%}
-          {%- assign input_id = 'mcc-opt-' | append: section.id | append: '-' | append: opt_index | append: '-' | append: forloop.index0 -%}
-          <input
-            type="radio"
-            class="mcc-opt-input"
-            id="{{ input_id }}"
-            name="options[{{ opt.name }}]"
-            value="{{ val | escape }}"
-            {% if val == opt.selected_value %}checked{% endif %}
-            {% if all_oos %}disabled aria-disabled="true"{% endif %}>
-          <label class="variant-option{% if opt_name_downcase contains 'color' %} is-swatch{% endif %}"
-                 data-value="{{ val | escape }}"
-                 for="{{ input_id }}">
-            {%- if opt_name_downcase contains 'color' -%}
-              <span class="mcc-swatch" style="--swatch: {{ val | escape }};"></span>
-              <span class="mcc-swatch-label">{{ val }}</span>
-            {%- else -%}
-              {{ val }}
-            {%- endif -%}
-          </label>
-        {%- endfor -%}
-      </fieldset>
+          {%- for val in opt.values -%}
+            {%- assign input_id = 'mcc-opt-' | append: section.id | append: '-' | append: opt_index | append: '-' | append: forloop.index0 -%}
+            <input
+              type="radio"
+              class="mcc-opt-input"
+              id="{{ input_id }}"
+              name="options[{{ opt.name }}]"
+              value="{{ val | escape }}"
+              {% if val == opt.selected_value %}checked{% endif %}
+              {% if all_oos %}disabled aria-disabled="true"{% endif %}>
+            <label class="variant-option{% if opt_name_downcase contains 'color' %} is-swatch{% endif %}"
+                   data-value="{{ val | escape }}"
+                   for="{{ input_id }}">
+              {%- if opt_name_downcase contains 'color' -%}
+                <span class="mcc-swatch" style="--swatch: {{ val | escape }};"></span>
+                <span class="mcc-swatch-label">{{ val }}</span>
+              {%- else -%}
+                {{ val }}
+              {%- endif -%}
+            </label>
+          {%- endfor -%}
+        </fieldset>
+      {% endunless %}
     {%- endfor -%}
   {%- endif -%}
 </div>

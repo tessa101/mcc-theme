@@ -5,6 +5,9 @@ MCC Product Content Sections – SAFE VERSION
 - Riskier sections commented for controlled re-enable
 {% endcomment %}
 
+{%- comment -%} Detect product type {%- endcomment -%}
+{% render 'mcc-product-type-detection', product: product %}
+
 <div class="product-sections"><!-- keeps padding: 0 32px -->
 
 {%- liquid
@@ -137,21 +140,10 @@ MCC Product Content Sections – SAFE VERSION
   </section>
   
 
- {%- comment -%} ====== STEP 3: BREW METHODS (collection-aware) ====== {%- endcomment -%}
+ {%- comment -%} ====== STEP 3: BREW METHODS (product type-aware) ====== {%- endcomment -%}
+ {%- comment -%} Show brew methods only for coffee beans, not cold brew {%- endcomment -%}
 
-{%- assign handles = product.collections | map: 'handle' | join: ',' | downcase -%}
-
-{%- assign in_beans = false -%}
-{%- if handles contains 'beans' -%}
-  {%- assign in_beans = true -%}
-{%- endif -%}
-
-{%- assign in_coldbrew = false -%}
-{%- if handles contains 'cold-brew' or handles contains 'coldbrew' -%}
-  {%- assign in_coldbrew = true -%}
-{%- endif -%}
-
-{%- if in_beans and in_coldbrew == false -%}
+{%- if is_coffee_beans and is_cold_brew == false -%}
   <!-- BREWING METHODS -->
   <section class="coffee-accordion content-section" data-accordion data-acc="brew" data-stagger="rows">
     <header class="coffee-acc-header">
@@ -166,10 +158,6 @@ MCC Product Content Sections – SAFE VERSION
     </div>
   </section>
 {%- endif -%}
-{% if in_beans %}
-  {% unless in_coldbrew %}
-  {% endunless %}
-{% endif %}
  
 
   {%- comment -%}

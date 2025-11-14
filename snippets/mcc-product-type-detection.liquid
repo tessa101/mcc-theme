@@ -1,0 +1,45 @@
+{% comment %}
+MCC Product Type Detection
+- Centralized detection for coffee vs cold brew products
+- Uses priority-based fallback system:
+  1. Primary: product.product_type field
+  2. Secondary: Product tags
+  3. Tertiary: Collection handles (backup)
+- Sets: is_cold_brew (boolean) and is_coffee_beans (boolean)
+{% endcomment %}
+
+{%- liquid
+  assign is_cold_brew = false
+  assign is_coffee_beans = false
+  
+  comment
+    PRIMARY: Check product.product_type field
+  endcomment
+  assign product_type_lower = product.product_type | downcase | strip
+  if product_type_lower contains 'cold brew' or product_type_lower contains 'coldbrew'
+    assign is_cold_brew = true
+  elsif product_type_lower contains 'coffee' or product_type_lower == 'beans' or product_type_lower contains 'bean'
+    assign is_coffee_beans = true
+  else
+    comment
+      SECONDARY: Check product tags
+    endcomment
+    assign tags_lower = product.tags | join: ',' | downcase
+    if tags_lower contains 'cold-brew' or tags_lower contains 'coldbrew'
+      assign is_cold_brew = true
+    elsif tags_lower contains 'coffee' or tags_lower contains 'beans' or tags_lower contains 'bean'
+      assign is_coffee_beans = true
+    else
+      comment
+        TERTIARY: Check collection handles (fallback)
+      endcomment
+      assign handles = product.collections | map: 'handle' | join: ',' | downcase
+      if handles contains 'cold-brew' or handles contains 'coldbrew'
+        assign is_cold_brew = true
+      elsif handles contains 'beans' or handles contains 'coffee'
+        assign is_coffee_beans = true
+      endif
+    endif
+  endif
+-%}
+

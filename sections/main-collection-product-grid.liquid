@@ -39,6 +39,11 @@
   endif
   
   comment
+    For coffee collections, we'll filter products in the loop below
+    to automatically include products with product_type "Beans" or "Cold Brew"
+  endcomment
+  
+  comment
     Determine image aspect ratio:
     - Coffee: square (matching merch)
     - Merch: square
@@ -81,13 +86,20 @@
   .collection .card__heading.h5 {
     margin: 0 !important;
     font: 700 20px/1.1 'Passion One', var(--font-sans) !important;
-    letter-spacing: 0.05em !important;
-    color: #222 !important;
+    letter-spacing: 0.02em !important;
+    color: #242424 !important;
     word-break: break-word;
     font-family: 'Passion One', var(--font-sans) !important;
     font-weight: 700 !important;
     font-size: 20px !important;
     line-height: 1.1 !important;
+  }
+  
+  /* Ensure title links use #242424 */
+  .product-grid .card__heading a,
+  #product-grid .card__heading a,
+  .collection .card__heading a {
+    color: #242424 !important;
   }
 
   /* Price container — match peek header layout */
@@ -120,7 +132,7 @@
   .product-grid .card-information .price__regular .price-item--regular,
   #product-grid .card-information .price__regular .price-item--regular,
   .collection .card-information .price__regular .price-item--regular {
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 14px !important;
     color: #333 !important;
     margin: 0 !important;
@@ -132,7 +144,7 @@
   .product-grid .card-information .price-item,
   #product-grid .card-information .price-item,
   .collection .card-information .price-item {
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 14px !important;
     color: #333 !important;
     margin: 0 !important;
@@ -154,11 +166,11 @@
     line-height: 1.1 !important;
   }
 
-  /* Sale price — keep bold and larger */
+  /* Sale price */
   .product-grid .card-information .price-item--sale,
   #product-grid .card-information .price-item--sale,
   .collection .card-information .price-item--sale {
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     font-size: 14px !important;
     color: #333 !important;
     margin: 0 !important;
@@ -175,7 +187,7 @@
     .collection .card__heading,
     .collection .card__heading.h5 {
       font-size: 20px !important;
-      letter-spacing: 0.05em !important;
+      letter-spacing: 0.02em !important;
     }
   }
 
@@ -195,24 +207,31 @@
     #product-grid .card-information .price__regular .price-item--regular,
     .collection .card-information .price__regular .price-item--regular {
       font-size: 16px !important;
+      color: #333 !important;
+      font-weight: 500 !important;
     }
     
     .product-grid .card-information .price-item,
     #product-grid .card-information .price-item,
     .collection .card-information .price-item {
       font-size: 16px !important;
+      color: #333 !important;
+      font-weight: 500 !important;
     }
     
     .product-grid .card-information .price--on-sale .price-item--regular,
     #product-grid .card-information .price--on-sale .price-item--regular,
     .collection .card-information .price--on-sale .price-item--regular {
       font-size: 14px !important;
+      font-weight: 500 !important;
     }
     
     .product-grid .card-information .price-item--sale,
     #product-grid .card-information .price-item--sale,
     .collection .card-information .price-item--sale {
       font-size: 16px !important;
+      color: #333 !important;
+      font-weight: 500 !important;
     }
   }
 
@@ -234,6 +253,24 @@
   #product-grid .card-information .price-item,
   .collection .card-information .price-item {
     font-variant-numeric: normal;
+  }
+
+  /* Filter, Sort, and Product Count Headings - Smaller size with Suisse font
+     Override Passion One from theme.liquid for collection page headings */
+  h2.facet-filters__label,
+  h2.facets__heading,
+  h2.product-count__text,
+  .facet-filters__label,
+  .facets__heading,
+  .product-count__text {
+    font-family: 'SuisseIntl', var(--font-sans) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: rgba(var(--color-foreground), 0.85) !important;
+    letter-spacing: 0.01em !important;
+    line-height: 1.4 !important;
+    text-transform: none !important;
+    font-feature-settings: normal !important;
   }
 {%- endstyle -%}
 
@@ -362,21 +399,29 @@
           data-cascade
         {% endif %}
       >
-        {%- if collection.products.size == 0 -%}
-          <div class="collection collection--empty page-width" id="product-grid" data-id="{{ section.id }}">
-            <div class="loading-overlay gradient"></div>
-            <div class="title-wrapper center">
-              <h2 class="title title--primary">
-                {{ 'sections.collection_template.empty' | t -}}
-                <br>
-                {{
-                  'sections.collection_template.use_fewer_filters_html'
-                  | t: link: collection.url, class: 'underlined-link link'
-                }}
-              </h2>
-            </div>
-          </div>
+        {%- comment -%} For coffee collections, check if we have any products (including auto-added ones) {%- endcomment -%}
+        {%- assign has_products = false -%}
+        {%- if is_coffee_collection -%}
+          {%- if collection.products.size > 0 -%}
+            {%- assign has_products = true -%}
+          {%- else -%}
+            {%- comment -%} Check if there are any beans or cold brew products {%- endcomment -%}
+            {%- for product in collections.all.products limit: 1 -%}
+              {%- assign product_type_lower = product.product_type | downcase | strip -%}
+              {%- assign tags_lower = product.tags | join: ',' | downcase -%}
+              {%- if product_type_lower == 'beans' or product_type_lower contains 'bean' or product_type_lower contains 'cold brew' or product_type_lower contains 'coldbrew' or tags_lower contains 'beans' or tags_lower contains 'cold-brew' or tags_lower contains 'coldbrew' -%}
+                {%- assign has_products = true -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
         {%- else -%}
+          {%- if collection.products.size > 0 -%}
+            {%- assign has_products = true -%}
+          {%- endif -%}
+        {%- endif -%}
+        
+        {%- if has_products -%}
           <div
             class="collection{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}"
           >
@@ -394,38 +439,159 @@
               data-collection-type="{% if is_coffee_collection %}coffee{% elsif is_merch_collection %}merch{% else %}default{% endif %}"
             >
               {% assign skip_card_product_styles = false %}
-              {%- for product in collection.products -%}
-                {% assign lazy_load = false %}
-                {%- if forloop.index > 2 -%}
-                  {%- assign lazy_load = true -%}
+              {%- comment -%} Check if any filters are active {%- endcomment -%}
+              {%- assign has_active_filters = false -%}
+              {%- for filter in collection.filters -%}
+                {%- if filter.active_values.size > 0 -%}
+                  {%- assign has_active_filters = true -%}
+                  {%- break -%}
                 {%- endif -%}
-                <li
-                  class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
-                  {% if settings.animations_reveal_on_scroll %}
-                    data-cascade
-                    style="--animation-order: {{ forloop.index }};"
-                  {% endif %}
-                >
-                  {% render 'card-product',
-                    card_product: product,
-                    media_aspect_ratio: card_image_ratio,
-                    image_shape: section.settings.image_shape,
-                    show_secondary_image: section.settings.show_secondary_image,
-                    show_vendor: section.settings.show_vendor,
-                    show_rating: section.settings.show_rating,
-                    lazy_load: lazy_load,
-                    skip_styles: skip_card_product_styles,
-                    quick_add: section.settings.quick_add,
-                    section_id: section.id
-                  %}
-                </li>
-                {%- assign skip_card_product_styles = true -%}
+                {%- if filter.type == 'price_range' -%}
+                  {%- if filter.min_value.value != null or filter.max_value.value != null -%}
+                    {%- assign has_active_filters = true -%}
+                    {%- break -%}
+                  {%- endif -%}
+                {%- endif -%}
               {%- endfor -%}
+              
+              {%- comment -%} For coffee collections, show products from collection OR products with matching product_type/tags {%- endcomment -%}
+              {%- comment -%} IMPORTANT: Only add extra products if no filters are active, otherwise use Shopify's filtered collection.products {%- endcomment -%}
+              {%- if is_coffee_collection and has_active_filters == false -%}
+                {%- comment -%} Build a list of product IDs already in collection to avoid duplicates {%- endcomment -%}
+                {%- assign collection_product_ids = '' -%}
+                {%- for p in collection.products -%}
+                  {%- assign collection_product_ids = collection_product_ids | append: p.id | append: ',' -%}
+                {%- endfor -%}
+                
+                {%- comment -%} First, show products from the collection {%- endcomment -%}
+                {%- for product in collection.products -%}
+                  {% assign lazy_load = false %}
+                  {%- if forloop.index > 2 -%}
+                    {%- assign lazy_load = true -%}
+                  {%- endif -%}
+                  <li
+                    class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                    {% if settings.animations_reveal_on_scroll %}
+                      data-cascade
+                      style="--animation-order: {{ forloop.index }};"
+                    {% endif %}
+                  >
+                    {% render 'card-product',
+                      card_product: product,
+                      media_aspect_ratio: card_image_ratio,
+                      image_shape: section.settings.image_shape,
+                      show_secondary_image: section.settings.show_secondary_image,
+                      show_vendor: section.settings.show_vendor,
+                      show_rating: section.settings.show_rating,
+                      lazy_load: lazy_load,
+                      skip_styles: skip_card_product_styles,
+                      quick_add: section.settings.quick_add,
+                      section_id: section.id
+                    %}
+                  </li>
+                  {%- assign skip_card_product_styles = true -%}
+                {%- endfor -%}
+                
+                {%- comment -%} Then, add products with product_type "Beans" or "Cold Brew" that aren't already in collection {%- endcomment -%}
+                {%- comment -%} Use all_products collection and filter by product_type {%- endcomment -%}
+                {%- for product in collections.all.products -%}
+                  {%- assign product_type_lower = product.product_type | downcase | strip -%}
+                  {%- assign tags_lower = product.tags | join: ',' | downcase -%}
+                  {%- assign should_include = false -%}
+                  
+                  {%- comment -%} Check product_type first (most reliable) {%- endcomment -%}
+                  {%- if product_type_lower == 'beans' -%}
+                    {%- assign should_include = true -%}
+                  {%- elsif product_type_lower == 'cold brew' -%}
+                    {%- assign should_include = true -%}
+                  {%- elsif product_type_lower contains 'coldbrew' -%}
+                    {%- assign should_include = true -%}
+                  {%- comment -%} Fallback to tags if product_type doesn't match {%- endcomment -%}
+                  {%- elsif tags_lower contains 'beans' -%}
+                    {%- assign should_include = true -%}
+                  {%- elsif tags_lower contains 'cold-brew' -%}
+                    {%- assign should_include = true -%}
+                  {%- elsif tags_lower contains 'coldbrew' -%}
+                    {%- assign should_include = true -%}
+                  {%- endif -%}
+                  
+                  {%- if should_include -%}
+                    {%- comment -%} Check if product is already in collection to avoid duplicates {%- endcomment -%}
+                    {%- assign product_id_string = product.id | append: ',' -%}
+                    {%- unless collection_product_ids contains product_id_string -%}
+                      {%- assign collection_product_ids = collection_product_ids | append: product_id_string -%}
+                      {% assign lazy_load = true %}
+                      <li
+                        class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                        {% if settings.animations_reveal_on_scroll %}
+                          data-cascade
+                        {% endif %}
+                      >
+                        {% render 'card-product',
+                          card_product: product,
+                          media_aspect_ratio: card_image_ratio,
+                          image_shape: section.settings.image_shape,
+                          show_secondary_image: section.settings.show_secondary_image,
+                          show_vendor: section.settings.show_vendor,
+                          show_rating: section.settings.show_rating,
+                          lazy_load: lazy_load,
+                          skip_styles: skip_card_product_styles,
+                          quick_add: section.settings.quick_add,
+                          section_id: section.id
+                        %}
+                      </li>
+                    {%- endunless -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- else -%}
+                {%- comment -%} If filters are active OR not a coffee collection, just show collection.products (Shopify handles filtering) {%- endcomment -%}
+                {%- for product in collection.products -%}
+                  {% assign lazy_load = false %}
+                  {%- if forloop.index > 2 -%}
+                    {%- assign lazy_load = true -%}
+                  {%- endif -%}
+                  <li
+                    class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                    {% if settings.animations_reveal_on_scroll %}
+                      data-cascade
+                      style="--animation-order: {{ forloop.index }};"
+                    {% endif %}
+                  >
+                    {% render 'card-product',
+                      card_product: product,
+                      media_aspect_ratio: card_image_ratio,
+                      image_shape: section.settings.image_shape,
+                      show_secondary_image: section.settings.show_secondary_image,
+                      show_vendor: section.settings.show_vendor,
+                      show_rating: section.settings.show_rating,
+                      lazy_load: lazy_load,
+                      skip_styles: skip_card_product_styles,
+                      quick_add: section.settings.quick_add,
+                      section_id: section.id
+                    %}
+                  </li>
+                  {%- assign skip_card_product_styles = true -%}
+                {%- endfor -%}
+              {%- endif -%}
             </ul>
 
             {%- if paginate.pages > 1 -%}
               {% render 'pagination', paginate: paginate, anchor: '' %}
             {%- endif -%}
+          </div>
+        {%- else -%}
+          <div class="collection collection--empty page-width" id="product-grid" data-id="{{ section.id }}">
+            <div class="loading-overlay gradient"></div>
+            <div class="title-wrapper center">
+              <h2 class="title title--primary">
+                {{ 'sections.collection_template.empty' | t -}}
+                <br>
+                {{
+                  'sections.collection_template.use_fewer_filters_html'
+                  | t: link: collection.url, class: 'underlined-link link'
+                }}
+              </h2>
+            </div>
           </div>
         {%- endif -%}
       </div>

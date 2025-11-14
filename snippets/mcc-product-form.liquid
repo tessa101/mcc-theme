@@ -6,6 +6,9 @@ MCC Product Form Snippet (Dawn-compatible)
 - Includes Dawn's loading spinner stub
 {% endcomment %}
 
+{%- comment -%} Detect product type {%- endcomment -%}
+{% render 'mcc-product-type-detection', product: product %}
+
 {%- comment -%} OOS flag for price/CTA styling {%- endcomment -%}
 {%- comment -%} OOS flag (reliable): product.available is false when ALL variants are OOS {%- endcomment -%}
 {%- comment -%} All-variants OOS is reliably: product.available == false {%- endcomment -%}
@@ -46,7 +49,7 @@ MCC Product Form Snippet (Dawn-compatible)
         {%- case block.type -%}
 
           {%- when '@app' -%}
-            <div class="product-app-block" {{ block.shopify_attributes }}>
+            <div class="product-app-block{% if is_cold_brew %} product-app-block--hidden{% endif %}" {{ block.shopify_attributes }}>
               <label class="variant-label">PURCHASE OPTIONS</label>
               {% render block %}
             </div>
@@ -60,9 +63,12 @@ MCC Product Form Snippet (Dawn-compatible)
             </div>
 
           {%- when 'buy_buttons' -%}
-            <div class="block-buy-buttons" {{ block.shopify_attributes }}>
-              {% render 'mcc-buy-buttons', block: block, section: section, product: product %}
-            </div>
+            {%- comment -%} Hide buy buttons for cold brew during launch {%- endcomment -%}
+            {% unless is_cold_brew %}
+              <div class="block-buy-buttons" {{ block.shopify_attributes }}>
+                {% render 'mcc-buy-buttons', block: block, section: section, product: product %}
+              </div>
+            {% endunless %}
 
           {%- when 'wishlist' -%}
             <div class="block-wishlist" {{ block.shopify_attributes }}>
@@ -162,6 +168,15 @@ MCC Product Form Snippet (Dawn-compatible)
   </script>
 
 </div>
+
+{%- comment -%} Hide subscription widget for cold brew by default {%- endcomment -%}
+{% if is_cold_brew %}
+<style>
+  .product-app-block--hidden {
+    display: none !important;
+  }
+</style>
+{% endif %}
 
 {%- comment -%}
 Tiny helper: remove fallback inputs if real ones exist,
