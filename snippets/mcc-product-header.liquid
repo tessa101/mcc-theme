@@ -18,16 +18,19 @@ Accepts text (e.g., "Medium-Light", "Dark roast") or a number (1–5).
 {%- unless roast_raw %}
   {%- assign title_lower = product.title | downcase -%}
   {%- assign tags_lower  = product.tags | join: ',' | downcase -%}
-  {%- if title_lower contains 'french' or tags_lower contains 'french roast' -%}
+  {%- comment -%} Check compound terms before single terms {%- endcomment -%}
+  {%- if title_lower contains 'espresso' or tags_lower contains 'espresso' -%}
+    {%- assign roast_raw = 'Espresso' -%}
+  {%- elsif title_lower contains 'french' or tags_lower contains 'french roast' -%}
     {%- assign roast_raw = 'French' -%}
-  {%- elsif title_lower contains 'dark' or tags_lower contains 'dark roast' -%}
-    {%- assign roast_raw = 'Dark' -%}
-  {%- elsif title_lower contains 'medium-dark' or title_lower contains 'medium dark' or tags_lower contains 'medium-dark' -%}
+  {%- elsif title_lower contains 'medium-dark' or title_lower contains 'medium dark' or title_lower contains 'med-dark' or tags_lower contains 'medium-dark' -%}
     {%- assign roast_raw = 'Medium-Dark' -%}
-  {%- elsif title_lower contains 'medium-light' or title_lower contains 'medium light' or tags_lower contains 'medium-light' -%}
-    {%- assign roast_raw = 'Medium-Light' -%}
+  {%- elsif title_lower contains 'light-medium' or title_lower contains 'light medium' or title_lower contains 'medium-light' or title_lower contains 'medium light' or tags_lower contains 'light-medium' -%}
+    {%- assign roast_raw = 'Light-Medium' -%}
   {%- elsif title_lower contains 'medium' or tags_lower contains 'medium roast' -%}
     {%- assign roast_raw = 'Medium' -%}
+  {%- elsif title_lower contains 'dark' or tags_lower contains 'dark roast' -%}
+    {%- assign roast_raw = 'Dark' -%}
   {%- elsif title_lower contains 'light' or tags_lower contains 'light roast' -%}
     {%- assign roast_raw = 'Light' -%}
   {%- endif -%}
@@ -40,9 +43,9 @@ Accepts text (e.g., "Medium-Light", "Dark roast") or a number (1–5).
   {%- if roast_num > 0 -%}
     {%- case roast_num -%}
       {%- when 1 -%}{%- assign roast_label = 'Light' -%}
-      {%- when 2 -%}{%- assign roast_label = 'Light' -%}
+      {%- when 2 -%}{%- assign roast_label = 'Light medium' -%}
       {%- when 3 -%}{%- assign roast_label = 'Medium' -%}
-      {%- when 4 -%}{%- assign roast_label = 'Medium-Dark' -%}
+      {%- when 4 -%}{%- assign roast_label = 'Medium dark' -%}
       {%- when 5 -%}{%- assign roast_label = 'Dark' -%}
       {%- else -%}{%- assign roast_label = 'Medium' -%}
     {%- endcase -%}
@@ -51,20 +54,28 @@ Accepts text (e.g., "Medium-Light", "Dark roast") or a number (1–5).
       | downcase
       | replace: '–','-' | replace: '—','-'
       | replace: ' roast','' | strip -%}
+    {%- comment -%} Normalize variations: med-dark -> medium-dark, etc. {%- endcomment -%}
+    {%- assign roast_label = roast_label | replace: 'med-dark', 'medium-dark' | replace: 'med dark', 'medium-dark' -%}
     {%- case roast_label -%}
+      {%- when 'espresso'     -%}{%- assign roast_label = 'Espresso' -%}
       {%- when 'french'       -%}{%- assign roast_label = 'French' -%}
+      {%- when 'medium-dark'   -%}{%- assign roast_label = 'Medium dark' -%}
+      {%- when 'medium dark'   -%}{%- assign roast_label = 'Medium dark' -%}
+      {%- when 'light-medium'  -%}{%- assign roast_label = 'Light medium' -%}
+      {%- when 'light medium'  -%}{%- assign roast_label = 'Light medium' -%}
+      {%- when 'medium-light'  -%}{%- assign roast_label = 'Light medium' -%}
+      {%- when 'medium light'  -%}{%- assign roast_label = 'Light medium' -%}
       {%- when 'dark'         -%}{%- assign roast_label = 'Dark' -%}
-      {%- when 'medium-dark'  -%}{%- assign roast_label = 'Medium-Dark' -%}
-      {%- when 'medium light' -%}{%- assign roast_label = 'Medium-Light' -%}
-      {%- when 'medium-light' -%}{%- assign roast_label = 'Medium-Light' -%}
       {%- when 'medium'       -%}{%- assign roast_label = 'Medium' -%}
       {%- when 'light'        -%}{%- assign roast_label = 'Light' -%}
       {%- else -%}
-        {%- if roast_label contains 'french' -%}{%- assign roast_label = 'French' -%}
-        {%- elsif roast_label contains 'dark' -%}{%- assign roast_label = 'Dark' -%}
-        {%- elsif roast_label contains 'medium-dark' or roast_label contains 'full city' -%}{%- assign roast_label = 'Medium-Dark' -%}
-        {%- elsif roast_label contains 'medium-light' or roast_label contains 'city' -%}{%- assign roast_label = 'Medium-Light' -%}
+        {%- comment -%} Check compound terms before single terms to prevent misidentification {%- endcomment -%}
+        {%- if roast_label contains 'espresso' -%}{%- assign roast_label = 'Espresso' -%}
+        {%- elsif roast_label contains 'french' -%}{%- assign roast_label = 'French' -%}
+        {%- elsif roast_label contains 'medium-dark' or roast_label contains 'med-dark' or roast_label contains 'full city' -%}{%- assign roast_label = 'Medium dark' -%}
+        {%- elsif roast_label contains 'light-medium' or roast_label contains 'light medium' or roast_label contains 'medium-light' or roast_label contains 'medium light' or roast_label contains 'city' -%}{%- assign roast_label = 'Light medium' -%}
         {%- elsif roast_label contains 'medium' -%}{%- assign roast_label = 'Medium' -%}
+        {%- elsif roast_label contains 'dark' -%}{%- assign roast_label = 'Dark' -%}
         {%- elsif roast_label contains 'light' -%}{%- assign roast_label = 'Light' -%}
         {%- else -%}{%- assign roast_label = '' -%}
         {%- endif -%}
