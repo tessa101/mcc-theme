@@ -2313,6 +2313,192 @@ border-radius: 0px !important;
   #product_merch_mobile { display:none !important; }
 }
 
+/* =========================================
+   COMING SOON MODE - Available Stores & Coming Soon Sections
+   ========================================= */
+
+/* Coming Soon Description Block */
+.block-coming-soon-description {
+  margin: 16px 0;
+}
+.block-coming-soon-description .description-content {
+  color: #222;
+}
+.block-coming-soon-description .description-content p {
+  margin: 0 0 12px;
+  color: #222;
+}
+
+/* Available Stores Block - Compact Version */
+.coming-soon-stores {
+  margin: 24px 0;
+}
+.coming-soon-stores .kv-label {
+  display: block;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 6px;
+  letter-spacing: 0em;
+  line-height: 1.2;
+  font-size: 14px;
+}
+
+/* Compact logo grid - based on landing page but smaller */
+.coming-soon-stores .ml-grid {
+  --cols: 3;
+  --cols-m: 2;
+  --cols-eff: var(--cols);
+  --cols-eff-m: var(--cols-m);
+  --logo-w: 100px;
+  --logo-h: 80px;
+  --ring: 6px;
+  --gap-x: 16px;
+  --gap-y: 16px;
+  --cell: calc(var(--logo-w) + var(--ring)*2);
+
+  display: grid;
+  grid-template-columns: repeat(var(--cols-eff), minmax(0, 1fr));
+  gap: var(--gap-y) var(--gap-x);
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  align-items: center;
+  justify-items: center;
+}
+
+@media (max-width: 740px) {
+  .coming-soon-stores .ml-grid {
+    grid-template-columns: repeat(var(--cols-eff-m), 1fr);
+    gap: 12px var(--gap-x);
+  }
+}
+
+.coming-soon-stores .ml-item {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.coming-soon-stores .ml-link {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.coming-soon-stores .ml-link:hover,
+.coming-soon-stores .ml-link:focus-visible {
+  color: rgba(0, 0, 0, 0.92);
+}
+
+.coming-soon-stores .ml-link:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+.coming-soon-stores .ml-frame {
+  width: calc(var(--logo-w) + var(--ring)*2);
+  height: calc(var(--logo-h) + var(--ring)*2);
+  border-radius: 140px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+  display: grid;
+  place-items: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.coming-soon-stores .ml-logo {
+  max-width: var(--logo-w);
+  max-height: var(--logo-h);
+  object-fit: contain;
+  filter: grayscale(100%) contrast(1) opacity(0.9);
+  transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+.coming-soon-stores .ml-link:hover .ml-logo {
+  filter: grayscale(0%) opacity(1);
+}
+
+.coming-soon-stores .ml-cap {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.coming-soon-stores .ml-link:hover .ml-cap,
+.coming-soon-stores .ml-link:focus-visible .ml-cap {
+  border-bottom-color: currentColor;
+}
+
+.coming-soon-stores .ml-fpo {
+  width: calc(var(--logo-w) + var(--ring)*2);
+  height: calc(var(--logo-h) + var(--ring)*2);
+  border-radius: 14px;
+  background: #e9e9e9;
+  display: grid;
+  place-items: center;
+  color: #666;
+  font-size: 12px;
+}
+
+/* Coming Soon Section Block */
+.block-coming-soon {
+  margin: 24px 0;
+}
+
+.block-coming-soon .kv-label {
+  display: block;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 12px;
+  letter-spacing: 0em;
+  line-height: 1.2;
+  font-size: 14px;
+}
+
+.coming-soon-ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.coming-soon-email-cta {
+  width: 100%;
+  background: #121212;
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 25px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SuisseIntl', sans-serif;
+}
+
+.coming-soon-email-cta:hover:not(:disabled) {
+  background: #555;
+  transform: translateY(-1px);
+}
+
+.coming-soon-email-cta:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
 
 
 

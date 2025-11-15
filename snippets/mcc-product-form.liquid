@@ -9,6 +9,14 @@ MCC Product Form Snippet (Dawn-compatible)
 {%- comment -%} Detect product type {%- endcomment -%}
 {% render 'mcc-product-type-detection', product: product %}
 
+{%- comment -%} Detect coming soon mode - check metafield or tag {%- endcomment -%}
+{%- assign is_coming_soon = false -%}
+{%- if product.metafields.custom.coming_soon == true -%}
+  {%- assign is_coming_soon = true -%}
+{%- elsif product.tags contains 'coming-soon' or product.tags contains 'coming_soon' -%}
+  {%- assign is_coming_soon = true -%}
+{%- endif -%}
+
 {%- comment -%} OOS flag for price/CTA styling {%- endcomment -%}
 {%- comment -%} OOS flag (reliable): product.available is false when ALL variants are OOS {%- endcomment -%}
 {%- comment -%} All-variants OOS is reliably: product.available == false {%- endcomment -%}
@@ -47,6 +55,137 @@ MCC Product Form Snippet (Dawn-compatible)
       {%- endcomment -%}
       {%- for block in section.blocks -%}
         {%- case block.type -%}
+
+          {%- when 'coming_soon_description' -%}
+            {%- if is_coming_soon -%}
+              {%- assign description_text = product.metafields.custom.coming_soon_description | default: block.settings.text -%}
+              {%- if description_text != blank -%}
+                <div class="block-coming-soon-description description-section" {{ block.shopify_attributes }}>
+                  <div class="description-content rte">
+                    {{ description_text }}
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+          {%- when 'available_stores' -%}
+            {%- if is_coming_soon -%}
+              {%- comment -%} Get title from metafield or block setting {%- endcomment -%}
+              {%- assign stores_title = product.metafields.custom.coming_soon_stores_title | default: block.settings.title | default: "AVAILABLE AT" -%}
+              
+              {%- comment -%} Check if stores are in metafield list, otherwise use store_logo blocks {%- endcomment -%}
+              {%- assign stores_metafield = product.metafields.custom.coming_soon_stores -%}
+              {%- assign stores_from_metafield = stores_metafield.value | default: stores_metafield -%}
+              {%- assign store_logos = section.blocks | where: 'type', 'store_logo' -%}
+              {%- assign has_stores = false -%}
+              {%- assign stores_count = 0 -%}
+              
+              {%- if stores_from_metafield != blank and stores_from_metafield.size > 0 -%}
+                {%- assign has_stores = true -%}
+                {%- assign stores_count = stores_from_metafield.size -%}
+              {%- elsif store_logos.size > 0 -%}
+                {%- assign has_stores = true -%}
+                {%- assign stores_count = store_logos.size -%}
+              {%- endif -%}
+              
+              <div class="block-available-stores coming-soon-stores" {{ block.shopify_attributes }}>
+                {%- if stores_title != blank -%}
+                  <div class="kv-label">{{ stores_title }}</div>
+                {%- endif -%}
+                {%- if has_stores -%}
+                  <ul class="ml-grid"
+                    style="
+                      --cols: {{ block.settings.cols | default: 3 }};
+                      --cols-m: {{ block.settings.cols_mobile | default: 2 }};
+                      --logo-w: {{ block.settings.logo_max_width | default: 100 }}px;
+                      --count: {{ stores_count }};
+                      --cols-eff: {{ stores_count | at_most: block.settings.cols | default: 3 }};
+                      --cols-eff-m: {{ stores_count | at_most: block.settings.cols_mobile | default: 2 }};
+                    ">
+                    {%- if stores_from_metafield != blank and stores_from_metafield.size > 0 -%}
+                      {%- comment -%} Render stores from metafield list {%- endcomment -%}
+                      {%- for store in stores_from_metafield -%}
+                        {%- assign store_logo = store.logo.value | default: store.logo -%}
+                        {%- assign store_caption = store.caption.value | default: store.caption | default: store.name -%}
+                        {%- assign store_link = store.link.value | default: store.link | default: store.url -%}
+                        <li class="ml-item">
+                          {%- if store_link != blank -%}
+                            <a href="{{ store_link }}" class="ml-link">
+                          {%- else -%}
+                            <div class="ml-link">
+                          {%- endif -%}
+                            <div class="ml-frame">
+                              {%- if store_logo != blank -%}
+                                {{ store_logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: store_caption | escape }}
+                              {%- else -%}
+                                <div class="ml-fpo">Logo</div>
+                              {%- endif -%}
+                            </div>
+                            {%- if store_caption != blank -%}
+                              <div class="ml-cap">{{ store_caption }}</div>
+                            {%- endif -%}
+                          {%- if store_link != blank -%}
+                            </a>
+                          {%- else -%}
+                            </div>
+                          {%- endif -%}
+                        </li>
+                      {%- endfor -%}
+                    {%- else -%}
+                      {%- comment -%} Render stores from store_logo blocks {%- endcomment -%}
+                      {%- for logo_block in store_logos -%}
+                        <li class="ml-item" {{ logo_block.shopify_attributes }}>
+                          {%- if logo_block.settings.link != blank -%}
+                            <a href="{{ logo_block.settings.link }}" class="ml-link">
+                          {%- else -%}
+                            <div class="ml-link">
+                          {%- endif -%}
+                            <div class="ml-frame">
+                              {%- if logo_block.settings.logo != blank -%}
+                                {{ logo_block.settings.logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: logo_block.settings.logo.alt | escape }}
+                              {%- else -%}
+                                <div class="ml-fpo">Logo</div>
+                              {%- endif -%}
+                            </div>
+                            {%- if logo_block.settings.caption != blank -%}
+                              <div class="ml-cap">{{ logo_block.settings.caption }}</div>
+                            {%- endif -%}
+                          {%- if logo_block.settings.link != blank -%}
+                            </a>
+                          {%- else -%}
+                            </div>
+                          {%- endif -%}
+                        </li>
+                      {%- endfor -%}
+                    {%- endif -%}
+                  </ul>
+                {%- else -%}
+                  <p style="font-size: 14px; color: #666; margin-top: 8px;">Add "Store Logo" blocks or metafield stores to display stores.</p>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+
+          {%- when 'store_logo' -%}
+            {%- comment -%} Store logo blocks are rendered by the available_stores block {%- endcomment -%}
+            {%- comment -%} This case exists to prevent them from rendering elsewhere {%- endcomment -%}
+
+          {%- when 'coming_soon' -%}
+            {%- if is_coming_soon -%}
+              {%- comment -%} Get title and button text from metafields or block settings {%- endcomment -%}
+              {%- assign coming_soon_title = product.metafields.custom.coming_soon_title | default: block.settings.title | default: "COMING SOON" -%}
+              {%- assign email_button_text = product.metafields.custom.coming_soon_email_button_text | default: block.settings.email_button_text | default: "Email me when I can order it!" -%}
+              
+              <div class="block-coming-soon" {{ block.shopify_attributes }}>
+                {%- if coming_soon_title != blank -%}
+                  <div class="kv-label">{{ coming_soon_title }}</div>
+                {%- endif -%}
+                <div class="coming-soon-ctas">
+                  <button type="button" class="add-to-cart-full coming-soon-email-cta">
+                    {{ email_button_text }}
+                  </button>
+                </div>
+              </div>
+            {%- endif -%}
 
           {%- when '@app' -%}
             <div class="product-app-block{% if is_cold_brew %} product-app-block--hidden{% endif %}" {{ block.shopify_attributes }}>
