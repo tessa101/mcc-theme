@@ -19,14 +19,12 @@ a { color: inherit; text-decoration: none; }
 .product__title {
   /*font-weight: 700;
   letter-spacing: -0.02em;*/
-  color: #111;
+  color: #232527;
   font-family: 'Passion One', var(--font-sans) !important;
   font-weight: 400 !important;
-  text-transform: uppercase !important;
   letter-spacing: 0.02em !important;
-  font-feature-settings: 'case' 1 !important;
   font-size: 46px !important;
-  line-height: 1.05 !important;
+  line-height: 1.0 !important;
 }
 
 
@@ -84,11 +82,11 @@ button[disabled], .button[disabled], [aria-disabled="true"] { cursor: default; }
   cursor: not-allowed; opacity: .6;
 }
 
-/* Primary (fill #121212) */
+/* Primary (fill #69ADD2) */
 .btn.primary,
 .button--primary,
 .add-to-cart-full {
-  background: #121212; color: #fff; border-color: #121212;
+  background: #69ADD2; color: #fff; border-color: #69ADD2;
 }
 .btn.primary:hover:not(:disabled),
 .button--primary:hover:not(:disabled),
@@ -139,11 +137,11 @@ button[aria-label="Add to favorites"]:hover:not(:disabled) { background: #111; c
   transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
 
-/* Checked (dark everywhere) */
+/* Checked (gray-blue everywhere) */
 .variant-input:checked + .variant-option,
 .product-form__input input[type="radio"]:checked + label,
 .product-form__input input[type="checkbox"]:checked + label {
-  background: #333; color: #fff; border-color: #333;
+  background: #63717E; color: #fff; border-color: #63717E;
 }
 
 /* Disabled */

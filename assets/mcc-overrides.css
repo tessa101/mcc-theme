@@ -37,11 +37,9 @@
 body.template-product :is(h1.product-title, .product__title > h1){
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
-  text-transform: uppercase !important;
   letter-spacing: var(--display-track) !important;
-  font-feature-settings: 'case' 1 !important;
   font-size: var(--h1-pdp-size) !important;
-  line-height: var(--h1-pdp-lh) !important;
+  line-height: 1.0 !important;
 }
 
 /* 3) Remove legacy heading forces that might reassert Suisse */
