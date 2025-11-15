@@ -31,6 +31,12 @@
 
 <style>
 .mcc-hero{ position:relative; height:var(--vh,88vh); min-height:560px; display:grid; place-items:center; overflow:hidden; }
+/* Fallback: Use negative margin and transform to pull hero up if padding cannot be removed */
+html.template-index .mcc-hero,
+body.template-index .mcc-hero {
+  margin-top: -38px !important;
+  transform: translateY(-38px) !important;
+}
 .mcc-hero__img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .mcc-hero__overlay{ position:relative; z-index:1; text-align:center; color:#fff; padding:clamp(24px,4vw,48px); }
 .mcc-hero__logo{ display:block; margin:0 auto 16px; height:auto; }
