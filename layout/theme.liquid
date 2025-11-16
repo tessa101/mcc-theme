@@ -464,7 +464,14 @@
   html:not(.mcc-merch-mode) body{ --header-bottom-position: 0px !important; }
 
   /* Strip any top spacing on first section/MainContent (covers collection + product) */
-  html:not(.mcc-merch-mode) #MainContent,
+  /* Exclude #MainContent from padding removal on collection, cart, and page templates */
+  {%- if template.name != 'collection' and template.name != 'cart' and not (template.name == 'page' and template != 'index') -%}
+  html:not(.mcc-merch-mode) #MainContent {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  {%- endif -%}
+  
   html:not(.mcc-merch-mode) .shopify-section:first-of-type,
   html:not(.mcc-merch-mode) .shopify-section-header + .shopify-section,
   html:not(.mcc-merch-mode) .collection .collection-hero {
@@ -473,6 +480,21 @@
   }
 }
 
+/* Add title padding using ::before pseudo-element for collection, cart, and page templates */
+{%- if template.name == 'collection' or template.name == 'cart' or (template.name == 'page' and template != 'index') -%}
+/* Target the actual content sections, not header sections */
+html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
+html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
+html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
+  content: '';
+  display: block;
+  height: 100px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  pointer-events: none;
+}
+{%- endif -%}
 
 {% endstyle %}
 
@@ -500,7 +522,6 @@
     {% sections 'header-group' %}
 
     <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
-  
       {{ content_for_layout }}
     </main>
 
@@ -641,7 +662,6 @@ window.sweep = window.sweep || function(){
   // console.debug('[MCC] sweep() noop');
 };
 </script>
-
 
 
   </body>
