@@ -483,17 +483,42 @@
 /* Add title padding using ::before pseudo-element for collection, cart, and page templates */
 {%- if template.name == 'collection' or template.name == 'cart' or (template.name == 'page' and template != 'index') -%}
 /* Target the actual content sections, not header sections */
-html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
-html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
-html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
-  content: '';
-  display: block;
-  height: 100px;
-  width: 100%;
-  background: transparent;
-  border: none;
-  pointer-events: none;
+/* Mobile: 60px spacing */
+@media (max-width: 767px) {
+  html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
+    content: '';
+    display: block;
+    height: 60px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+  
+  /* Remove padding-top from product grid section on mobile to reduce gap below title */
+  html:not(.mcc-merch-mode) .shopify-section:has(.product-grid) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) .shopify-section:has(#product-grid) [class*="section-"][class*="-padding"] {
+    padding-top: 0px !important;
+  }
 }
+
+/* Desktop: 60px spacing */
+@media (min-width: 768px) {
+  html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
+    content: '';
+    display: block;
+    height: 60px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+}
+
 {%- endif -%}
 
 {% endstyle %}
