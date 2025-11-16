@@ -378,7 +378,10 @@
     {%- comment -%} 4) Your main CSS (no Liquid inside) {%- endcomment -%}
     {{ 'base.css' | asset_url | stylesheet_tag }}
 
-    {%- comment -%} 5) Optional: overrides MUST be last 
+    {%- comment -%} 5) MCC Global CSS (loads after base.css) {%- endcomment -%}
+    {{ 'mcc-global.css' | asset_url | stylesheet_tag }}
+
+    {%- comment -%} 6) Optional: overrides MUST be last 
     {{ 'mcc-overrides.css' | asset_url | stylesheet_tag }} {%- endcomment -%}
 
     {% style %}

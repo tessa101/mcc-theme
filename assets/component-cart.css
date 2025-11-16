@@ -55,6 +55,10 @@ cart-items {
   display: block;
 }
 
+cart-items .title.title--primary {
+  color: #232527;
+}
+
 .cart__items {
   position: relative;
   padding-bottom: 3rem;
