@@ -948,15 +948,15 @@ cursor: pointer !important;
 }
 #reviews.pdp-reviews .jdgm-rev__rating .jdgm-star,
 #reviews.pdp-reviews .jdgm-rev__rating .jdgm-star svg{
-  color: #69ADD2; fill: #69ADD2;
+  color: #3B9B5B; fill: #3B9B5B;
 }
 #reviews.pdp-reviews .jdgm-rev__rating .jdgm-star.jdgm--off svg{ opacity:.25; }
 
 /* Rating badge stars (preview badge) */
 .jdgm-preview-badge .jdgm-star,
 .jdgm-preview-badge .jdgm-star svg {
-  color: #69ADD2 !important;
-  fill: #69ADD2 !important;
+  color: #3B9B5B !important;
+  fill: #3B9B5B !important;
 }
 
 #reviews.pdp-reviews .jdgm-rev__title{
@@ -1250,12 +1250,12 @@ cursor: pointer !important;
 .product-sections .rec-atc-form { margin-top: 2px; }
 .product-sections .rec-atc-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 10px 14px; border-radius: 60px; border: 1px solid #69ADD2; background: #69ADD2;
+  padding: 10px 14px; border-radius: 60px; border: 1px solid #5DBBFF; background: #5DBBFF;
   font-size: 12px; color: white; letter-spacing: 0px; cursor: pointer;
 }
 
 .product-sections .rec-atc-btn:hover:not(:disabled) {
-  background: #555;
+  background: #54A8E5;
   transform: translateY(-1px);
 }
 
@@ -1592,7 +1592,7 @@ cursor: pointer !important;
 /* Full-width Add to Cart Button */
 .add-to-cart-full {
   width: 100%;
-  background: #69ADD2;
+  background: #5DBBFF;
   color: white;
   border: none;
   padding: 16px 24px;
@@ -1610,7 +1610,7 @@ cursor: pointer !important;
 }
 
 .add-to-cart-full:hover:not(:disabled) {
-  background: #5F9CBD;
+  background: #54A8E5;
   transform: translateY(-1px);
 }
 
@@ -1664,12 +1664,12 @@ cursor: pointer !important;
 
 /* Subscription mode styling */
 .add-to-cart-full.subscription-mode {
-background: #69ADD2;   /* Malibu ocean blue  #2D82B7 */
+background: #5DBBFF;   /* Primary CTA blue */
 color: #fff;
 }
 
 .add-to-cart-full.subscription-mode:hover:not(:disabled) {
-background: #5F9CBD; /*rgb(19, 134, 206);*/  
+background: #54A8E5; /* Hover state */
 }
 
 /* Mobile adjustments */
@@ -2476,7 +2476,7 @@ border-radius: 0px !important;
 
 .coming-soon-email-cta {
   width: 100%;
-  background: #69ADD2;
+  background: #5DBBFF;
   color: white;
   border: none;
   padding: 16px 24px;
@@ -2494,7 +2494,7 @@ border-radius: 0px !important;
 }
 
 .coming-soon-email-cta:hover:not(:disabled) {
-  background: #5F9CBD;
+  background: #54A8E5;
   transform: translateY(-1px);
 }
 

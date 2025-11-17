@@ -82,15 +82,15 @@ button[disabled], .button[disabled], [aria-disabled="true"] { cursor: default; }
   cursor: not-allowed; opacity: .6;
 }
 
-/* Primary (fill #69ADD2) */
+/* Primary (fill #5DBBFF) */
 .btn.primary,
 .button--primary,
 .add-to-cart-full {
-  background: #69ADD2; color: #fff; border-color: #69ADD2;
+  background: #5DBBFF; color: #fff; border-color: #5DBBFF;
 }
 .btn.primary:hover:not(:disabled),
 .button--primary:hover:not(:disabled),
-.add-to-cart-full:hover:not(:disabled) { background: #5F9CBD; }
+.add-to-cart-full:hover:not(:disabled) { background: #54A8E5; }
 .btn.primary:disabled,
 .button--primary:disabled,
 .add-to-cart-full:disabled { background: #ccc; border-color: #ccc; color: #fff; }
@@ -114,43 +114,43 @@ button[aria-label="Add to favorites"]:hover:not(:disabled) { background: #111; c
 .cart__checkout-button,
 .cart-drawer .cart__checkout-button,
 .cart__ctas .cart__checkout-button.button {
-  --color-button: 105, 173, 210 !important; /* #69ADD2 as RGB */
+  --color-button: 93, 187, 255 !important; /* #5DBBFF as RGB */
   --alpha-button-background: 1 !important; /* Ensure fully opaque */
-  background-color: #69ADD2 !important;
+  background-color: #5DBBFF !important;
   color: #fff !important;
-  border-color: #69ADD2 !important;
+  border-color: #5DBBFF !important;
 }
 .cart__checkout-button.button:hover:not(:disabled),
 .cart__checkout-button:hover:not(:disabled),
 .cart-drawer .cart__checkout-button:hover:not(:disabled),
 .cart__ctas .cart__checkout-button.button:hover:not(:disabled) {
-  --color-button: 95, 156, 189 !important; /* #5F9CBD as RGB */
+  --color-button: 84, 168, 229 !important; /* #54A8E5 as RGB */
   --alpha-button-background: 1 !important; /* Ensure fully opaque */
-  background-color: #5F9CBD !important;
+  background-color: #54A8E5 !important;
 }
 
 /* Sign in / Customer account CTAs - Override CSS variable and background */
 .customer button:not(.button--secondary):not(.button--tertiary) {
-  --color-button: 105, 173, 210 !important; /* #69ADD2 as RGB */
-  background-color: #69ADD2 !important;
+  --color-button: 93, 187, 255 !important; /* #5DBBFF as RGB */
+  background-color: #5DBBFF !important;
   color: #fff !important;
-  border-color: #69ADD2 !important;
+  border-color: #5DBBFF !important;
 }
 .customer button:not(.button--secondary):not(.button--tertiary):hover:not(:disabled) {
-  --color-button: 95, 156, 189 !important; /* #5F9CBD as RGB */
-  background-color: #5F9CBD !important;
+  --color-button: 84, 168, 229 !important; /* #54A8E5 as RGB */
+  background-color: #54A8E5 !important;
 }
 
 /* Contact form CTA - Override CSS variable and background */
 .contact__button .button:not(.button--secondary):not(.button--tertiary) {
-  --color-button: 105, 173, 210 !important; /* #69ADD2 as RGB */
-  background-color: #69ADD2 !important;
+  --color-button: 93, 187, 255 !important; /* #5DBBFF as RGB */
+  background-color: #5DBBFF !important;
   color: #fff !important;
-  border-color: #69ADD2 !important;
+  border-color: #5DBBFF !important;
 }
 .contact__button .button:not(.button--secondary):not(.button--tertiary):hover:not(:disabled) {
-  --color-button: 95, 156, 189 !important; /* #5F9CBD as RGB */
-  background-color: #5F9CBD !important;
+  --color-button: 84, 168, 229 !important; /* #54A8E5 as RGB */
+  background-color: #54A8E5 !important;
 }
 
 /* ---------------------------
