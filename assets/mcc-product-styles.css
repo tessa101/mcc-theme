@@ -655,6 +655,40 @@ cursor: pointer !important;
   }
 }
 
+/* Remove extra space at end of "How it's made" section */
+.description-section .description-content p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.coffee-acc-panel .description-section {
+  margin-bottom: 0 !important;
+}
+
+.description-section .description-content.rte:after {
+  display: none;
+}
+
+/* Hide empty paragraphs and paragraphs containing only whitespace/non-breaking spaces */
+.description-section .description-content p:empty {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide paragraphs that only contain non-breaking spaces or minimal whitespace */
+.description-section .description-content p:last-of-type:only-child,
+.description-section .description-content p:last-child {
+  /* Check if paragraph is effectively empty by collapsing whitespace-only content */
+  min-height: 0;
+}
+
+/* Additional rule to hide stray empty paragraphs at the end */
+.description-section .description-content > p:last-child:empty,
+.description-section .description-content > p:last-of-type:empty {
+  display: none !important;
+}
+
 
 /* ================================
    GROWING DETAILS (Consolidated)
@@ -996,6 +1030,15 @@ cursor: pointer !important;
   font: var(--rev-meta-weight) var(--rev-meta-size)/var(--rev-meta-line) var(--rev-font);
   color: var(--rev-meta-color);
   text-align: left;
+}
+
+/* ---------- Empty state ---------- */
+#reviews.pdp-reviews .mcc-reviews-empty-state{
+  font: 400 var(--rev-body-size)/var(--rev-body-line) var(--rev-font);
+  color: var(--rev-meta-color);
+  text-align: center;
+  padding: 32px 16px;
+  margin: 0;
 }
 
 /* Hide clutter */
