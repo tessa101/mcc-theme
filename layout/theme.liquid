@@ -444,6 +444,16 @@
   .template-product h1.product__title{ font-size: 32px !important; color: #232527!important;}
 }
 
+/* Page titles: 40px on mobile */
+@media (max-width: 767px) {
+  html:not(.mcc-merch-mode) .collection-hero__title,
+  html:not(.mcc-merch-mode) .main-page-title,
+  html:not(.mcc-merch-mode) .customer.login h1,
+  html:not(.mcc-merch-mode) #login {
+    font-size: 40px !important;
+  }
+}
+
 /* Run ONLY when the merch mobile section is NOT on the page */
 @media (max-width: 767px){
   html:not(.mcc-merch-mode) .mobile-product-detail,
@@ -472,16 +482,17 @@
   }
   {%- endif -%}
   
-  html:not(.mcc-merch-mode) .shopify-section:first-of-type,
-  html:not(.mcc-merch-mode) .shopify-section-header + .shopify-section,
+  /* Exclude product sections from spacing removal - they need spacing for proper gallery positioning */
+  html:not(.mcc-merch-mode) .shopify-section:first-of-type:not(:has(.mcc-product)),
+  html:not(.mcc-merch-mode) .shopify-section-header + .shopify-section:not(:has(.mcc-product)),
   html:not(.mcc-merch-mode) .collection .collection-hero {
     padding-top: 0 !important;
     margin-top: 0 !important;
   }
 }
 
-/* Add title padding using ::before pseudo-element for collection, cart, and page templates */
-{%- if template.name == 'collection' or template.name == 'cart' or (template.name == 'page' and template != 'index') -%}
+/* Add title padding using ::before pseudo-element for collection, cart, login, and page templates */
+{%- if template.name == 'collection' or template.name == 'cart' or template.name == 'customers/login' or template contains 'login' or (template.name == 'page' and template != 'index') -%}
 /* Target the actual content sections, not header sections */
 /* Mobile: 60px spacing */
 @media (max-width: 767px) {
@@ -502,6 +513,27 @@
   html:not(.mcc-merch-mode) .shopify-section:has(#product-grid) [class*="section-"][class*="-padding"] {
     padding-top: 0px !important;
   }
+  
+  /* Remove padding-top from login section on mobile (padding comes from ::before instead) */
+  html:not(.mcc-merch-mode) .shopify-section:has(.customer.login) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) .shopify-section:has(#login) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-login"] [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) .customer.login[class*="section-"][class*="-padding"] {
+    padding-top: 0px !important;
+  }
+  
+  /* Login page: higher padding to match other pages visually */
+  html:not(.mcc-merch-mode) .shopify-section:has(.customer.login)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(#login)::before,
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-login"]::before {
+    content: '';
+    display: block;
+    height: 80px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
 }
 
 /* Desktop: 60px spacing */
@@ -512,6 +544,27 @@
     content: '';
     display: block;
     height: 60px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+  
+  /* Remove padding-top from login section on desktop (padding comes from ::before instead) */
+  html:not(.mcc-merch-mode) .shopify-section:has(.customer.login) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) .shopify-section:has(#login) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-login"] [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) .customer.login[class*="section-"][class*="-padding"] {
+    padding-top: 0px !important;
+  }
+  
+  /* Login page: higher padding to match other pages visually */
+  html:not(.mcc-merch-mode) .shopify-section:has(.customer.login)::before,
+  html:not(.mcc-merch-mode) .shopify-section:has(#login)::before,
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-login"]::before {
+    content: '';
+    display: block;
+    height: 80px;
     width: 100%;
     background: transparent;
     border: none;
