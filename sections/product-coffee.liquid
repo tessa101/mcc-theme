@@ -512,17 +512,10 @@ document.addEventListener('DOMContentLoaded', function() {
       "settings": [
         { "type": "text", "id": "title", "label": "Title", "default": "AVAILABLE AT" },
         { "type": "range", "id": "cols", "label": "Columns (desktop)", "min": 2, "max": 6, "step": 1, "default": 3 },
+        { "type": "range", "id": "logo_max_size", "label": "Max logo size (px)", "min": 60, "max": 200, "step": 10, "default": 100 },
+        { "type": "header", "content": "Mobile settings" },
         { "type": "range", "id": "cols_mobile", "label": "Columns (mobile)", "min": 1, "max": 3, "step": 1, "default": 2 },
-        { "type": "range", "id": "logo_max_width", "label": "Max logo width (px)", "min": 80, "max": 200, "step": 10, "default": 100 }
-      ]
-    },
-    {
-      "type": "store_logo",
-      "name": "Store Logo",
-      "settings": [
-        { "type": "image_picker", "id": "logo", "label": "Logo" },
-        { "type": "text", "id": "caption", "label": "Store name" },
-        { "type": "url", "id": "link", "label": "Link (optional)" }
+        { "type": "range", "id": "logo_max_size_mobile", "label": "Max logo size (px)", "min": 50, "max": 150, "step": 10, "default": 80 }
       ]
     },
 

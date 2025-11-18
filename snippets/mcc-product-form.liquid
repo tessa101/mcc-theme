@@ -74,19 +74,27 @@ MCC Product Form Snippet (Dawn-compatible)
               {%- comment -%} Get title from metafield or block setting {%- endcomment -%}
               {%- assign stores_title = product.metafields.custom.coming_soon_stores_title | default: block.settings.title | default: "AVAILABLE AT" -%}
               
-              {%- comment -%} Check if stores are in metafield list, otherwise use store_logo blocks {%- endcomment -%}
+              {%- comment -%} Get stores from metafield list {%- endcomment -%}
               {%- assign stores_metafield = product.metafields.custom.coming_soon_stores -%}
               {%- assign stores_from_metafield = stores_metafield.value | default: stores_metafield -%}
-              {%- assign store_logos = section.blocks | where: 'type', 'store_logo' -%}
+              {%- comment -%} Get links from separate metafield - handle both List of URL and comma-separated string {%- endcomment -%}
+              {%- assign stores_links_metafield = product.metafields.custom.coming_soon_stores_links -%}
+              {%- assign stores_links_raw = stores_links_metafield.value | default: stores_links_metafield -%}
+              {%- comment -%} Check if it's a comma-separated string or a list {%- endcomment -%}
+              {%- if stores_links_raw contains ',' -%}
+                {%- comment -%} It's a comma-separated string - split it and strip whitespace {%- endcomment -%}
+                {%- assign stores_links_array = stores_links_raw | split: ',' -%}
+                {%- assign stores_links = stores_links_array -%}
+              {%- else -%}
+                {%- comment -%} It's a list of URL objects or single value - use as is {%- endcomment -%}
+                {%- assign stores_links = stores_links_raw -%}
+              {%- endif -%}
               {%- assign has_stores = false -%}
               {%- assign stores_count = 0 -%}
               
               {%- if stores_from_metafield != blank and stores_from_metafield.size > 0 -%}
                 {%- assign has_stores = true -%}
                 {%- assign stores_count = stores_from_metafield.size -%}
-              {%- elsif store_logos.size > 0 -%}
-                {%- assign has_stores = true -%}
-                {%- assign stores_count = store_logos.size -%}
               {%- endif -%}
               
               <div class="block-available-stores coming-soon-stores" {{ block.shopify_attributes }}>
@@ -98,77 +106,61 @@ MCC Product Form Snippet (Dawn-compatible)
                     style="
                       --cols: {{ block.settings.cols | default: 3 }};
                       --cols-m: {{ block.settings.cols_mobile | default: 2 }};
-                      --logo-w: {{ block.settings.logo_max_width | default: 100 }}px;
+                      --logo-w: {{ block.settings.logo_max_size | default: 100 }}px;
+                      --logo-h: {{ block.settings.logo_max_size | default: 100 }}px;
+                      --logo-w-m: {{ block.settings.logo_max_size_mobile | default: 80 }}px;
+                      --logo-h-m: {{ block.settings.logo_max_size_mobile | default: 80 }}px;
                       --count: {{ stores_count }};
                       --cols-eff: {{ stores_count | at_most: block.settings.cols | default: 3 }};
                       --cols-eff-m: {{ stores_count | at_most: block.settings.cols_mobile | default: 2 }};
                     ">
-                    {%- if stores_from_metafield != blank and stores_from_metafield.size > 0 -%}
-                      {%- comment -%} Render stores from metafield list {%- endcomment -%}
-                      {%- for store in stores_from_metafield -%}
-                        {%- assign store_logo = store.logo.value | default: store.logo -%}
-                        {%- assign store_caption = store.caption.value | default: store.caption | default: store.name -%}
-                        {%- assign store_link = store.link.value | default: store.link | default: store.url -%}
-                        <li class="ml-item">
-                          {%- if store_link != blank -%}
-                            <a href="{{ store_link }}" class="ml-link">
+                    {%- comment -%} Render stores from metafield list {%- endcomment -%}
+                    {%- for store in stores_from_metafield -%}
+                      {%- comment -%} Get image from metafield - List item is image directly (Image File type) {%- endcomment -%}
+                      {%- assign store_logo = store -%}
+                      {%- comment -%} Get link from separate links metafield by matching index {%- endcomment -%}
+                      {%- assign store_index = forloop.index0 -%}
+                      {%- assign store_link = blank -%}
+                      {%- if stores_links != blank -%}
+                        {%- if stores_links[store_index] != blank -%}
+                          {%- assign link_item = stores_links[store_index] -%}
+                          {%- comment -%} Handle both URL objects and plain strings {%- endcomment -%}
+                          {%- if link_item.value != blank -%}
+                            {%- assign store_link = link_item.value | strip -%}
+                          {%- elsif link_item.url != blank -%}
+                            {%- assign store_link = link_item.url | strip -%}
                           {%- else -%}
-                            <div class="ml-link">
+                            {%- assign store_link = link_item | strip -%}
                           {%- endif -%}
-                            <div class="ml-frame">
-                              {%- if store_logo != blank -%}
-                                {{ store_logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: store_caption | escape }}
-                              {%- else -%}
-                                <div class="ml-fpo">Logo</div>
-                              {%- endif -%}
-                            </div>
-                            {%- if store_caption != blank -%}
-                              <div class="ml-cap">{{ store_caption }}</div>
+                        {%- endif -%}
+                      {%- endif -%}
+                      
+                      <li class="ml-item">
+                        {%- if store_link != blank -%}
+                          <a href="{{ store_link }}" class="ml-link" target="_blank" rel="noopener noreferrer">
+                        {%- else -%}
+                          <div class="ml-link">
+                        {%- endif -%}
+                          <div class="ml-frame">
+                            {%- if store_logo != blank -%}
+                              {{ store_logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: '' | escape }}
+                            {%- else -%}
+                              <div class="ml-fpo">Logo</div>
                             {%- endif -%}
-                          {%- if store_link != blank -%}
-                            </a>
-                          {%- else -%}
-                            </div>
-                          {%- endif -%}
-                        </li>
-                      {%- endfor -%}
-                    {%- else -%}
-                      {%- comment -%} Render stores from store_logo blocks {%- endcomment -%}
-                      {%- for logo_block in store_logos -%}
-                        <li class="ml-item" {{ logo_block.shopify_attributes }}>
-                          {%- if logo_block.settings.link != blank -%}
-                            <a href="{{ logo_block.settings.link }}" class="ml-link">
-                          {%- else -%}
-                            <div class="ml-link">
-                          {%- endif -%}
-                            <div class="ml-frame">
-                              {%- if logo_block.settings.logo != blank -%}
-                                {{ logo_block.settings.logo | image_url: width: 320 | image_tag: class: 'ml-logo', alt: logo_block.settings.logo.alt | escape }}
-                              {%- else -%}
-                                <div class="ml-fpo">Logo</div>
-                              {%- endif -%}
-                            </div>
-                            {%- if logo_block.settings.caption != blank -%}
-                              <div class="ml-cap">{{ logo_block.settings.caption }}</div>
-                            {%- endif -%}
-                          {%- if logo_block.settings.link != blank -%}
-                            </a>
-                          {%- else -%}
-                            </div>
-                          {%- endif -%}
-                        </li>
-                      {%- endfor -%}
-                    {%- endif -%}
+                          </div>
+                        {%- if store_link != blank -%}
+                          </a>
+                        {%- else -%}
+                          </div>
+                        {%- endif -%}
+                      </li>
+                    {%- endfor -%}
                   </ul>
                 {%- else -%}
-                  <p style="font-size: 14px; color: #666; margin-top: 8px;">Add "Store Logo" blocks or metafield stores to display stores.</p>
+                  <p style="font-size: 14px; color: #666; margin-top: 8px;">Add stores to the <code>custom.coming_soon_stores</code> metafield to display logos.</p>
                 {%- endif -%}
               </div>
             {%- endif -%}
-
-          {%- when 'store_logo' -%}
-            {%- comment -%} Store logo blocks are rendered by the available_stores block {%- endcomment -%}
-            {%- comment -%} This case exists to prevent them from rendering elsewhere {%- endcomment -%}
 
           {%- when 'coming_soon' -%}
             {%- if is_coming_soon -%}

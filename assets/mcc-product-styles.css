@@ -2415,13 +2415,6 @@ border-radius: 0px !important;
   justify-items: center;
 }
 
-@media (max-width: 740px) {
-  .coming-soon-stores .ml-grid {
-    grid-template-columns: repeat(var(--cols-eff-m), 1fr);
-    gap: 12px var(--gap-x);
-  }
-}
-
 .coming-soon-stores .ml-item {
   width: 100%;
   display: grid;
@@ -2464,6 +2457,28 @@ border-radius: 0px !important;
   object-fit: contain;
   filter: grayscale(100%) contrast(1) opacity(0.9);
   transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+@media (max-width: 740px) {
+  .coming-soon-stores .ml-grid {
+    grid-template-columns: repeat(var(--cols-eff-m), 1fr);
+    gap: 12px var(--gap-x);
+  }
+  
+  .coming-soon-stores .ml-frame {
+    width: calc(var(--logo-w-m, 80px) + var(--ring)*2) !important;
+    height: calc(var(--logo-h-m, 80px) + var(--ring)*2) !important;
+  }
+  
+  .coming-soon-stores .ml-logo {
+    max-width: var(--logo-w-m, 80px) !important;
+    max-height: var(--logo-h-m, 80px) !important;
+  }
+  
+  .coming-soon-stores .ml-fpo {
+    width: calc(var(--logo-w-m, 80px) + var(--ring)*2) !important;
+    height: calc(var(--logo-h-m, 80px) + var(--ring)*2) !important;
+  }
 }
 
 .coming-soon-stores .ml-link:hover .ml-logo {
