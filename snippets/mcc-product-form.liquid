@@ -53,6 +53,7 @@ MCC Product Form Snippet (Dawn-compatible)
       App Blocks & Custom Blocks
       (All inputs must live INSIDE the form to be submitted)
       {%- endcomment -%}
+      {%- assign prev_block_type = '' -%}
       {%- for block in section.blocks -%}
         {%- case block.type -%}
 
@@ -175,6 +176,17 @@ MCC Product Form Snippet (Dawn-compatible)
               {%- assign coming_soon_title = product.metafields.custom.coming_soon_title | default: block.settings.title | default: "COMING SOON" -%}
               {%- assign email_button_text = product.metafields.custom.coming_soon_email_button_text | default: block.settings.email_button_text | default: "Email me when I can order it!" -%}
               
+              {%- comment -%} Check if next block is wishlist to combine them {%- endcomment -%}
+              {%- assign next_block_is_wishlist = false -%}
+              {%- assign next_wishlist_block = null -%}
+              {%- if forloop.index < section.blocks.size -%}
+                {%- assign next_block = section.blocks[forloop.index] -%}
+                {%- if next_block.type == 'wishlist' -%}
+                  {%- assign next_block_is_wishlist = true -%}
+                  {%- assign next_wishlist_block = next_block -%}
+                {%- endif -%}
+              {%- endif -%}
+              
               <div class="block-coming-soon" {{ block.shopify_attributes }}>
                 {%- if coming_soon_title != blank -%}
                   <div class="kv-label">{{ coming_soon_title }}</div>
@@ -183,6 +195,14 @@ MCC Product Form Snippet (Dawn-compatible)
                   <button type="button" class="add-to-cart-full coming-soon-email-cta">
                     {{ email_button_text }}
                   </button>
+                  {%- if next_block_is_wishlist -%}
+                    {%- comment -%} Render wishlist anchor inside coming-soon-ctas {%- endcomment -%}
+                    <div id="mcc-wishlist-anchor"
+                         class="wishlist-anchor"
+                         aria-label="{{ next_wishlist_block.settings.label | default: 'Add to favorites' }}"
+                         style="--wishlist-margin-top: 0px">
+                    </div>
+                  {%- endif -%}
                 </div>
               </div>
             {%- endif -%}
@@ -210,13 +230,18 @@ MCC Product Form Snippet (Dawn-compatible)
             {% endunless %}
 
           {%- when 'wishlist' -%}
-            <div class="block-wishlist" {{ block.shopify_attributes }}>
-              <div id="mcc-wishlist-anchor"
-                   class="wishlist-anchor"
-                   aria-label="{{ block.settings.label | default: 'Add to favorites' }}"
-                   style="--wishlist-margin-top: {{ block.settings.top_margin | default: 12 }}px">
+            {%- comment -%} Check if previous block was coming_soon (already rendered inside it) {%- endcomment -%}
+            {%- if prev_block_type == 'coming_soon' -%}
+              {%- comment -%} Skip rendering - already rendered inside coming-soon {%- endcomment -%}
+            {%- else -%}
+              <div class="block-wishlist" {{ block.shopify_attributes }}>
+                <div id="mcc-wishlist-anchor"
+                     class="wishlist-anchor"
+                     aria-label="{{ block.settings.label | default: 'Add to favorites' }}"
+                     style="--wishlist-margin-top: {{ block.settings.top_margin | default: 12 }}px">
+                </div>
               </div>
-            </div>
+            {%- endif -%}
 
           {%- when 'custom_liquid' -%}
             <div class="block-custom-liquid" {{ block.shopify_attributes }}>
@@ -231,6 +256,8 @@ MCC Product Form Snippet (Dawn-compatible)
           {%- else -%}
             <div class="hidden-block" {{ block.shopify_attributes }} style="display:none;"></div>
         {%- endcase -%}
+        {%- comment -%} Track block type for next iteration {%- endcomment -%}
+        {%- assign prev_block_type = block.type -%}
       {%- endfor -%}
 
       {%- comment -%}

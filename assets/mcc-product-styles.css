@@ -2164,7 +2164,7 @@ border-radius: 0px !important;
 
 
 /* Make sure Favorites is clickable under the CTA */
-.product-merch .block-buy-buttons { position: relative; z-index: 1; }
+.product-merch .block-buy-buttons { position: relative; z-index: 1; padding-top: 16px; }
 .product-merch .block-wishlist { position: relative; z-index: 2; }
 .product-merch .wishlist-anchor { display: inline-flex; margin-top: var(--wishlist-margin-top, 12px); pointer-events: auto; }
 
@@ -2190,7 +2190,7 @@ border-radius: 0px !important;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  min-height: 56px;
+  min-height: 48px;
   padding: 12px 18px;
   border-radius: 9999px;
 
@@ -2498,7 +2498,18 @@ border-radius: 0px !important;
 
 /* Coming Soon Section Block */
 .block-coming-soon {
-  margin: 24px 0;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+/* Remove bottom margin when wishlist follows (even if not combined in Liquid) */
+.block-coming-soon:has(+ .block-wishlist),
+.block-coming-soon + .block-wishlist {
+  margin-top: 0;
+}
+
+.block-coming-soon:has(+ .block-wishlist) {
+  margin-bottom: 0 !important;
 }
 
 .block-coming-soon .kv-label {
@@ -2514,7 +2525,7 @@ border-radius: 0px !important;
 .coming-soon-ctas {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0px;
   width: 100%;
 }
 
@@ -2546,6 +2557,52 @@ border-radius: 0px !important;
   background: #ccc;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Coming Soon + Wishlist spacing - remove ALL spacing sources when adjacent */
+.block-coming-soon + .block-wishlist {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.block-coming-soon + .block-wishlist * {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.block-coming-soon + .block-wishlist #mcc-wishlist-anchor,
+.block-coming-soon + .block-wishlist .wishlist-anchor {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  --wishlist-margin-top: 0px !important;
+}
+
+/* Remove padding from injected wishlisthero container when following coming-soon */
+.block-coming-soon + .block-wishlist #wishlisthero-product-page-button-container,
+.block-coming-soon + .block-wishlist [id^="wishlisthero-"],
+.block-coming-soon + .block-wishlist [class*="wishlisthero"],
+.block-coming-soon + .block-wishlist [class*="wishlist"] {
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Target ALL children recursively to remove any inherited padding */
+.block-coming-soon + .block-wishlist #mcc-wishlist-anchor *,
+.block-coming-soon + .block-wishlist .wishlist-anchor * {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
 }
 
 
