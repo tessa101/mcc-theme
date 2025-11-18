@@ -59,7 +59,7 @@ MCC Product Form Snippet (Dawn-compatible)
 
           {%- when 'coming_soon_description' -%}
             {%- if is_coming_soon -%}
-              {%- assign description_text = product.metafields.custom.coming_soon_description | default: block.settings.text -%}
+              {%- assign description_text = product.metafields.custom.coming_soon_description -%}
               {%- if description_text != blank -%}
                 <div class="block-coming-soon-description description-section" {{ block.shopify_attributes }}>
                   <div class="description-content rte">
@@ -71,8 +71,8 @@ MCC Product Form Snippet (Dawn-compatible)
 
           {%- when 'available_stores' -%}
             {%- if is_coming_soon -%}
-              {%- comment -%} Get title from metafield or block setting {%- endcomment -%}
-              {%- assign stores_title = product.metafields.custom.coming_soon_stores_title | default: block.settings.title | default: "AVAILABLE AT" -%}
+              {%- comment -%} Get title from block setting (template-level control) {%- endcomment -%}
+              {%- assign stores_title = block.settings.title | default: "AVAILABLE AT" -%}
               
               {%- comment -%} Get stores from metafield list {%- endcomment -%}
               {%- assign stores_metafield = product.metafields.custom.coming_soon_stores -%}
@@ -164,9 +164,9 @@ MCC Product Form Snippet (Dawn-compatible)
 
           {%- when 'coming_soon' -%}
             {%- if is_coming_soon -%}
-              {%- comment -%} Get title and button text from metafields or block settings {%- endcomment -%}
-              {%- assign coming_soon_title = product.metafields.custom.coming_soon_title | default: block.settings.title | default: "COMING SOON" -%}
-              {%- assign email_button_text = product.metafields.custom.coming_soon_email_button_text | default: block.settings.email_button_text | default: "Email me when I can order it!" -%}
+              {%- comment -%} Get title and button text from block settings (template-level control) {%- endcomment -%}
+              {%- assign coming_soon_title = block.settings.title | default: "COMING SOON" -%}
+              {%- assign email_button_text = block.settings.email_button_text | default: "Email me when I can order it!" -%}
               
               {%- comment -%} Check if next block is wishlist to combine them {%- endcomment -%}
               {%- assign next_block_is_wishlist = false -%}
