@@ -46,15 +46,21 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
         {%- for block in section.blocks -%}
           {%- case block.type -%}
             {%- when 'reviews_badge' -%}
-              <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="margin-top:{{ block.settings.top_margin | default: 12 }}px">
-                {%- if block.settings.show_label and block.settings.label_text != blank -%}
-                  <a class="pdp-reviews-badge__link" href="#reviews">{{ block.settings.label_text }}</a>
-                {%- endif -%}
-                <!-- Judge.me Preview Badge (metafield embed) -->
-                <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
-                  {{ product.metafields.judgeme.badge }}
+              {%- assign badge_content = product.metafields.judgeme.badge -%}
+              {%- if badge_content != blank -%}
+                <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="margin-top:{{ block.settings.top_margin | default: 12 }}px">
+                  {%- if block.settings.show_label and block.settings.label_text != blank -%}
+                    <a class="pdp-reviews-badge__link" href="#reviews">{{ block.settings.label_text }}</a>
+                  {%- endif -%}
+                  <!-- Judge.me Preview Badge (metafield embed) -->
+                  <div class="jdgm-widget jdgm-preview-badge" data-id="{{ product.id }}">
+                    {{ badge_content }}
+                  </div>
                 </div>
-              </div>
+              {%- else -%}
+                <div class="pdp-reviews-badge" {{ block.shopify_attributes }} style="display: none;">
+                </div>
+              {%- endif -%}
 
             {%- when 'price' -%}
               {%- comment -%} Price block - hidden for cold brew by default, can be shown via Shopify admin block visibility {%- endcomment -%}
@@ -252,6 +258,13 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
   }
   .pdp-reviews-badge { display:flex; align-items:center; gap:8px; }
   .pdp-reviews-badge__link { font-size:.875rem; text-decoration:underline; }
+  /* Hide margin when badge is empty or not displayed */
+  .pdp-reviews-badge:has(.jdgm-preview-badge[style*="display: none"]),
+  .pdp-reviews-badge:has(.jdgm-preview-badge:empty),
+  .pdp-reviews-badge:not(:has(.jdgm-preview-badge *)) {
+    margin-top: 0 !important;
+    display: none !important;
+  }
 </style>
 
 <!-- REVIEWS heading override (keep our title, hide Judge.me's internal title) -->
