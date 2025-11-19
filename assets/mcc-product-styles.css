@@ -1838,10 +1838,14 @@ background: #54A8E5; /* Hover state */
     padding-right: 20px;
   }
 
-  .product-title {
-    font-size: 44px !important;
+  #product_merch_mobile h1.product-title,
+  .product-merch-mobile h1.product-title {
+    font-size: 36px !important;
+    line-height: 1.1 !important;
     font-family: 'Passion One', var(--font-sans) !important;
     letter-spacing: -0.1em;
+    text-transform: none !important;
+    font-feature-settings: normal !important;
   }
 
   .product-sections {
@@ -2389,7 +2393,7 @@ border-radius: 0px !important;
   margin: 0 0 6px;
   letter-spacing: 0em;
   line-height: 1.2;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* Compact logo grid - based on landing page but smaller */
@@ -2534,7 +2538,7 @@ border-radius: 0px !important;
   margin: 0 0 12px;
   letter-spacing: 0em;
   line-height: 1.2;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .coming-soon-ctas {
