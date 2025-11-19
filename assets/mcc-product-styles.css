@@ -1539,21 +1539,6 @@ cursor: pointer !important;
   border-color: #63717E;
 }
 
-/* Caption under disabled chips — force 2 lines */
-.variant-options input[type="radio"][disabled] + .variant-option::after {
-  content: "Out of\Astock";   /* force break */
-  white-space: pre-line;       /* \A renders as newline */
-  position: absolute;
-  left: 0; top: 100%;
-  margin-top: 6px;
-  width: 100%;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: .5px;
-  line-height: 1.2;
-  font-weight: 400;
-  color: var(--oos-label);
-}
 
 
 
@@ -1925,7 +1910,7 @@ background: #54A8E5; /* Hover state */
 /* ==============================
    Disabled chip (default behavior)
    - long, thin strike
-   - “Out of stock” caption below
+   - "Out of stock" tooltip on hover/long-press
    ============================== */
 .variant-options input[type="radio"][disabled] + .variant-option {
   color: var(--chip-disabled-text);
@@ -1934,8 +1919,8 @@ background: #54A8E5; /* Hover state */
   opacity: 1;                    /* keep contrast */
   cursor: not-allowed;
   position: relative;
-  pointer-events: none;
-  margin-bottom: 18px;           /* room for caption */
+  pointer-events: auto;          /* enable hover/touch */
+  margin-bottom: 0;              /* no extra space needed */
   text-decoration: none;         /* no native line-through */
 }
 
@@ -1952,21 +1937,40 @@ background: #54A8E5; /* Hover state */
   pointer-events: none;
 }
 
-/* caption (force to two lines) */
+/* Tooltip for disabled chips - shown on hover (desktop) and long-press (mobile) */
 .variant-options input[type="radio"][disabled] + .variant-option::after {
-  content: "Out of stock";      /* newline between words */
-  white-space: pre-line;          /* make \A render as a line break */
-  display: block;                 /* helps Safari honor the break */
+  content: "Out of stock";
+  display: block;
   position: absolute;
-  left: 0; right: 0;              /* easier centering than width:100% */
-  top: 100%;
-  margin-top: 6px;
-  text-align: center;
-  font-size: 10px;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 6px 10px;
+  background: #333;
+  color: #fff;
+  font-size: 11px;
   letter-spacing: .5px;
   line-height: 1.2;
   font-weight: 400;
-  color: var(--oos-label);
+  border-radius: 4px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Show tooltip on hover (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  .variant-options input[type="radio"][disabled] + .variant-option:hover::after {
+    opacity: 1;
+  }
+}
+
+/* Show tooltip on tap (mobile) - controlled by JavaScript */
+.variant-options input[type="radio"][disabled] + .variant-option.show-tooltip::after {
+  opacity: 1;
 }
 
 
@@ -1981,7 +1985,7 @@ background: #54A8E5; /* Hover state */
 
 /* ==============================
    All-sold-out state
-   - hide per-chip captions + strike
+   - hide per-chip strike and tooltip
    - remove extra spacing
    - neutralize any selected styling
    ============================== */

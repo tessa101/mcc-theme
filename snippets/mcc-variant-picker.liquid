@@ -98,7 +98,8 @@ MCC Variant Picker (compat)
               {% if all_oos %}disabled aria-disabled="true"{% endif %}>
             <label class="variant-option{% if opt_name_downcase contains 'color' %} is-swatch{% endif %}"
                    data-value="{{ val | escape }}"
-                   for="{{ input_id }}">
+                   for="{{ input_id }}"
+                   {% if all_oos %}aria-label="{{ val | escape }} - Out of stock" title="Out of stock"{% endif %}>
               {%- if opt_name_downcase contains 'color' -%}
                 <span class="mcc-swatch" style="--swatch: {{ val | escape }};"></span>
                 <span class="mcc-swatch-label">{{ val }}</span>

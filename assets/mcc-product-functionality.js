@@ -454,7 +454,17 @@ window.MCC = window.MCCProduct;
         });
         input.disabled = !possible;
         const lab = group.querySelector('label[for="' + input.id + '"]');
-        lab?.classList.toggle('is-disabled', !possible);
+        if (lab) {
+          lab.classList.toggle('is-disabled', !possible);
+          // Add accessibility attributes for disabled options
+          if (!possible) {
+            lab.setAttribute('aria-label', (lab.textContent.trim() || input.value) + ' - Out of stock');
+            lab.setAttribute('title', 'Out of stock');
+          } else {
+            lab.removeAttribute('aria-label');
+            lab.removeAttribute('title');
+          }
+        }
       });
     });
   };
@@ -485,6 +495,60 @@ window.MCC = window.MCCProduct;
   // initial
   refreshDisabling();
   syncLegacyId();
+
+  // Tap tooltip for disabled variant options (mobile)
+  let tooltipTimeout = null;
+  let currentTooltipTarget = null;
+
+  const handleTap = (e) => {
+    const label = e.target.closest('.variant-option');
+    if (!label) return;
+    
+    const input = el.querySelector(`input[type="radio"][id="${label.getAttribute('for')}"]`);
+    if (!input || !input.disabled) return;
+
+    // Clear any existing timeout
+    if (tooltipTimeout) {
+      clearTimeout(tooltipTimeout);
+      tooltipTimeout = null;
+    }
+
+    // Remove tooltip from any previously active element
+    if (currentTooltipTarget && currentTooltipTarget !== label) {
+      currentTooltipTarget.classList.remove('show-tooltip');
+    }
+
+    // Show tooltip on current element
+    currentTooltipTarget = label;
+    label.classList.add('show-tooltip');
+
+    // Hide tooltip after 1.2 seconds
+    tooltipTimeout = setTimeout(() => {
+      if (currentTooltipTarget) {
+        currentTooltipTarget.classList.remove('show-tooltip');
+        currentTooltipTarget = null;
+      }
+      tooltipTimeout = null;
+    }, 1200);
+  };
+
+  // Add tap event listeners to disabled variant options
+  const setupTapTooltip = () => {
+    const disabledLabels = el.querySelectorAll('input[type="radio"][disabled] + .variant-option');
+    disabledLabels.forEach(label => {
+      // Remove existing listeners if any
+      label.removeEventListener('touchend', handleTap);
+      // Add tap listener
+      label.addEventListener('touchend', handleTap, { passive: true });
+    });
+  };
+
+  // Setup initially and after variant changes
+  setupTapTooltip();
+  el.addEventListener('change', () => {
+    // Re-setup after variant state changes
+    setTimeout(setupTapTooltip, 0);
+  });
 })();
 
 
