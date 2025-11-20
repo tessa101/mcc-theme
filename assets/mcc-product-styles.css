@@ -1392,23 +1392,37 @@ cursor: pointer !important;
   font-family: 'Passion One', var(--font-sans) !important;
   font-weight: 400 !important;
   letter-spacing: 0.01em !important;
-  font-size: 58px !important;
+  font-size: 44px !important; /* Mobile default */
   line-height: 0.9 !important;
   color: #232527 !important;
   margin-block-start: 16px !important;
   margin-block-end: 0px !important;
 }
 
+/* Desktop: H1 title font-size */
+@media (min-width: 768px) {
+  .product-title {
+    font-size: 58px !important;
+  }
+}
+
 /* Roast subhead — coffee PDP only */
 .mcc-product .product-header .roast-subhead{
   margin: 0px 0 0;
   font-family: var(--font-suisse, "Suisse Intl", system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
-  font-size: 22px;
+  font-size: 18px; /* Mobile default */
   padding-top: 4px;
-  font-weight: 400; /* Medium */
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: 0;
   color: var(--color-ink, #333);
+}
+
+/* Desktop: Roast subhead font-size */
+@media (min-width: 768px) {
+  .mcc-product .product-header .roast-subhead {
+    font-size: 22px;
+  }
 }
 
 
@@ -1469,11 +1483,18 @@ cursor: pointer !important;
 }
 
 .product-price-display .current-price {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px; /* Mobile default */
+  font-weight: 600;
   color: #333;
   display: block;
   margin-bottom: 8px;
+}
+
+/* Desktop: Current price font-size */
+@media (min-width: 768px) {
+  .product-price-display .current-price {
+    font-size: 24px;
+  }
 }
 
 .product-price-display .compare-price {
@@ -1490,7 +1511,7 @@ cursor: pointer !important;
 .product-form {
   display: flex;
   flex-direction: column;
- /* gap: 16px;*/
+  gap: 8px; /* Consistent spacing between all form blocks */
   font-family: 'SuisseIntl', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -1653,11 +1674,17 @@ cursor: pointer !important;
 
 /* Full-width Favorites Button */
 .product-sidebar .wishlist-anchor { margin-top: 0px !important; }
-#wishlisthero-product-page-button-container { width: 100%; }
+#wishlisthero-product-page-button-container { 
+  width: 100%; 
+  padding-top: 0 !important;
+}
 
 .product-main #wishlisthero-product-page-button-container,
 .product-main [id^="wishlisthero-"][class*="product-page-button-container"] { display:none !important; }
-.product-sidebar #wishlisthero-product-page-button-container { width:100%; }
+.product-sidebar #wishlisthero-product-page-button-container { 
+  width:100%; 
+  padding-top: 0 !important;
+}
 
 /* Wishlist button styled as outline variant of Add to Cart */
 #wishlisthero-product-page-button-container button,
@@ -2190,9 +2217,10 @@ border-radius: 0px !important;
 
 /* Normalize container the app injects */
 .mcc-product #mcc-wishlist-anchor [id^="wishlisthero-"],
-.mcc-product #mcc-wishlist-anchor [class*="wishlisthero"] {
+.mcc-product #mcc-wishlist-anchor [class*="wishlisthero"]:not(button):not(a) {
   display: block;
   width: 100%;
+  padding-top: 0 !important;
 }
 
 /* Style the actual clickable control (button or link) */
@@ -2229,6 +2257,7 @@ border-radius: 0px !important;
 
 /* Reset any inline styles the app might add */
 .mcc-product #mcc-wishlist-anchor :where(button, a)[style]{
+  display: inline-flex !important;
   box-shadow: none !important;
   background-image: none !important;
 }
@@ -2392,7 +2421,7 @@ border-radius: 0px !important;
 
 /* Available Stores Block - Compact Version */
 .coming-soon-stores {
-  margin: 24px 0;
+  margin: 8px 0;
 }
 .coming-soon-stores .kv-label {
   display: block;
@@ -2525,8 +2554,8 @@ border-radius: 0px !important;
 
 /* Coming Soon Section Block */
 .block-coming-soon {
-  margin-top: 24px;
-  margin-bottom: 24px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 /* Remove bottom margin when wishlist follows (even if not combined in Liquid) */
@@ -2552,7 +2581,7 @@ border-radius: 0px !important;
 .coming-soon-ctas {
   display: flex;
   flex-direction: column;
-  gap: 0px;
+  gap: 8px;
   width: 100%;
 }
 
