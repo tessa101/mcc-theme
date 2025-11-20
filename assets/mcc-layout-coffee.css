@@ -74,30 +74,71 @@
   .layout-coffee .content-section{padding:20px;border-radius:12px;width:100%;box-sizing:border-box}
 }
 
-/* Keep cart drawer above header on mobile coffee layoutss */
-@media (max-width: 767px){
-  .layout-coffee .shopify-section-cart-drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1200 !important;
-    pointer-events: none;
-  }
-  .layout-coffee .shopify-section-cart-drawer cart-drawer {
-    pointer-events: auto;
-    z-index: 1201 !important;
-  }
-  .layout-coffee .shopify-section-cart-drawer .drawer,
-  .layout-coffee cart-drawer.drawer {
-    z-index: 1201 !important;
-  }
-  .layout-coffee .shopify-section-cart-drawer .cart-drawer__overlay,
-  .layout-coffee cart-drawer .cart-drawer__overlay {
-    z-index: 1200 !important;
-  }
-  .layout-coffee cart-drawer,
-  .layout-coffee .cart-drawer{
-    z-index: 1201 !important;
-  }
+/* === Cart Drawer Layer Fix (for Coffee/Cold Brew) === */
+/* Ensure cart drawer z-index is above header and all other content */
+
+/* Global selectors to override component-cart-drawer.css (z-index 1300) */
+/* These must be global (not scoped) to work before body class is applied */
+cart-drawer,
+#CartDrawer,
+[data-cart-drawer] {
+  z-index: 12000 !important;
+}
+
+/* Override .drawer class z-index from component-cart-drawer.css */
+.drawer {
+  z-index: 12000 !important;
+}
+
+/* Scoped selectors (backup, in case global doesn't match) */
+.layout-coffee cart-drawer,
+.layout-coffee #CartDrawer,
+.layout-coffee [data-cart-drawer] {
+  z-index: 12000 !important;
+}
+
+.layout-coffee .shopify-section-cart-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 12000 !important;
+  pointer-events: none;
+}
+
+.layout-coffee .shopify-section-cart-drawer cart-drawer {
+  pointer-events: auto;
+  z-index: 12000 !important;
+}
+
+.layout-coffee .shopify-section-cart-drawer .drawer,
+.layout-coffee cart-drawer.drawer {
+  z-index: 12000 !important;
+}
+
+.layout-coffee .shopify-section-cart-drawer .cart-drawer__overlay,
+.layout-coffee cart-drawer .cart-drawer__overlay {
+  z-index: 12000 !important;
+}
+
+.layout-coffee cart-drawer,
+.layout-coffee .cart-drawer {
+  z-index: 12000 !important;
+}
+
+/* Ensure header stays above other content but below cart drawer */
+/* Global selectors to override base.css z-index rules */
+.header-wrapper {
+  z-index: 2000 !important;
+}
+
+.section-header.shopify-section-group-header-group {
+  z-index: 2000 !important;
+}
+
+/* Scoped selectors (backup) */
+.layout-coffee header.header,
+.layout-coffee #shopify-section-header,
+.layout-coffee .section-header.shopify-section-group-header-group {
+  z-index: 2000 !important;
 }

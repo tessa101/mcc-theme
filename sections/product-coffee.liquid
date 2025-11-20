@@ -104,23 +104,23 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
       drawerSection.style.top = '0';
       drawerSection.style.left = '0';
       drawerSection.style.width = '100%';
-      drawerSection.style.zIndex = '1200';
+      drawerSection.style.zIndex = '12000';
       drawerSection.style.pointerEvents = 'none';
 
       const cartDrawer = drawerSection.querySelector('cart-drawer');
       if (cartDrawer) {
-        cartDrawer.style.zIndex = '1201';
+        cartDrawer.style.zIndex = '12000';
         cartDrawer.style.pointerEvents = 'auto';
       }
 
       const drawer = drawerSection.querySelector('.drawer');
       if (drawer) {
-        drawer.style.zIndex = '1201';
+        drawer.style.zIndex = '12000';
       }
 
       const overlay = drawerSection.querySelector('.cart-drawer__overlay');
       if (overlay) {
-        overlay.style.zIndex = '1200';
+        overlay.style.zIndex = '12000';
       }
     };
 
@@ -128,6 +128,37 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
     document.addEventListener('shopify:section:load', elevateCartDrawer);
   });
 </script>
+
+<!-- Cart Drawer Z-Index Fix (loads after component-cart-drawer.css) -->
+<style>
+/* === Cart Drawer Layer Fix (for Coffee/Cold Brew) === */
+/* Global selectors to override component-cart-drawer.css (z-index 1300) */
+/* This inline style loads in the section, ensuring it overrides head CSS */
+cart-drawer,
+#CartDrawer,
+[data-cart-drawer] {
+  z-index: 12000 !important;
+}
+
+/* Override .drawer class z-index from component-cart-drawer.css */
+.drawer {
+  z-index: 12000 !important;
+}
+
+/* Ensure header stays above other content but below cart drawer */
+.header-wrapper {
+  z-index: 2000 !important;
+}
+
+.section-header.shopify-section-group-header-group {
+  z-index: 2000 !important;
+}
+
+header.header,
+#shopify-section-header {
+  z-index: 2000 !important;
+}
+</style>
 
 <!-- === Coffee PDP: Accordion CSS (no extra padding; relies on .product-sections) === -->
 <style id="coffee-accordion-css">
