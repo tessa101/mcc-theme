@@ -262,11 +262,33 @@ cart-drawer quantity-input.cart-quantity:before,
   box-shadow: none !important;
 }
 
+/* Override the :after pseudo-element that creates the border effect and covers button edges */
+cart-items .quantity:after,
+cart-drawer .quantity:after,
+.cart .quantity:after,
+.cart-drawer .quantity:after,
+cart-items quantity-input.quantity:after,
+cart-drawer quantity-input.quantity:after,
+.cart quantity-input.quantity:after,
+.cart-drawer quantity-input.quantity:after,
+cart-items .cart-quantity:after,
+cart-drawer .cart-quantity:after,
+.cart .cart-quantity:after,
+.cart-drawer .cart-quantity:after,
+cart-items quantity-input.cart-quantity:after,
+cart-drawer quantity-input.cart-quantity:after,
+.cart quantity-input.cart-quantity:after,
+.cart-drawer quantity-input.cart-quantity:after {
+  display: none !important;
+}
+
 cart-items .quantity__button,
 cart-drawer .quantity__button,
 .cart .quantity__button,
 .cart-drawer .quantity__button {
   background: transparent !important;
+  position: relative;
+  z-index: 2;
 }
 cart-items .quantity__input,
 cart-drawer .quantity__input,
