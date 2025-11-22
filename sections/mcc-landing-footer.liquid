@@ -5,7 +5,15 @@
   assign coldbrew_col = collections['cold-brew'] | default: collections['coldbrew']
 -%}
 
-<section class="mcc-landing-footer" data-mcc-landing="footer">
+<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer">
+  {%- comment -%} Video background (if enabled) {%- endcomment -%}
+  {%- if section.settings.use_video_background and section.settings.video != blank -%}
+    {%- liquid
+      assign video_element = section.settings.video | video_tag: autoplay: true, loop: true, muted: true, preload: 'auto'
+      assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
+    -%}
+    {{ video_element }}
+  {%- endif -%}
   <div class="mcc-footer-wrapper">
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
     <div class="mcc-footer-left">
@@ -158,7 +166,25 @@ section.mcc-landing-footer.gradient,
   display: block !important;
 }
 
+/* Video background */
+.mcc-footer-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Background image via ::before pseudo-element */
+/* When video is enabled, this is completely hidden */
+/* When video is disabled, this is the primary background (z-index: -1) */
 section.mcc-landing-footer::before,
 .mcc-landing-footer::before {
   content: '';
@@ -177,6 +203,17 @@ section.mcc-landing-footer::before,
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* Show background image by default when video is enabled (as fallback while video loads) */
+/* Hide it once video starts playing */
+.mcc-footer-has-video::before {
+  display: block !important;
+}
+
+/* Hide background image when video is successfully playing */
+.mcc-footer-has-video.mcc-footer-video-playing::before {
+  display: none !important;
 }
 
 .mcc-footer-wrapper {
@@ -486,14 +523,276 @@ section.mcc-landing-footer::before,
 }
 </style>
 
+{%- if section.settings.use_video_background -%}
+<script>
+(function() {
+  const video = document.querySelector('.mcc-footer-video-bg');
+  if (!video) {
+    console.warn('Footer video element not found');
+    return;
+  }
+  
+  const footer = document.querySelector('.mcc-landing-footer');
+  if (!footer) return;
+  
+  let fallbackShown = false;
+  
+  // Get video source URL for logging (Shopify video_tag generates the source)
+  const videoSrc = video.currentSrc || video.querySelector('source')?.src || video.src || 'unknown';
+  console.log('Footer video source URL:', videoSrc);
+  
+  // Function to show fallback image (hide video)
+  function showFallback(reason) {
+    if (fallbackShown) return;
+    fallbackShown = true;
+    
+    console.warn('Footer video failed, showing fallback image. Reason:', reason || 'unknown');
+    console.warn('Video source was:', videoSrc);
+    video.style.display = 'none';
+    footer.classList.remove('mcc-footer-video-playing');
+  }
+  
+  // Function to hide fallback image (show video)
+  function hideFallback() {
+    footer.classList.add('mcc-footer-video-playing');
+  }
+  
+  // Ensure video is visible initially
+  video.style.display = 'block';
+  
+  // Handle video load errors - show fallback image
+  video.addEventListener('error', function(e) {
+    const error = video.error;
+    let errorMessage = 'Unknown error';
+    
+    if (error) {
+      switch(error.code) {
+        case error.MEDIA_ERR_ABORTED:
+          errorMessage = 'Video loading aborted';
+          break;
+        case error.MEDIA_ERR_NETWORK:
+          errorMessage = 'Network error while loading video';
+          break;
+        case error.MEDIA_ERR_DECODE:
+          errorMessage = 'Video decoding error';
+          break;
+        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          errorMessage = 'Video format not supported or source not found';
+          break;
+        default:
+          errorMessage = 'Unknown video error (code: ' + error.code + ')';
+      }
+    }
+    
+    console.error('Footer video error event:', e);
+    console.error('Video error details:', {
+      error: error,
+      errorCode: error ? error.code : 'none',
+      errorMessage: errorMessage,
+      networkState: video.networkState,
+      networkStateText: getNetworkStateText(video.networkState),
+      readyState: video.readyState,
+      readyStateText: getReadyStateText(video.readyState),
+      src: videoSrc,
+      currentSrc: video.currentSrc
+    });
+    showFallback(errorMessage);
+  });
+  
+  // Helper function to get network state text
+  function getNetworkStateText(state) {
+    const states = ['EMPTY', 'IDLE', 'LOADING', 'NO_SOURCE'];
+    return states[state] || 'UNKNOWN';
+  }
+  
+  // Helper function to get ready state text
+  function getReadyStateText(state) {
+    const states = ['HAVE_NOTHING', 'HAVE_METADATA', 'HAVE_CURRENT_DATA', 'HAVE_FUTURE_DATA', 'HAVE_ENOUGH_DATA'];
+    return states[state] || 'UNKNOWN';
+  }
+  
+  // Handle stalled video
+  video.addEventListener('stalled', function() {
+    console.warn('Footer video stalled - network issue');
+    if (video.networkState === video.NETWORK_NO_SOURCE) {
+      showFallback('Video source not found (stalled)');
+    }
+  });
+  
+  // Handle suspended video
+  video.addEventListener('suspend', function() {
+    console.warn('Footer video suspended - loading paused');
+  });
+  
+  // Handle aborted video
+  video.addEventListener('abort', function() {
+    console.warn('Footer video aborted');
+    showFallback('Video loading aborted');
+  });
+  
+  // Function to force video play
+  function forcePlay() {
+    if (fallbackShown) return;
+    
+    if (video.readyState >= 2) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(function() {
+          console.log('Footer video is playing');
+          video.style.display = 'block';
+          hideFallback(); // Hide the fallback image once video is playing
+        }).catch(function(error) {
+          console.warn('Video autoplay prevented:', error);
+          // Don't show fallback for autoplay restrictions, just try on interaction
+          const playOnInteraction = function() {
+            video.play().then(function() {
+              video.style.display = 'block';
+              hideFallback();
+            }).catch(function() {});
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
+          };
+          document.addEventListener('click', playOnInteraction, { once: true });
+          document.addEventListener('touchstart', playOnInteraction, { once: true });
+        });
+      }
+    }
+  }
+  
+  // Verify video source URL before attempting to load
+  function verifyVideoSource() {
+    // Shopify video_tag may have source element or direct src on video
+    const source = video.querySelector('source');
+    const videoSrc = video.currentSrc || source?.src || video.src;
+    
+    if (!videoSrc || videoSrc === '' || videoSrc === window.location.href) {
+      console.error('Footer video: No valid source found');
+      console.error('Video element:', video);
+      console.error('Source element:', source);
+      showFallback('No video source found');
+      return false;
+    }
+    
+    console.log('Footer video source verified:', videoSrc);
+    return true;
+  }
+  
+  // Verify source on load (wait a bit for Shopify video to initialize)
+  setTimeout(function() {
+    if (!verifyVideoSource()) {
+      return; // Exit if source is invalid
+    }
+  }, 100);
+  
+  // Check if video source is valid
+  video.addEventListener('loadstart', function() {
+    console.log('Footer video started loading');
+    console.log('Video currentSrc:', video.currentSrc);
+    console.log('Video networkState:', getNetworkStateText(video.networkState));
+    video.style.display = 'block';
+  });
+  
+  // Ensure video plays when data is loaded
+  video.addEventListener('loadeddata', function() {
+    console.log('Footer video data loaded');
+    console.log('Video readyState:', getReadyStateText(video.readyState));
+    video.style.display = 'block';
+    forcePlay();
+  });
+  
+  // Ensure video plays when canplay event fires
+  video.addEventListener('canplay', function() {
+    console.log('Footer video can play');
+    video.style.display = 'block';
+    forcePlay();
+  });
+  
+  // Once video starts playing, hide fallback image
+  video.addEventListener('playing', function() {
+    console.log('Footer video is playing successfully');
+    video.style.display = 'block';
+    hideFallback(); // Hide the fallback image
+  });
+  
+  // Try to play immediately if video is already loaded
+  if (video.readyState >= 2) {
+    console.log('Footer video already loaded, attempting to play');
+    forcePlay();
+  }
+  
+  // Improved fallback: check video state more frequently
+  let checkCount = 0;
+  const maxChecks = 4; // Check 4 times over 2 seconds
+  const checkInterval = 500; // Check every 500ms
+  
+  const videoCheckInterval = setInterval(function() {
+    if (fallbackShown) {
+      clearInterval(videoCheckInterval);
+      return;
+    }
+    
+    checkCount++;
+    
+    // Check if video has an error
+    if (video.error) {
+      console.warn('Footer video has error during check:', video.error);
+      showFallback('Video error detected');
+      clearInterval(videoCheckInterval);
+      return;
+    }
+    
+    // Check network state
+    if (video.networkState === video.NETWORK_NO_SOURCE) {
+      console.warn('Footer video: No source available');
+      showFallback('Video source not available');
+      clearInterval(videoCheckInterval);
+      return;
+    }
+    
+    // Check if video is loaded enough to play
+    if (video.readyState >= 3 && !video.paused) {
+      // Video is playing or ready to play
+      console.log('Footer video is ready/playing, stopping checks');
+      clearInterval(videoCheckInterval);
+      return;
+    }
+    
+    // After max checks, if video still not ready, show fallback
+    if (checkCount >= maxChecks) {
+      if (video.readyState === 0 || (video.readyState < 3 && video.paused)) {
+        console.warn('Footer video did not load/play after', (maxChecks * checkInterval / 1000), 'seconds');
+        console.warn('Final state - readyState:', getReadyStateText(video.readyState), 'networkState:', getNetworkStateText(video.networkState));
+        showFallback('Video did not load in time');
+      }
+      clearInterval(videoCheckInterval);
+    }
+  }, checkInterval);
+})();
+</script>
+{%- endif -%}
+
 {% schema %}
 {
   "name": "MCC Landing — Footer",
   "settings": [
     {
+      "type": "checkbox",
+      "id": "use_video_background",
+      "label": "Use video background",
+      "default": true,
+      "info": "Enable to use video background, disable to use image background"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Footer background video",
+      "info": "Select a video to use as the footer background"
+    },
+    {
       "type": "image_picker",
       "id": "background_image",
-      "label": "Footer background image (fish pattern)"
+      "label": "Footer background image (fish pattern)",
+      "info": "Used as video poster and fallback image background"
     },
     {
       "type": "image_picker",
