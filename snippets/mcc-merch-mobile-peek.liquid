@@ -8,12 +8,18 @@
   <div class="mm-peek__left">
     <h2 class="mm-peek__title">{{ product.title }}</h2>
 
+    {%- comment -%}
+    LAYOUT OPTION 1: Price in left column ABOVE color
+    To use this layout, uncomment the price-wrap below (before color) and remove it from .mm-peek__right
+    {%- endcomment -%}
+    {%- comment -%}
     <div class="mm-peek__price-wrap">
       <span class="mm-peek__price" data-price>{{ v.price | money }}</span>
       {%- if v.compare_at_price and v.compare_at_price > v.price -%}
         <span class="mm-peek__price-compare" data-compare>{{ v.compare_at_price | money }}</span>
       {%- endif -%}
     </div>
+    {%- endcomment -%}
 
     <div class="mm-peek__color" aria-live="polite">
       <i class="mm-peek__swatch" data-swatch title="{{ v.option1 | escape }}"></i>
@@ -21,6 +27,19 @@
             data-color-name
             data-initial="{{ v.option1 | escape }}">{{ v.option1 }}</span>
     </div>
+
+    {%- comment -%}
+    LAYOUT OPTION 2: Price in left column UNDER color (original layout)
+    To use this layout, uncomment the price-wrap below (after color) and remove it from .mm-peek__right
+    {%- endcomment -%}
+    {%- comment -%}
+    <div class="mm-peek__price-wrap">
+      <span class="mm-peek__price" data-price>{{ v.price | money }}</span>
+      {%- if v.compare_at_price and v.compare_at_price > v.price -%}
+        <span class="mm-peek__price-compare" data-compare>{{ v.compare_at_price | money }}</span>
+      {%- endif -%}
+    </div>
+    {%- endcomment -%}
 
     <script>
     /* EARLY GUARD: runs immediately to block numeric media IDs (e.g., "463") */
@@ -73,6 +92,17 @@
 
   <div class="mm-peek__right">
     <button class="button button--primary button--sm" data-role="atc-peek">Add to cart</button>
+    {%- comment -%}
+    LAYOUT OPTION 3: Price under button in right column (CURRENT)
+    To use this layout, keep the price-wrap here
+    To switch to Option 1 or 2, comment this out and uncomment the price-wrap in .mm-peek__left
+    {%- endcomment -%}
+    <div class="mm-peek__price-wrap">
+      <span class="mm-peek__price" data-price>{{ v.price | money }}</span>
+      {%- if v.compare_at_price and v.compare_at_price > v.price -%}
+        <span class="mm-peek__price-compare" data-compare>{{ v.compare_at_price | money }}</span>
+      {%- endif -%}
+    </div>
   </div>
 </div>
 
@@ -100,20 +130,51 @@
   min-width:0;
 }
 
-/* right column keeps the button tight */
-.mm-peek__right{ display:flex; align-items:flex-start; }
+/* right column layout */
+/* LAYOUT OPTION 3 (CURRENT): Stack button and price vertically */
+.mm-peek__right{ 
+  display:flex; 
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 
-.mm-peek__title{
+/* LAYOUT OPTIONS 1 & 2: Button only (price in left column) */
+/* Uncomment below and comment out above to switch to Option 1 or 2 */
+/*
+.mm-peek__right{ 
+  display:flex; 
+  align-items: flex-start; 
+}
+*/
+
+/* Higher specificity to override global h2 rule in theme.liquid */
+h2.mm-peek__title,
+#product_merch_mobile h2.mm-peek__title,
+.mm-peek h2.mm-peek__title{
   margin:0;
-  font: 700 30px/1.1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font: 700 36px/1.1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   letter-spacing:-0.02em; color:#111;
   word-break:break-word;
+  text-transform: none !important;  /* override global h2 uppercase rule */
+  font-feature-settings: normal !important;  /* override font-feature-settings from global rule */
 }
 
 .mm-peek__price-wrap{
-  display:flex; align-items:baseline; gap:8px;
+  display:flex; 
+  align-items:baseline; 
+  gap:8px;
   font:inherit;
+  justify-content: flex-end; /* right-align price with button text */
 }
+
+/* LAYOUT OPTION 3 (CURRENT): Align price text with button text (account for button's right padding) */
+.mm-peek__right .mm-peek__price-wrap{
+  margin-right: 16px; /* matches button's right padding to align text */
+}
+
+/* LAYOUT OPTIONS 1 & 2: Price in left column - no special alignment needed */
+/* When using Option 1 or 2, comment out the rule above */
 .mm-peek__price{ font-weight:700; font-size:18px; color: #111;}
 .mm-peek__price-compare{ font-weight:600; font-size:14px; color:#9a9a9a; text-decoration:line-through; }
 
@@ -123,7 +184,7 @@
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
   background:#ddd;
 }
-.mm-peek__color-name{ font-weight:600; font-size:16px; color: #111;}
+.mm-peek__color-name{ font-weight:500; font-size:16px; color: #333;}
 
 /* reviews badge under color */
 .mm-peek__reviews-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; margin-top: 6px !important; }
@@ -133,19 +194,45 @@
 /* CTA sizing */
 .mm-peek .button--sm{ padding:8px 12px; border-radius:999px; }
 
+/* Override mobile media query from theme.liquid that sets 24px */
+@media (max-width: 768px){
+  h2.mm-peek__title,
+  #product_merch_mobile h2.mm-peek__title,
+  .mm-peek h2.mm-peek__title{ 
+    font-size: 36px !important;  /* override theme.liquid 24px rule */
+  }
+}
+
 /* a little larger on wider phones */
 @media (min-width:480px){
-  .mm-peek__title{ font-size:22px; }
+  h2.mm-peek__title,
+  #product_merch_mobile h2.mm-peek__title,
+  .mm-peek h2.mm-peek__title{ font-size:40px !important; }
 }
 
 /* 2) Make the CTA smaller (override Dawn globals) */
 .mm-peek .button{ min-width: unset; }             /* Dawn sets a big min-width */
-.mm-peek .button--primary.button--sm{
+.mm-peek .button--primary.button--sm,
+.mm-peek .button--primary.button--sm:focus,
+.mm-peek .button--primary.button--sm:active,
+.mm-peek .button--primary.button--sm:focus-visible,
+.mm-peek .button--primary.button--sm:hover{
   padding: 12px 16px;                 /* was larger */
   font-size: 14px;                   /* down from default */
   line-height: 1.05;
   border-radius: 999px;
-  box-shadow: none;
+  box-shadow: none !important;        /* remove box-shadow border effect */
+  outline: none !important;           /* remove outline */
+  border: none !important;           /* remove border */
+}
+
+/* Remove box-shadow border from button ::after pseudo-element */
+.mm-peek .button--primary.button--sm::after,
+.mm-peek .button--primary.button--sm:focus::after,
+.mm-peek .button--primary.button--sm:active::after,
+.mm-peek .button--primary.button--sm:focus-visible::after,
+.mm-peek .button--primary.button--sm:hover::after{
+  box-shadow: none !important;
 }
 
 /* If your theme sets a fixed min-height/line-height on buttons, clamp it: */
