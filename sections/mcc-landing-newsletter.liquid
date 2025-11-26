@@ -1,50 +1,214 @@
 {% comment %} MCC Landing — Newsletter signup {% endcomment %}
  
 <section class="mcc-news" data-mcc-landing="newsletter">
-  <div class="mn-reveal scroll-trigger animate--fade-in scroll-trigger--offscreen" style="--animation-order:0">
-    
-    {% if section.settings.title != blank %}<h2 class="mn-title">{{ section.settings.title }}</h2>{% endif %}
-    {% if section.settings.subtitle != blank %}<p class="mn-sub">{{ section.settings.subtitle }}</p>{% endif %}
+  <div class="mcc-news-wrapper">
+    <div class="mcc-news-left">
+      {% if section.settings.title != blank %}<h1 class="mcc-news-title">{{ section.settings.title }}</h1>{% endif %}
+      {% if section.settings.subtitle != blank %}<p class="mcc-news-subtitle">{{ section.settings.subtitle }}</p>{% endif %}
+    </div>
 
-    {%- form 'customer', id: 'ContactNewsletter' -%}
-      <input type="hidden" name="contact[tags]" value="newsletter">
-      <label class="sr-only" for="NewsletterEmail">Email</label>
-      <div class="mn-row">
-        <input id="NewsletterEmail" type="email" name="contact[email]" placeholder="Email address" required>
-        <button type="submit">{{ section.settings.button_label | default: 'Sign up' }}</button>
-      </div>
-      {% if form.posted_successfully? %}
-        <p class="mn-success">Thanks! You’re on the list.</p>
-      {% elsif form.errors %}
-        <p class="mn-error">
-          {{ form.errors.translated_fields['email'] | default: 'Email' }}
-          {{ form.errors.messages['email'] }}
-        </p>
-      {% endif %}
-    {%- endform -%}
+    <div class="mcc-news-right">
+      {%- form 'customer', id: 'ContactNewsletter', class: 'mcc-news-form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <label class="sr-only" for="NewsletterEmail">Email</label>
+        <div class="mcc-news-form-row">
+          <input 
+            id="NewsletterEmail" 
+            type="email" 
+            name="contact[email]" 
+            class="mcc-news-input"
+            placeholder="{{ section.settings.email_placeholder | default: 'Your email address' }}" 
+            required
+          >
+          <button type="submit" class="mcc-news-button">{{ section.settings.button_label | default: 'Sign me up' }}</button>
+        </div>
+        {% if form.posted_successfully? %}
+          <p class="mcc-news-success">Thanks! You're on the list.</p>
+        {% elsif form.errors %}
+          <p class="mcc-news-error">
+            {{ form.errors.translated_fields['email'] | default: 'Email' }}
+            {{ form.errors.messages['email'] }}
+          </p>
+        {% endif %}
+      {%- endform -%}
+      <p class="mcc-news-disclaimer">{{ section.settings.disclaimer | default: 'By entering your email address, you agree to receive future communications from Malibu Coffee Company.' }}</p>
+    </div>
   </div>
 </section>
 
 <style>
-.mcc-news{ padding:100px 16px; background:var(--color-base-bg,#fff); display:grid; place-items:center; }
-.mn-wrap{ width:min(680px, 92vw); text-align:center; }
-.mn-title{ font-family: var(--font-sans,'SuisseIntl',system-ui); font-weight:700; font-size:26px; margin:0 0 8px; }
-.mn-sub{ margin:0 0 16px; opacity:.8; }
-.mn-row{ display:flex; gap:10px; justify-content:center; }
-.mn-row input{ flex:1; min-width:0; padding:14px 16px; border-radius:999px; border:1px solid #ccc; }
-.mn-row button{ padding:14px 18px; border-radius:999px; border:none; background:#111; color:#fff; font-weight:700; cursor:pointer; }
-.mn-success{ margin-top:10px; color:#0a5c2d; }
-.mn-error{ margin-top:10px; color:#7a1111; }
-.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+.mcc-news {
+  padding: 80px 60px;
+  background: #AADAE2;
+}
+
+.mcc-news-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mcc-news-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.mcc-news-title {
+  font-family: 'Passion One', var(--font-sans, 'SuisseIntl', system-ui);
+  font-weight: 400;
+  font-size: 58px;
+  line-height: 58px;
+  color: #232527;
+  margin: 0 0 16px;
+  text-transform: none;
+  letter-spacing: 0em;
+}
+
+.mcc-news-subtitle {
+  font-family: var(--font-sans, 'SuisseIntl', system-ui);
+  font-size: 18px;
+  line-height: 150%;
+  color: #232527;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.mcc-news-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.mcc-news-form {
+  margin-bottom: 16px;
+}
+
+.mcc-news-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.mcc-news-input {
+  flex: 1;
+  min-width: 0;
+  padding: 18px 20px;
+  border-radius: 6px;
+  border: 1px solid #888;
+  background: #FFF;
+  color: #232527;
+  font-family: var(--font-sans, 'SuisseIntl', system-ui);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.mcc-news-input::placeholder {
+  color: rgba(35, 37, 39, 0.6);
+}
+
+.mcc-news-input:focus {
+  outline: 2px solid #00A0BF;
+  outline-offset: 2px;
+}
+
+.mcc-news-button {
+  height: 60px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #00A0BF;
+  color: #FFF;
+  font-family: var(--font-sans, 'SuisseIntl', system-ui);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.mcc-news-button:hover {
+  background: #008FA8;
+}
+
+.mcc-news-button:focus {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+.mcc-news-success {
+  margin-top: 12px;
+  color: #0a5c2d;
+  font-size: 14px;
+}
+
+.mcc-news-error {
+  margin-top: 12px;
+  color: #7a1111;
+  font-size: 14px;
+}
+
+.mcc-news-disclaimer {
+  font-family: var(--font-sans, 'SuisseIntl', system-ui);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #232527;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 749px) {
+  .mcc-news {
+    padding: 60px 20px;
+  }
+
+  .mcc-news-wrapper {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .mcc-news-title {
+    font-size: 40px;
+    line-height: 44px;
+  }
+
+  .mcc-news-subtitle {
+    font-size: 18px;
+  }
+
+  .mcc-news-form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mcc-news-button {
+    width: 100%;
+  }
+}
 </style>
 
 {% schema %}
 {
   "name": "MCC Landing — Newsletter",
   "settings": [
-    { "type": "text", "id": "title", "label": "Title", "default": "Stay in the Loop!" },
-    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "Sign up with your email address to receive news and updates." },
-    { "type": "text", "id": "button_label", "label": "Button label", "default": "Sign Up" }
+    { "type": "text", "id": "title", "label": "Title", "default": "Stay in the loop" },
+    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "Join our mailing list and be the first to learn about new releases and get deals" },
+    { "type": "text", "id": "email_placeholder", "label": "Email placeholder", "default": "Your email address" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Sign me up" },
+    { "type": "text", "id": "disclaimer", "label": "Disclaimer text", "default": "By entering your email address, you agree to receive future communications from Malibu Coffee Company." }
   ],
   "presets": [{ "name": "MCC Landing — Newsletter" }]
 }
