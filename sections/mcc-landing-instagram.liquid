@@ -2,7 +2,7 @@
 
 <section class="mcc-ig" data-mcc-landing="instagram">
   {% if section.settings.title != blank %}
-    <h2 class="mi-title">{{ section.settings.title }}</h2>
+    <h1 class="mi-title">{{ section.settings.title }}</h1>
   {% endif %}
   {% if section.settings.handle != blank %}
     <p class="mi-handle">@{{ section.settings.handle }}</p>
@@ -61,7 +61,19 @@
 
 <style>
 .mcc-ig{ padding:100px 0; background:var(--color-base-bg,#fff); text-align:center; }
-.mi-title{ font-family: var(--font-sans, 'SuisseIntl', system-ui); font-weight:700; font-size:22px; margin:0; }
+.mi-title,
+/* Instagram app fallback */
+#insta-feed h1,
+#insta-feed h2 { 
+  font-family: 'Passion One', var(--font-sans, 'SuisseIntl', system-ui) !important;
+  font-weight: 400 !important;
+  font-size: 58px !important;
+  line-height: 58px !important;
+  color: #232527 !important;
+  margin: 0 0 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0em !important;
+}
 .mi-handle{ margin:6px 0 20px; opacity:.7; }
 .mi-grid{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; padding:0; margin:0 auto; max-width:1200px; list-style:none; }
 @media (max-width: 1100px){ .mi-grid{ grid-template-columns:repeat(4,1fr);} }
@@ -69,9 +81,66 @@
 .mi-item a{ display:block; }
 .mi-img{ width:100%; height:100%; aspect-ratio:1/1; object-fit:cover; border-radius:10px; }
 .mi-fpo{ background:#eee; width:100%; aspect-ratio:1/1; border-radius:10px; }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .mcc-ig .mi-title,
+  .mcc-ig h1.mi-title,
+  .mcc-ig h2.mi-title,
+  #insta-feed h1,
+  #insta-feed h2,
+  #insta-feed h1[style],
+  #insta-feed h2[style],
+  .mcc-ig #insta-feed h1,
+  .mcc-ig #insta-feed h2,
+  .mcc-ig #insta-feed h1[style],
+  .mcc-ig #insta-feed h2[style] {
+    font-size: 40px !important;
+    line-height: 44px !important;
+  }
+}
 </style>
 
-
+<script>
+// Override Instagram app inline styles on mobile
+(function() {
+  function overrideInstaFeedTitle() {
+    const instaFeed = document.getElementById('insta-feed');
+    if (!instaFeed) return;
+    
+    const title = instaFeed.querySelector('h2');
+    if (!title) return;
+    
+    // Check if we're on mobile (768px or less)
+    if (window.innerWidth <= 768) {
+      // Override inline style for mobile
+      title.style.setProperty('font-size', '40px', 'important');
+      title.style.setProperty('line-height', '44px', 'important');
+    } else {
+      // Desktop: ensure 58px (or remove override to use app setting)
+      title.style.setProperty('font-size', '58px', 'important');
+      title.style.setProperty('line-height', '58px', 'important');
+    }
+  }
+  
+  // Run on load and resize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', overrideInstaFeedTitle);
+  } else {
+    overrideInstaFeedTitle();
+  }
+  
+  // Also run on resize to handle window size changes
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(overrideInstaFeedTitle, 100);
+  });
+  
+  // Run after a short delay to catch app-rendered content
+  setTimeout(overrideInstaFeedTitle, 500);
+})();
+</script>
 
 {% schema %}
 {

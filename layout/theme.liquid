@@ -428,6 +428,36 @@
   line-height: 1.1 !important;
   color: #232527 !important;
 }
+
+/* Hero title - override global h1 58px rule */
+.mcc-hero__title {
+  font-size: var(--mcc-hero-title-desktop, 70px) !important;
+}
+
+@media (max-width: 739px) {
+  .mcc-hero__title {
+    font-size: var(--mcc-hero-title-mobile, 56px) !important;
+  }
+}
+
+/* Landing page section titles - override global h2/h1 rule */
+h1.mi-title,
+h1.ml-title,
+h2.mi-title,
+h2.ml-title,
+/* Instagram app fallback */
+#insta-feed h1,
+#insta-feed h2 {
+  font-family: 'Passion One', 'SuisseIntl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 58px !important;
+  line-height: 58px !important;
+  color: #232527 !important;
+  text-transform: none !important;
+  letter-spacing: 0em !important;
+  font-feature-settings: normal !important;
+}
+
 @media (max-width: 768px){
   :is(h2,
       .section-title,
@@ -438,6 +468,26 @@
       .growing-details h2,
       .description-section h2,
       .flavor-title){ font-size: 24px !important; }
+  
+  /* Landing page section titles - mobile override */
+  h1.mi-title,
+  h1.ml-title,
+  h2.mi-title,
+  h2.ml-title,
+  .mcc-ig h1.mi-title,
+  .mcc-ig h2.mi-title,
+  #insta-feed h1,
+  #insta-feed h2,
+  #insta-feed h1[style],
+  #insta-feed h2[style],
+  .mcc-ig #insta-feed h1,
+  .mcc-ig #insta-feed h2,
+  .mcc-ig #insta-feed h1[style],
+  .mcc-ig #insta-feed h2[style] {
+    font-size: 40px !important;
+    line-height: 44px !important;
+  }
+  
   .template-product .product__title,
   .template-product h1.product-title,
   .template-product .pdp-h1,
@@ -507,7 +557,8 @@
 @media (max-width: 767px) {
   html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
   html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
-  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before,
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-page"]::before {
     content: '';
     display: block;
     height: 60px;
@@ -531,6 +582,12 @@
     padding-top: 0px !important;
   }
   
+  /* Remove padding-top from main-page section on mobile (padding comes from ::before instead) */
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-page"] [class*="section-"][class*="-padding"] {
+    padding-top: 0px !important;
+  }
+  
   /* Login page: higher padding to match other pages visually */
   html:not(.mcc-merch-mode) .shopify-section:has(.customer.login)::before,
   html:not(.mcc-merch-mode) .shopify-section:has(#login)::before,
@@ -549,7 +606,8 @@
 @media (min-width: 768px) {
   html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero)::before,
   html:not(.mcc-merch-mode) .shopify-section:has(cart-items)::before,
-  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before {
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title)::before,
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-page"]::before {
     content: '';
     display: block;
     height: 60px;
@@ -564,6 +622,12 @@
   html:not(.mcc-merch-mode) .shopify-section:has(#login) [class*="section-"][class*="-padding"],
   html:not(.mcc-merch-mode) [id*="shopify-section-main-login"] [class*="section-"][class*="-padding"],
   html:not(.mcc-merch-mode) .customer.login[class*="section-"][class*="-padding"] {
+    padding-top: 0px !important;
+  }
+  
+  /* Remove padding-top from main-page section on desktop (padding comes from ::before instead) */
+  html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title) [class*="section-"][class*="-padding"],
+  html:not(.mcc-merch-mode) [id*="shopify-section-main-page"] [class*="section-"][class*="-padding"] {
     padding-top: 0px !important;
   }
   
@@ -612,7 +676,9 @@
       {{ content_for_layout }}
     </main>
 
-    {% sections 'footer-group' %}
+    {%- unless is_landing_mcc -%}
+      {% sections 'footer-group' %}
+    {%- endunless -%}
 
     <ul hidden>
       <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>

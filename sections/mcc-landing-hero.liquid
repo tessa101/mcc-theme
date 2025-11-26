@@ -6,7 +6,7 @@
   style="
     --vh: {{ section.settings.desktop_height_vh | default: 88 }}vh;
     --mcc-hero-title-mobile: {{ section.settings.title_size_mobile | default: 56 }}px;
-    --mcc-hero-title-desktop: {{ section.settings.title_size_desktop | default: 80 }}px;
+    --mcc-hero-title-desktop: {{ section.settings.title_size_desktop | default: 70 }}px;
   "
 >
   {% if section.settings.image != blank %}
@@ -40,7 +40,9 @@
   font-size: var(--mcc-hero-title-mobile,56px);
 }
 @media (min-width: 740px){
-  .mcc-hero__title{ font-size: var(--mcc-hero-title-desktop,80px); }
+  .mcc-hero__title{ 
+    font-size: var(--mcc-hero-title-desktop,70px) !important; 
+  }
 }
 .mcc-hero__sub{ font-size:clamp(16px,2.2vw,20px); opacity:.9; margin:8px 0 20px; }
 .mcc-hero__cta{ display:inline-block; padding:12px 20px; border-radius:999px; background:#fff; color:#111; text-decoration:none; font-weight:600; }
@@ -90,7 +92,7 @@
     { "type": "text", "id": "cta_label", "label": "Button label" },
     { "type": "url", "id": "cta_link", "label": "Button link" },
     { "type": "range", "id": "desktop_height_vh", "min": 60, "max": 100, "step": 1, "label": "Height (vh)", "default": 88 },
-    { "type": "number", "id": "title_size_desktop", "label": "Title size (desktop px)", "default": 80 },
+    { "type": "number", "id": "title_size_desktop", "label": "Title size (desktop px)", "default": 70 },
     { "type": "number", "id": "title_size_mobile",  "label": "Title size (mobile px)",  "default": 56 },
     { "type": "checkbox", "id": "invert_header_colors", "label": "Invert header colors over hero", "default": true }
   ],

@@ -2,7 +2,7 @@
 {% comment %} MCC Landing — Available (logos grid) {% endcomment %}
 <section class="mcc-logos" data-mcc-landing="available">
   {% if section.settings.title != blank %}
-    <h2 class="ml-title">{{ section.settings.title }}</h2>
+    <h1 class="ml-title">{{ section.settings.title }}</h1>
   {% endif %}
 
   <ul class="ml-grid"
@@ -48,8 +48,17 @@
 
 
 <style>
-.mcc-logos{ padding:80px 0; background:#f1f1f1; text-align:center; }
-.ml-title{ font-weight:800; letter-spacing:.02em; font-size:20px; margin:0 0 24px; }
+.mcc-logos{ padding:48px 0; background:#f1f1f1; text-align:center; }
+.ml-title{ 
+  font-family: 'Passion One', var(--font-sans, 'SuisseIntl', system-ui) !important;
+  font-weight: 400 !important;
+  font-size: 58px !important;
+  line-height: 58px !important;
+  color: #232527 !important;
+  margin: 0 0 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0em !important;
+}
 
 
 /* Grid */
@@ -162,6 +171,11 @@
 
 /* Mobile: 2-col logos grid, centered */
 @media (max-width: 749px){
+  .ml-title {
+    font-size: 40px !important;
+    line-height: 44px !important;
+  }
+
   .mcc-logos .ml-grid{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns */
@@ -171,11 +185,11 @@
     padding-inline: 16px;
   }
 
-  /* Make sure items can shrink and images don’t overflow */
+  /* Make sure items can shrink and images don't overflow */
   .mcc-logos .ml-grid > * { min-width: 0; }
   .mcc-logos .ml-grid img{ display:block; max-width:100%; height:auto; }
 
-  /* If there’s an odd number of items, center the last one on its own row */
+  /* If there's an odd number of items, center the last one on its own row */
   .mcc-logos .ml-grid > *:last-child:nth-child(odd){
     grid-column: 1 / -1;
     justify-self: center;
