@@ -32,6 +32,21 @@
 <style>
 .mcc-hero{ position:relative; height:var(--vh,88vh); min-height:560px; display:grid; place-items:center; overflow:hidden; }
 .mcc-hero__img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+/* 
+  NOTE: Fix for hero image gap at 1420px breakpoint
+  When viewport shrinks below 1420px, add this media query to prevent gaps:
+  
+  @media (max-width: 1420px) {
+    .mcc-hero__img {
+      transform: scale(1.08);
+      transform-origin: center center;
+      width: calc(100% + 16px);
+      height: calc(100% + 16px);
+      left: -8px;
+      top: -8px;
+    }
+  }
+*/
 .mcc-hero__overlay{ position:relative; z-index:1; text-align:center; color:#fff; padding:clamp(24px,4vw,48px); }
 .mcc-hero__logo{ display:block; margin:0 auto 16px; height:auto; }
 .mcc-hero__title{
