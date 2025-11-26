@@ -3865,7 +3865,7 @@ html, body { font-family: var(--font-sans); }
 *, *::before, *::after { font-family: inherit; }
 
 
-.scroll-trigger.scroll-trigger--offscreen { opacity:0; transform: translateY(20px); }
+.scroll-trigger.scroll-trigger--offscreen { opacity:0; transform: translateY(40px); }
 .scroll-trigger { transition: opacity .4s ease, transform .4s ease; }
 
 

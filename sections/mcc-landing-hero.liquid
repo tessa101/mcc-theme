@@ -13,18 +13,18 @@
     {{ section.settings.image | image_url: width: 2400 | image_tag: class: 'mcc-hero__img', alt: section.settings.image.alt | escape }}
   {% endif %}
 
-  <div class="mcc-hero__overlay" >
+  <div class="mcc-hero__overlay" data-cascade>
     {% if section.settings.logo != blank %}
-      {{ section.settings.logo | image_url: width: 320 | image_tag: class: 'mcc-hero__logo', alt: section.settings.logo.alt | escape }}
+      {{ section.settings.logo | image_url: width: 320 | image_tag: class: 'mcc-hero__logo scroll-trigger animate--fade-in scroll-trigger--offscreen', alt: section.settings.logo.alt | escape }}
     {% endif %}
     {% if section.settings.heading != blank %}
-      <h1 class="mcc-hero__title">{{ section.settings.heading }}</h1>
+      <h1 class="mcc-hero__title scroll-trigger animate--fade-in scroll-trigger--offscreen">{{ section.settings.heading }}</h1>
     {% endif %}
     {% if section.settings.subheading != blank %}
-      <p class="mcc-hero__sub">{{ section.settings.subheading }}</p>
+      <p class="mcc-hero__sub scroll-trigger animate--fade-in scroll-trigger--offscreen">{{ section.settings.subheading }}</p>
     {% endif %}
     {% if section.settings.cta_label != blank and section.settings.cta_link != blank %}
-      <a class="mcc-hero__cta" href="{{ section.settings.cta_link }}">{{ section.settings.cta_label }}</a>
+      <a class="mcc-hero__cta scroll-trigger animate--fade-in scroll-trigger--offscreen" href="{{ section.settings.cta_link }}">{{ section.settings.cta_label }}</a>
     {% endif %}
   </div>
 </section>
@@ -61,6 +61,14 @@
 }
 .mcc-hero__sub{ font-size:clamp(16px,2.2vw,20px); opacity:.9; margin:8px 0 20px; }
 .mcc-hero__cta{ display:inline-block; padding:12px 20px; border-radius:999px; background:#fff; color:#111; text-decoration:none; font-weight:600; }
+
+/* Hero text animation - less travel distance with dramatic easing */
+.mcc-hero__overlay .scroll-trigger.scroll-trigger--offscreen {
+  transform: translateY(20px);
+}
+.mcc-hero__overlay .scroll-trigger {
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
 </style>
 
 

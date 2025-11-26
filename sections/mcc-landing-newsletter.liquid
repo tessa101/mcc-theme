@@ -1,17 +1,17 @@
 {% comment %} MCC Landing — Newsletter signup {% endcomment %}
  
 <section class="mcc-news" data-mcc-landing="newsletter">
-  <div class="mcc-news-wrapper">
+  <div class="mcc-news-wrapper" data-cascade>
     <div class="mcc-news-left">
-      {% if section.settings.title != blank %}<h1 class="mcc-news-title">{{ section.settings.title }}</h1>{% endif %}
-      {% if section.settings.subtitle != blank %}<p class="mcc-news-subtitle">{{ section.settings.subtitle }}</p>{% endif %}
+      {% if section.settings.title != blank %}<h1 class="mcc-news-title scroll-trigger animate--fade-in scroll-trigger--offscreen">{{ section.settings.title }}</h1>{% endif %}
+      {% if section.settings.subtitle != blank %}<p class="mcc-news-subtitle scroll-trigger animate--fade-in scroll-trigger--offscreen">{{ section.settings.subtitle }}</p>{% endif %}
     </div>
 
     <div class="mcc-news-right">
       {%- form 'customer', id: 'ContactNewsletter', class: 'mcc-news-form' -%}
         <input type="hidden" name="contact[tags]" value="newsletter">
         <label class="sr-only" for="NewsletterEmail">Email</label>
-        <div class="mcc-news-form-row">
+        <div class="mcc-news-form-row scroll-trigger animate--fade-in scroll-trigger--offscreen">
           <input 
             id="NewsletterEmail" 
             type="email" 
@@ -31,7 +31,7 @@
           </p>
         {% endif %}
       {%- endform -%}
-      <p class="mcc-news-disclaimer">{{ section.settings.disclaimer | default: 'By entering your email address, you agree to receive future communications from Malibu Coffee Company.' }}</p>
+      <p class="mcc-news-disclaimer scroll-trigger animate--fade-in scroll-trigger--offscreen">{{ section.settings.disclaimer | default: 'By entering your email address, you agree to receive future communications from Malibu Coffee Company.' }}</p>
     </div>
   </div>
 </section>
@@ -199,6 +199,28 @@
   }
 }
 </style>
+
+<script>
+// Clear newsletter success message on page load/refresh
+(function() {
+  // Remove query parameters that cause form success to persist
+  if (window.location.search.includes('customer_posted') || 
+      window.location.search.includes('form_type') ||
+      window.location.search.includes('contact_posted')) {
+    const url = new URL(window.location);
+    url.searchParams.delete('customer_posted');
+    url.searchParams.delete('form_type');
+    url.searchParams.delete('contact_posted');
+    window.history.replaceState({}, '', url);
+  }
+  
+  // Hide success message if it exists (in case it's still rendered)
+  const successMsg = document.querySelector('.mcc-news-success');
+  if (successMsg) {
+    successMsg.style.display = 'none';
+  }
+})();
+</script>
 
 {% schema %}
 {

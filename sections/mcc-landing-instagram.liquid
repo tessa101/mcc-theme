@@ -9,11 +9,11 @@
   {% endif %}
 
   {% if section.blocks.size > 0 %}
-    <ul class="mi-grid">
+    <ul class="mi-grid" data-cascade>
       {% for block in section.blocks limit: section.settings.limit %}
         {% assign url = block.settings.post_url %}
         {% assign thumb = block.settings.thumbnail %}
-        <li class="mi-item">
+        <li class="mi-item scroll-trigger animate--fade-in scroll-trigger--offscreen">
           <a href="{{ url }}" target="_blank" rel="noopener">
             {% if thumb != blank %}
               {{ thumb | image_url: width: 720 | image_tag: class: 'mi-img', alt: 'Instagram post' }}
@@ -36,10 +36,10 @@
 {%- endfor -%}
 
 {%- unless rendered_app -%}
-  <ul class="mi-grid" role="list" {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}>
+  <ul class="mi-grid" role="list" data-cascade {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}>
     {%- for block in section.blocks -%}
       {%- if block.type == 'post' -%}
-        <li class="mi-item" {{ block.shopify_attributes }}>
+        <li class="mi-item scroll-trigger animate--fade-in scroll-trigger--offscreen" {{ block.shopify_attributes }}>
           <a href="{{ block.settings.post_url }}" target="_blank" rel="noopener nofollow">
             {%- if block.settings.thumbnail != blank -%}
               {{ block.settings.thumbnail | image_url: width: 640 | image_tag:
