@@ -1,0 +1,17 @@
+{% comment %}
+MCC Product Content - Description Section Block
+{% endcomment %}
+
+<section class="coffee-accordion content-section" data-accordion data-acc="desc" data-stagger="rows" {{ block.shopify_attributes }}>
+  <header class="coffee-acc-header">
+    <h2 class="coffee-acc-title desc-title">How it's made</h2>
+    <button class="coffee-acc-trigger" type="button"
+            aria-controls="acc-desc-{{ section.id }}" aria-expanded="true">
+      <span class="sr-only">Toggle Description</span>
+    </button>
+  </header>
+  <div id="acc-desc-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+    {% render 'mcc-description', product: product %}
+  </div>
+</section>
+

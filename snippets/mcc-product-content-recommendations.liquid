@@ -1,0 +1,48 @@
+{% comment %}
+MCC Product Content - Recommendations Section Block
+{% endcomment %}
+
+<div class="content-section coffee-recs" id="recommendations-{{ section.id }}" {{ block.shopify_attributes }}>
+  {%- assign beans_col    = collections['beans'] -%}
+  {%- assign merch_col    = collections['merch'] -%}
+  {%- assign coldbrew_col = collections['cold-brew'] | default: collections['coldbrew'] -%}
+  {%- assign product_col_handles = product.collections | map: 'handle' | join: ',' | downcase -%}
+
+  {%- assign target_collection = nil -%}
+  {%- if product_col_handles contains 'beans' and beans_col and beans_col.products_count > 1 -%}
+    {%- assign target_collection = beans_col -%}
+  {%- elsif product_col_handles contains 'merch' and merch_col and merch_col.products_count > 1 -%}
+    {%- assign target_collection = merch_col -%}
+  {%- elsif product_col_handles contains 'cold-brew' and coldbrew_col and coldbrew_col.products_count > 1 -%}
+    {%- assign target_collection = coldbrew_col -%}
+  {%- endif -%}
+
+  {%- if target_collection == nil -%}
+    {%- if beans_col and beans_col.products_count > 1 -%}
+      {%- assign target_collection = beans_col -%}
+    {%- elsif merch_col and merch_col.products_count > 1 -%}
+      {%- assign target_collection = merch_col -%}
+    {%- elsif coldbrew_col and coldbrew_col.products_count > 1 -%}
+      {%- assign target_collection = coldbrew_col -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- assign rec_products = '' -%}
+  {%- if target_collection and target_collection.products -%}
+    {%- assign rec_products = target_collection.products -%}
+  {%- elsif collections['all'] and collections['all'].products_count > 1 -%}
+    {%- assign rec_products = collections['all'].products -%}
+  {%- endif -%}
+
+  {%- if rec_products != blank -%}
+    {% assign see_more = product.collections.first.url | default: '/collections/all' %}
+    {% render 'mcc-recommended-products',
+      product: product,
+      products: rec_products,
+      title: 'You might also like',
+      limit: 6,
+      see_more_url: see_more
+    %}
+  {%- endif -%}
+</div>
+

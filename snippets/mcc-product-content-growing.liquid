@@ -1,0 +1,17 @@
+{% comment %}
+MCC Product Content - Growing Details Section Block
+{% endcomment %}
+
+<section class="coffee-accordion content-section" data-accordion data-acc="growing" data-stagger="rows" {{ block.shopify_attributes }}>
+  <header class="coffee-acc-header">
+    <h2 class="coffee-acc-title growing-title">Growing details</h2>
+    <button class="coffee-acc-trigger" type="button"
+            aria-controls="acc-growing-{{ section.id }}" aria-expanded="true">
+      <span class="sr-only">Toggle Growing details</span>
+    </button>
+  </header>
+  <div id="acc-growing-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+    {% render 'mcc-growing-details', product: product %}
+  </div>
+</section>
+

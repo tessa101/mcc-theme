@@ -1,0 +1,17 @@
+{% comment %}
+MCC Product Content - Flavor Profile Section Block
+{% endcomment %}
+
+<section class="coffee-accordion content-section" data-accordion data-acc="flavor" data-stagger="rows" {{ block.shopify_attributes }}>
+  <header class="coffee-acc-header">
+    <h2 class="coffee-acc-title flavor-title">Flavor profile</h2>
+    <button class="coffee-acc-trigger" type="button"
+            aria-controls="acc-flavor-{{ section.id }}" aria-expanded="true">
+      <span class="sr-only">Toggle Flavor profile</span>
+    </button>
+  </header>
+  <div id="acc-flavor-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+    {% render 'mcc-flavor-profiles', product: product %}
+  </div>
+</section>
+

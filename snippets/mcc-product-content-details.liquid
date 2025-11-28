@@ -1,0 +1,81 @@
+{% comment %}
+MCC Product Content - Details Section Block
+{% endcomment %}
+
+{%- comment -%} Detect product type {%- endcomment -%}
+{% render 'mcc-product-type-detection', product: product %}
+
+{%- liquid
+  assign mf = product.metafields
+-%}
+
+<section class="coffee-accordion content-section details-section" data-accordion data-acc="details" data-stagger="rows" {{ block.shopify_attributes }}>
+  <header class="coffee-acc-header">
+    <h2 class="coffee-acc-title details-title">Details</h2>
+    <button class="coffee-acc-trigger" type="button"
+            aria-controls="acc-details-{{ section.id }}" aria-expanded="true">
+      <span class="sr-only">Toggle Details</span>
+    </button>
+  </header>
+
+  <div id="acc-details-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
+    <div class="details-grid">
+      <!-- Col 1 -->
+      <div class="details-col">
+        <div class="kv-row">
+          <div class="kv-label">Varietal:</div>
+          <div class="kv-value">
+            {{ mf.custom.varietal | default: '—' }}
+          </div>
+        </div>
+
+        <!-- Roast meter -->
+        <div class="kv-row kv-row--roast">
+          <div class="kv-label only-desktop">{% render 'mcc-bean-meter', product: product, mode: 'label' %}:</div>
+          <div class="kv-value only-desktop">{% render 'mcc-bean-meter', product: product, mode: 'beans' %}</div>
+          <div class="kv-label only-mobile">{% render 'mcc-bean-meter', product: product, mode: 'label' %}:</div>
+          <div class="kv-value only-mobile">{% render 'mcc-bean-meter', product: product, mode: 'beans' %}</div>
+        </div>
+      </div>
+
+      <!-- Col 2 -->
+      <div class="details-col">
+        <div class="kv-row">
+          <div class="kv-label">End temperature:</div>
+          <div class="kv-value">{{ mf.custom.end_temp | default: '—' }}</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-label">Grade:</div>
+          <div class="kv-value">{{ mf.custom.grade | default: '—' }}</div>
+        </div>
+      </div>
+
+      <!-- Col 3 -->
+      <div class="details-col">
+        {%- assign dev_raw = mf.custom.development_percentage -%}
+        {%- assign dev_val = dev_raw.value | default: dev_raw | strip -%}
+        <div class="kv-row">
+          <div class="kv-label">Development %:</div>
+          <div class="kv-value">
+            {%- if dev_val != blank -%}
+              {%- if dev_val contains '%' -%}{{ dev_val }}{%- else -%}{{ dev_val }}%{%- endif -%}
+            {%- else -%}—{%- endif -%}
+          </div>
+        </div>
+
+        {%- assign processing_raw = mf.custom.processing
+          | default: mf.custom.processing_method
+          | default: mf.custom.process
+          | default: mf.coffee.processing
+          | default: mf.coffee.processing_method
+          | default: mf.coffee.process -%}
+        {%- assign processing = processing_raw.value | default: processing_raw -%}
+        <div class="kv-row">
+          <div class="kv-label">Processing:</div>
+          <div class="kv-value">{{ processing | default: '—' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
