@@ -140,15 +140,13 @@ cursor: pointer !important;
 .gallery-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 4fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 2px;
   width: 100%;
   position: relative;
-  /* Use aspect-ratio to scale with container width, maintaining proportions */
-  /* The grid-template-rows (4fr 1fr) will maintain proportions within the aspect-ratio height */
-  aspect-ratio: 1.6 / 1;
+  height: 80vh;
+  max-height: 1200px;
   min-height: 400px;
-  max-height: 1000px;
 }
 
 .gallery-main {
