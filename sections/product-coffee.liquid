@@ -349,6 +349,39 @@ header.header,
 .coffee-acc-panel .description-section h3 { display: none !important; }
 </style>
 
+<!-- === Coffee PDP: Left Blocks Scroll Animation (matching gallery) === -->
+<style id="coffee-blocks-scroll-animation">
+/* Initial hidden state for all content blocks (matching gallery exactly) */
+.product-sections .coffee-accordion {
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+}
+
+/* Visible state when scrolled into view (matching gallery exactly) */
+.product-sections .coffee-accordion.is-inview {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* First block is immediately visible (matching gallery exactly) */
+.product-sections .coffee-accordion:first-child {
+  opacity: 1 !important;
+  transform: none !important;
+  transition-delay: 0ms !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .product-sections .coffee-accordion {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
 {%- comment -%} Recharge UI tweaks (unchanged) {%- endcomment -%}
 <style id="recharge-tweaks">
   recharge-subscription-widget[data-hide-badge]::part(rc-purchase-option__badge) { display: none !important; }
@@ -585,6 +618,63 @@ document.addEventListener('DOMContentLoaded', function() {
         panel.style.height = h + 'px';
       }
     });
+  });
+})();
+</script>
+
+<!-- === Coffee PDP: Left Blocks Scroll Animation (matching gallery) === -->
+<script>
+/* ===== Coffee Left Blocks — fade-up on scroll (matching gallery exactly) ===== */
+(function() {
+  function initBlocksScrollAnimation() {
+    const productSections = document.querySelector('.product-sections');
+    if (!productSections || productSections.__mccBlocksInited) return;
+    productSections.__mccBlocksInited = true;
+
+    const blocks = Array.from(productSections.querySelectorAll('.coffee-accordion'));
+    if (blocks.length === 0) return;
+
+    // IntersectionObserver for scroll-triggered animations (exact match to gallery)
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-inview');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    // Set up blocks exactly like gallery: first gets is-inview immediately, rest are observed
+    blocks.forEach((el, i) => {
+      if (i === 0) {
+        // First block is immediately visible
+        el.classList.add('is-inview');
+      } else {
+        // Observe subsequent blocks for scroll animation
+        io.observe(el);
+      }
+    });
+  }
+
+  // Run immediately and on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBlocksScrollAnimation);
+  } else {
+    // DOM already ready, run immediately
+    setTimeout(initBlocksScrollAnimation, 0);
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetSections = e.target.querySelector('.product-sections') || 
+                          (e.target.closest && e.target.closest('.product-sections'));
+    if (targetSections) {
+      // Reset initialization flag if section reloaded
+      if (targetSections.__mccBlocksInited) {
+        targetSections.__mccBlocksInited = false;
+      }
+      initBlocksScrollAnimation();
+    }
   });
 })();
 </script>
