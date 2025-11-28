@@ -28,10 +28,85 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 
     <!-- Left: Gallery & Content -->
     <div class="product-main">
-      {% render 'mcc-product-gallery', product: product %}
-
-      {%- comment -%} LEFT COLUMN CONTENT (has .product-sections padding: 0 32px) {%- endcomment -%}
-      {% render 'mcc-product-content', product: product %}
+      {%- comment -%} LEFT RAIL BLOCKS: Gallery and Content Sections {%- endcomment -%}
+      {%- assign has_left_rail_blocks = false -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'gallery' or block.type == 'details' or block.type == 'description' or block.type == 'flavor_profile' or block.type == 'growing_details' or block.type == 'brewing_methods' or block.type == 'reviews' or block.type == 'recommendations' -%}
+          {%- assign has_left_rail_blocks = true -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+      
+      {%- if has_left_rail_blocks -%}
+        {%- assign content_sections_started = false -%}
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'gallery' -%}
+              {%- case block.settings.variant -%}
+                {%- when 'grid' -%}
+                  {% render 'mcc-product-gallery-grid', product: product, block: block, section: section %}
+                {%- when 'hero' -%}
+                  {% render 'mcc-product-gallery-hero', product: product, block: block, section: section %}
+                {%- when 'carousel' -%}
+                  {% render 'mcc-product-gallery-carousel', product: product, block: block, section: section %}
+                {%- else -%}
+                  {% render 'mcc-product-gallery-grid', product: product, block: block, section: section %}
+              {%- endcase -%}
+            {%- when 'details' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-details', product: product, block: block, section: section %}
+            {%- when 'description' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-description', product: product, block: block, section: section %}
+            {%- when 'flavor_profile' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-flavor', product: product, block: block, section: section %}
+            {%- when 'growing_details' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-growing', product: product, block: block, section: section %}
+            {%- when 'brewing_methods' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-brewing', product: product, block: block, section: section %}
+            {%- when 'reviews' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-reviews', product: product, block: block, section: section %}
+            {%- when 'recommendations' -%}
+              {%- unless content_sections_started -%}
+                <div class="product-sections">
+                {%- assign content_sections_started = true -%}
+              {%- endunless -%}
+              {% render 'mcc-product-content-recommendations', product: product, block: block, section: section %}
+          {%- endcase -%}
+        {%- endfor -%}
+        {%- if content_sections_started -%}
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        {%- comment -%} Fallback: render old hardcoded content if no blocks configured {%- endcomment -%}
+        {%- comment -%} This ensures content always shows even if blocks aren't set up yet {%- endcomment -%}
+        {% render 'mcc-product-gallery', product: product %}
+        <div class="product-sections">
+          {% render 'mcc-product-content', product: product %}
+        </div>
+      {%- endif -%}
     </div>
 
     <!-- Right: Product Info Sidebar -->
@@ -527,8 +602,125 @@ document.addEventListener('DOMContentLoaded', function() {
     { "type": "@app" },
 
     {
+      "type": "gallery",
+      "name": "Left: Product Gallery",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "variant",
+          "label": "Gallery variant",
+          "options": [
+            { "value": "grid", "label": "3-Image Grid" },
+            { "value": "hero", "label": "Single Hero Image" },
+            { "value": "carousel", "label": "Carousel/Slider" }
+          ],
+          "default": "grid"
+        },
+        {
+          "type": "paragraph",
+          "content": "Images are managed in the product's media section. Desktop uses the featured image, mobile uses the 4th image (if available)."
+        },
+        {
+          "type": "header",
+          "content": "Hero Image Settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_click_cycle",
+          "label": "Enable click to cycle through images",
+          "default": false,
+          "info": "Only applies to hero variant"
+        },
+        {
+          "type": "header",
+          "content": "Carousel Settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "label": "Enable autoplay",
+          "default": false,
+          "info": "Only applies to carousel variant"
+        },
+        {
+          "type": "range",
+          "id": "autoplay_speed",
+          "label": "Autoplay speed (seconds)",
+          "min": 3,
+          "max": 10,
+          "step": 1,
+          "default": 5,
+          "info": "Only applies to carousel variant"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_arrows",
+          "label": "Show navigation arrows",
+          "default": true,
+          "info": "Only applies to carousel variant"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_dots",
+          "label": "Show dot indicators",
+          "default": true,
+          "info": "Only applies to carousel variant"
+        }
+      ]
+    },
+
+    {
+      "type": "details",
+      "name": "Left: Details",
+      "limit": 1
+    },
+
+    {
+      "type": "description",
+      "name": "Left: Description",
+      "limit": 1
+    },
+
+    {
+      "type": "flavor_profile",
+      "name": "Left: Flavor Profile",
+      "limit": 1
+    },
+
+    {
+      "type": "growing_details",
+      "name": "Left: Growing Details",
+      "limit": 1
+    },
+
+    {
+      "type": "brewing_methods",
+      "name": "Left: Brewing Methods",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Only shows for coffee bean products, not cold brew"
+        }
+      ]
+    },
+
+    {
+      "type": "reviews",
+      "name": "Left: Reviews",
+      "limit": 1
+    },
+
+    {
+      "type": "recommendations",
+      "name": "Left: Recommendations",
+      "limit": 1
+    },
+
+    {
       "type": "reviews_badge",
-      "name": "Reviews badge (Judge.me)",
+      "name": "Right: Reviews Badge",
       "limit": 1,
       "settings": [
         { "type": "checkbox", "id": "show_label", "label": "Show link label", "default": false },
@@ -537,12 +729,12 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     },
 
-    { "type": "title", "name": "Product Title", "limit": 1 },
-    { "type": "price", "name": "Product Price", "limit": 1 },
+    { "type": "title", "name": "Right: Product Title", "limit": 1 },
+    { "type": "price", "name": "Right: Product Price", "limit": 1 },
 
     {
       "type": "coming_soon_description",
-      "name": "Product Descriptive",
+      "name": "Right: Description",
       "limit": 1,
       "settings": [
         {
@@ -554,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {
       "type": "available_stores",
-      "name": "Available Stores",
+      "name": "Right: Available Stores",
       "limit": 1,
       "settings": [
         { "type": "text", "id": "title", "label": "Title", "default": "AVAILABLE AT" },
@@ -568,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {
       "type": "coming_soon",
-      "name": "Coming Soon",
+      "name": "Right: Coming Soon",
       "limit": 1,
       "settings": [
         { "type": "text", "id": "title", "label": "Title", "default": "COMING SOON" },
@@ -576,22 +768,22 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     },
 
-    { "type": "variant_picker", "name": "Variant Picker", "limit": 1 },
+    { "type": "variant_picker", "name": "Right: Variant Picker", "limit": 1 },
 
     {
       "type": "quantity_selector",
-      "name": "Quantity Selector",
+      "name": "Right: Quantity",
       "limit": 1,
       "settings": [
         { "type": "text", "id": "quantity_label", "label": "Quantity Label", "default": "QUANTITY" }
       ]
     },
 
-    { "type": "buy_buttons", "name": "Buy Buttons", "limit": 1 },
+    { "type": "buy_buttons", "name": "Right: Buy Buttons", "limit": 1 },
 
     {
       "type": "wishlist",
-      "name": "Wishlist / Favorites",
+      "name": "Right: Wishlist",
       "limit": 1,
       "settings": [
         { "type": "text", "id": "label", "label": "Accessible label", "default": "Add to favorites" },
@@ -603,6 +795,14 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       "name": "product-coffee",
       "blocks": [
+        { "type": "gallery" },
+        { "type": "details" },
+        { "type": "description" },
+        { "type": "flavor_profile" },
+        { "type": "growing_details" },
+        { "type": "brewing_methods" },
+        { "type": "reviews" },
+        { "type": "recommendations" },
         { "type": "reviews_badge" },
         { "type": "variant_picker" },
         { "type": "quantity_selector" },

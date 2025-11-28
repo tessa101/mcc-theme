@@ -1,0 +1,58 @@
+{% comment %}
+MCC Product Gallery - 3-Image Grid Variant
+Main large image with 2 secondary thumbnails below
+{% endcomment %}
+
+{%- liquid
+  assign desktop_image = product.featured_media
+  assign mobile_image = product.media[3] | default: product.featured_media
+  assign all_images = product.media | where: 'media_type', 'image'
+-%}
+
+<div class="product-gallery">
+  {% if product.media.size > 0 %}
+    <div class="gallery-grid">
+      <!-- Main Image -->
+      <div class="gallery-main" onclick="MCC.switchMainImage('{{ desktop_image | image_url: width: 1200 }}', '{{ desktop_image.alt | escape }}')">
+        <img
+          id="main-product-image"
+          src="{{ desktop_image | image_url: width: 1200 }}"
+          alt="{{ desktop_image.alt | escape }}"
+          loading="eager"
+          width="1200"
+          height="800"
+        />
+      </div>
+
+      <!-- Secondary Images -->
+      <div class="gallery-secondary">
+        {% for image in all_images offset: 1 limit: 2 %}
+          <div class="gallery-thumb" onclick="MCC.switchMainImage('{{ image | image_url: width: 1200 }}', '{{ image.alt | escape }}')">
+            <img
+              src="{{ image | image_url: width: 600 }}"
+              alt="{{ image.alt | escape }}"
+              loading="lazy"
+              width="600"
+              height="400"
+            />
+          </div>
+        {% else %}
+          <div class="gallery-thumb gallery-placeholder">
+            <div class="placeholder-bg"></div>
+          </div>
+        {% endfor %}
+        
+        <!-- Fill remaining slots with placeholders if needed -->
+        {% assign remaining_slots = 2 | minus: all_images.size | plus: 1 %}
+        {% if remaining_slots > 0 %}
+          {% for i in (1..remaining_slots) %}
+            <div class="gallery-thumb gallery-placeholder">
+              <div class="placeholder-bg"></div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+

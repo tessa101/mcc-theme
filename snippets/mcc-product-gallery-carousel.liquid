@@ -1,0 +1,110 @@
+{% comment %}
+MCC Product Gallery - Carousel/Slider Variant
+Image carousel with navigation arrows and optional autoplay
+{% endcomment %}
+
+{%- liquid
+  assign all_images = product.media | where: 'media_type', 'image'
+  assign autoplay = block.settings.autoplay
+  assign autoplay_speed = block.settings.autoplay_speed | default: 5
+  assign show_dots = block.settings.show_dots | default: true
+  assign show_arrows = block.settings.show_arrows | default: true
+-%}
+
+{{ 'component-slider.css' | asset_url | stylesheet_tag }}
+
+<div class="product-gallery gallery-carousel" data-gallery-carousel="{{ section.id }}">
+  {% if all_images.size > 0 %}
+    <slider-component 
+      class="slider-mobile-gutter gallery-carousel-slider"
+      data-autoplay="{{ autoplay }}"
+      data-speed="{{ autoplay_speed }}"
+    >
+      {% if show_arrows and all_images.size > 1 %}
+        <button
+          type="button"
+          class="slider-button slider-button--prev gallery-carousel-prev"
+          name="previous"
+          aria-label="Previous image"
+          aria-controls="GalleryCarousel-{{ section.id }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-caret.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      {% endif %}
+
+      <ul
+        id="GalleryCarousel-{{ section.id }}"
+        class="product__media-list gallery-carousel-list slider slider--mobile"
+        role="list"
+      >
+        {% for image in all_images %}
+          <li
+            class="gallery-carousel-slide slider__slide{% if forloop.first %} is-active{% endif %}"
+            data-slide-index="{{ forloop.index0 }}"
+            role="listitem"
+          >
+            <div class="gallery-carousel-image">
+              {%- liquid
+                assign mobile_image = product.media[3] | default: product.featured_media
+                assign is_first_slide = forloop.first
+              -%}
+              {%- if is_first_slide and mobile_image != product.featured_media -%}
+                {%- assign use_mobile_image = true -%}
+              {%- else -%}
+                {%- assign use_mobile_image = false -%}
+              {%- endif -%}
+              <picture>
+                {% if use_mobile_image %}
+                  <source media="(max-width: 749px)" srcset="{{ mobile_image | image_url: width: 800 }}">
+                {% endif %}
+                <img
+                  src="{{ image | image_url: width: 1200 }}"
+                  alt="{{ image.alt | escape }}"
+                  loading="{% if is_first_slide %}eager{% else %}lazy{% endif %}"
+                  width="1200"
+                  height="800"
+                  {% if is_first_slide %}id="main-product-image"{% endif %}
+                />
+              </picture>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+
+      {% if show_arrows and all_images.size > 1 %}
+        <button
+          type="button"
+          class="slider-button slider-button--next gallery-carousel-next"
+          name="next"
+          aria-label="Next image"
+          aria-controls="GalleryCarousel-{{ section.id }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-caret.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      {% endif %}
+
+      {% if show_dots and all_images.size > 1 %}
+        <div class="gallery-carousel-dots" role="tablist">
+          {% for image in all_images %}
+            <button
+              type="button"
+              class="gallery-carousel-dot{% if forloop.first %} is-active{% endif %}"
+              aria-label="Go to slide {{ forloop.index }}"
+              data-slide-index="{{ forloop.index0 }}"
+              role="tab"
+            >
+              <span class="dot"></span>
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </slider-component>
+  {% endif %}
+</div>
+
+<script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script>
+

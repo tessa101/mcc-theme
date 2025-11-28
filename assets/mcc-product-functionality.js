@@ -351,6 +351,54 @@ window.MCCProduct = (function () {
       if (elements.mobileImage) { elements.mobileImage.src = src; elements.mobileImage.alt = alt || ''; }
     },
 
+    cycleHeroImage: function (event, sectionId) {
+      event.preventDefault();
+      event.stopPropagation();
+      const heroGallery = event.currentTarget.closest('[data-gallery-hero]');
+      if (!heroGallery) return;
+      
+      const dataEl = heroGallery.querySelector(`[data-hero-images="${sectionId}"]`);
+      if (!dataEl) return;
+      
+      try {
+        const images = JSON.parse(dataEl.textContent);
+        if (images.length <= 1) return;
+        
+        const imgEl = heroGallery.querySelector('img[data-hero-index]');
+        if (!imgEl) return;
+        
+        const currentIndex = parseInt(imgEl.getAttribute('data-hero-index') || '0', 10);
+        const nextIndex = (currentIndex + 1) % images.length;
+        const nextImage = images[nextIndex];
+        
+        // Update image
+        const isMobile = window.matchMedia('(max-width: 749px)').matches;
+        imgEl.src = isMobile && nextImage.mobile_src ? nextImage.mobile_src : nextImage.src;
+        imgEl.alt = nextImage.alt || '';
+        imgEl.setAttribute('data-hero-index', nextIndex);
+        
+        // Update picture source if exists
+        const picture = imgEl.closest('picture');
+        if (picture) {
+          const source = picture.querySelector('source');
+          if (source && nextImage.mobile_src) {
+            source.srcset = nextImage.mobile_src;
+          }
+        }
+        
+        // Update indicator
+        const indicator = heroGallery.querySelector('[data-hero-indicator]');
+        if (indicator) {
+          const currentSpan = indicator.querySelector('[data-hero-current]');
+          if (currentSpan) {
+            currentSpan.textContent = nextIndex + 1;
+          }
+        }
+      } catch (e) {
+        console.error('[MCC] Error cycling hero image:', e);
+      }
+    },
+
     getState: function () { return JSON.parse(JSON.stringify(state)); }
   };
 })();
