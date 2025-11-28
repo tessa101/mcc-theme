@@ -49,6 +49,8 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
                   {% render 'mcc-product-gallery-hero', product: product, block: block, section: section %}
                 {%- when 'carousel' -%}
                   {% render 'mcc-product-gallery-carousel', product: product, block: block, section: section %}
+                {%- when 'vertical' -%}
+                  {% render 'mcc-product-gallery-vertical', product: product, block: block, section: section %}
                 {%- else -%}
                   {% render 'mcc-product-gallery-grid', product: product, block: block, section: section %}
               {%- endcase -%}
@@ -613,7 +615,8 @@ document.addEventListener('DOMContentLoaded', function() {
           "options": [
             { "value": "grid", "label": "3-Image Grid" },
             { "value": "hero", "label": "Single Hero Image" },
-            { "value": "carousel", "label": "Carousel/Slider" }
+            { "value": "carousel", "label": "Carousel/Slider" },
+            { "value": "vertical", "label": "Vertical Gallery" }
           ],
           "default": "grid"
         },

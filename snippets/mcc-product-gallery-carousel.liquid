@@ -13,6 +13,53 @@ Image carousel with navigation arrows and optional autoplay
 
 {{ 'component-slider.css' | asset_url | stylesheet_tag }}
 
+<style>
+/* Force horizontal carousel display */
+#GalleryCarousel-{{ section.id }},
+.gallery-carousel-list,
+ul.gallery-carousel-list,
+ul[id^="GalleryCarousel-"] {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  width: 100% !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.gallery-carousel-slide,
+.gallery-carousel-slide.slider__slide {
+  flex: 0 0 100% !important;
+  flex-shrink: 0 !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  scroll-snap-align: start !important;
+  box-sizing: border-box !important;
+}
+
+.gallery-carousel-image {
+  width: 100%;
+  aspect-ratio: 1.6 / 1;
+  overflow: hidden;
+}
+
+.gallery-carousel-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+</style>
+
 <div class="product-gallery gallery-carousel" data-gallery-carousel="{{ section.id }}">
   {% if all_images.size > 0 %}
     <slider-component 
@@ -105,6 +152,155 @@ Image carousel with navigation arrows and optional autoplay
     </slider-component>
   {% endif %}
 </div>
+
+<script>
+(function() {
+  const carouselId = 'GalleryCarousel-{{ section.id }}';
+  const carousel = document.getElementById(carouselId);
+  if (!carousel) return;
+
+  const carouselContainer = carousel.closest('.gallery-carousel');
+  const sliderComponent = carousel.closest('slider-component');
+  const slides = carousel.querySelectorAll('.gallery-carousel-slide');
+  const dots = sliderComponent ? Array.from(sliderComponent.querySelectorAll('.gallery-carousel-dot')) : 
+            (carouselContainer ? Array.from(carouselContainer.querySelectorAll('.gallery-carousel-dot')) : []);
+  const prevBtn = sliderComponent ? sliderComponent.querySelector('.gallery-carousel-prev') : 
+                  (carouselContainer ? carouselContainer.querySelector('.gallery-carousel-prev') : null);
+  const nextBtn = sliderComponent ? sliderComponent.querySelector('.gallery-carousel-next') : 
+                  (carouselContainer ? carouselContainer.querySelector('.gallery-carousel-next') : null);
+
+  if (slides.length <= 1) return;
+
+  let currentIndex = 0;
+  let autoplayTimer = null;
+  const autoplayEnabled = sliderComponent && sliderComponent.getAttribute('data-autoplay') === 'true';
+  const autoplaySpeed = sliderComponent ? parseInt(sliderComponent.getAttribute('data-speed') || '5') * 1000 : 5000;
+
+  function goToSlide(index) {
+    if (index < 0) index = 0;
+    if (index >= slides.length) index = slides.length - 1;
+    currentIndex = index;
+
+    const slide = slides[index];
+    if (slide) {
+      carousel.scrollTo({
+        left: slide.offsetLeft,
+        behavior: 'smooth'
+      });
+    }
+    updateDots();
+    updateButtons();
+    resetAutoplay();
+  }
+
+  function updateDots() {
+    dots.forEach((dot, i) => {
+      const slideIndex = parseInt(dot.getAttribute('data-slide-index') || i);
+      if (slideIndex === currentIndex) {
+        dot.classList.add('is-active');
+        dot.setAttribute('aria-current', 'true');
+      } else {
+        dot.classList.remove('is-active');
+        dot.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  function updateButtons() {
+    if (prevBtn) {
+      prevBtn.disabled = currentIndex === 0;
+      if (currentIndex === 0) {
+        prevBtn.setAttribute('disabled', 'disabled');
+      } else {
+        prevBtn.removeAttribute('disabled');
+      }
+    }
+    if (nextBtn) {
+      if (currentIndex === slides.length - 1) {
+        nextBtn.setAttribute('disabled', 'disabled');
+      } else {
+        nextBtn.removeAttribute('disabled');
+      }
+    }
+  }
+
+  function startAutoplay() {
+    if (!autoplayEnabled) return;
+    stopAutoplay();
+    autoplayTimer = setInterval(() => {
+      if (currentIndex < slides.length - 1) {
+        goToSlide(currentIndex + 1);
+      } else {
+        goToSlide(0); // Loop back to start
+      }
+    }, autoplaySpeed);
+  }
+
+  function stopAutoplay() {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
+    }
+  }
+
+  function resetAutoplay() {
+    if (autoplayEnabled) {
+      stopAutoplay();
+      startAutoplay();
+    }
+  }
+
+  // Arrow button handlers
+  if (prevBtn) {
+    prevBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToSlide(currentIndex - 1);
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToSlide(currentIndex + 1);
+    });
+  }
+
+  // Dot navigation handlers
+  dots.forEach(dot => {
+    dot.addEventListener('click', (e) => {
+      e.preventDefault();
+      const slideIndex = parseInt(dot.getAttribute('data-slide-index'));
+      goToSlide(slideIndex);
+    });
+  });
+
+  // Scroll handler to update active dot
+  let scrollTimeout;
+  carousel.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const scrollLeft = carousel.scrollLeft;
+      const containerWidth = carousel.clientWidth;
+      const newIndex = Math.round(scrollLeft / containerWidth);
+      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < slides.length) {
+        currentIndex = newIndex;
+        updateDots();
+        updateButtons();
+        resetAutoplay();
+      }
+    }, 100);
+  });
+
+  // Pause autoplay on hover
+  if (carouselContainer) {
+    carouselContainer.addEventListener('mouseenter', stopAutoplay);
+    carouselContainer.addEventListener('mouseleave', startAutoplay);
+  }
+
+  // Initial setup
+  goToSlide(0);
+  startAutoplay();
+})();
+</script>
 
 <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script>
 
