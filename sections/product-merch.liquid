@@ -96,6 +96,47 @@ MCC Merch Product Detail Page — v1 (safe starter)
 <script src="{{ 'mcc-product-functionality.js' | asset_url }}" defer></script>
 {{ 'mcc-product-styles.css' | asset_url | stylesheet_tag }}
 
+<!-- === Merch PDP: Left Blocks Scroll Animation (matching coffee/gallery) === -->
+<style id="merch-blocks-scroll-animation">
+/* Initial hidden state for all content blocks (matching coffee/gallery exactly) */
+.product-merch .product-sections .mcc-merch-description,
+.product-merch .product-sections .mcc-merch-details,
+.product-merch .product-sections .coffee-accordion,
+.product-merch .product-sections .content-section.coffee-recs {
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+}
+
+/* Visible state when scrolled into view (matching coffee/gallery exactly) */
+.product-merch .product-sections .mcc-merch-description.is-inview,
+.product-merch .product-sections .mcc-merch-details.is-inview,
+.product-merch .product-sections .coffee-accordion.is-inview,
+.product-merch .product-sections .content-section.coffee-recs.is-inview {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* First block is immediately visible (matching coffee/gallery exactly) */
+.product-merch .product-sections > *:first-child {
+  opacity: 1 !important;
+  transform: none !important;
+  transition-delay: 0ms !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .product-merch .product-sections .mcc-merch-description,
+  .product-merch .product-sections .mcc-merch-details,
+  .product-merch .product-sections .coffee-accordion,
+  .product-merch .product-sections .content-section.coffee-recs {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+</style>
 
 {% render 'mcc-merch-gallery-driver' %}
 
@@ -236,5 +277,72 @@ You can prune/add blocks later (e.g., size chart, features) without breaking lay
   root.querySelectorAll('input[name="selling_plan"]').forEach(el => el.addEventListener('change', () => setTimeout(update,0)));
 
   update();
+})();
+</script>
+
+<!-- === Merch PDP: Left Blocks Scroll Animation (matching coffee/gallery) === -->
+<script>
+/* ===== Merch Left Blocks — fade-up on scroll (matching coffee/gallery exactly) ===== */
+(function() {
+  function initMerchBlocksScrollAnimation() {
+    const productMerch = document.querySelector('.product-merch[data-section="{{ section.id }}"]');
+    if (!productMerch) return;
+    
+    const productSections = productMerch.querySelector('.product-sections');
+    if (!productSections || productSections.__mccMerchBlocksInited) return;
+    productSections.__mccMerchBlocksInited = true;
+
+    // Select all left rail sections
+    const sections = Array.from(productSections.querySelectorAll(
+      '.mcc-merch-description, .mcc-merch-details, .coffee-accordion, .content-section.coffee-recs'
+    ));
+    
+    if (sections.length === 0) return;
+
+    // IntersectionObserver for scroll-triggered animations (exact match to coffee/gallery)
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-inview');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    // Set up sections exactly like coffee/gallery: first gets is-inview immediately, rest are observed
+    sections.forEach((el, i) => {
+      if (i === 0) {
+        // First section is immediately visible
+        el.classList.add('is-inview');
+      } else {
+        // Observe subsequent sections for scroll animation
+        io.observe(el);
+      }
+    });
+  }
+
+  // Run immediately and on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMerchBlocksScrollAnimation);
+  } else {
+    // DOM already ready, run immediately
+    setTimeout(initMerchBlocksScrollAnimation, 0);
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetMerch = e.target.querySelector('.product-merch[data-section="{{ section.id }}"]') || 
+                        (e.target.closest && e.target.closest('.product-merch[data-section="{{ section.id }}"]'));
+    if (targetMerch) {
+      const targetSections = targetMerch.querySelector('.product-sections');
+      if (targetSections) {
+        // Reset initialization flag if section reloaded
+        if (targetSections.__mccMerchBlocksInited) {
+          targetSections.__mccMerchBlocksInited = false;
+        }
+        initMerchBlocksScrollAnimation();
+      }
+    }
+  });
 })();
 </script>
