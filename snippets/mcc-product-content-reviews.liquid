@@ -11,9 +11,9 @@ MCC Product Content - Reviews Section Block
     </button>
   </header>
   <div id="acc-reviews-{{ section.id }}" class="coffee-acc-panel mcc-anim" data-acc-panel>
-    <div class="pdp-module pdp-reviews" id="reviews-{{ section.id }}" data-mcc-reviews>
+    <div class="pdp-module pdp-reviews" id="reviews" data-mcc-reviews>
       <p class="mcc-reviews-empty-state" style="display: none;">No reviews yet</p>
-      <div id="judgeme_product_reviews-{{ section.id }}"
+      <div id="judgeme_product_reviews"
            class="jdgm-widget jdgm-review-widget"
            data-product-title="{{ product.title | escape }}"
            data-id="{{ product.id }}">
@@ -23,17 +23,20 @@ MCC Product Content - Reviews Section Block
   </div>
 </section>
 
+<!-- Load the reviews module -->
+<script defer src="{{ 'mcc-reviews.js' | asset_url }}"></script>
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     window.MCC && MCC.Reviews && MCC.Reviews.init({
-      hostSel: '#reviews-{{ section.id }}.pdp-reviews'
+      hostSel: '#reviews.pdp-reviews'
     });
   });
 </script>
 
 <script>
 (function() {
-  const host = document.querySelector('#reviews-{{ section.id }}.pdp-reviews');
+  const host = document.querySelector('#reviews.pdp-reviews');
   if (!host) return;
 
   const LIST_SEL = '.jdgm-rev-widg__reviews';

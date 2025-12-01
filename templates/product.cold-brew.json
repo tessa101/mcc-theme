@@ -12,6 +12,36 @@
     "product_coffee": {
       "type": "product-coffee",
       "blocks": {
+        "gallery": {
+          "type": "gallery",
+          "settings": {
+            "variant": "grid"
+          }
+        },
+        "details": {
+          "type": "details",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        },
+        "flavor_profile": {
+          "type": "flavor_profile",
+          "settings": {}
+        },
+        "growing_details": {
+          "type": "growing_details",
+          "settings": {}
+        },
+        "reviews": {
+          "type": "reviews",
+          "settings": {}
+        },
+        "recommendations": {
+          "type": "recommendations",
+          "settings": {}
+        },
         "title": {
           "type": "title",
           "settings": {}
@@ -55,6 +85,13 @@
         }
       },
       "block_order": [
+        "gallery",
+        "details",
+        "description",
+        "flavor_profile",
+        "growing_details",
+        "reviews",
+        "recommendations",
         "title",
         "reviews_badge_custom",
         "price",
