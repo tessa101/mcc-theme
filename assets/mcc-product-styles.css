@@ -447,6 +447,20 @@ cursor: pointer !important;
     align-items: start;
   }
 
+  /* Override for coffee/cold brew layout: responsive grid that adapts to container width */
+  .layout-coffee .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(auto-fit, 190px);
+    gap: 16px;
+    justify-content: start;
+  }
+  
+  /* Ensure cards have no margins that could add extra spacing */
+  .layout-coffee .flavor-profiles .flavor-card {
+    margin: 0;
+    box-sizing: border-box;
+    width: 190px;
+  }
+
   .flavor-profiles .flavor-card {
     width: var(--card-w-desktop);
     height: var(--card-h-desktop);
@@ -462,6 +476,32 @@ cursor: pointer !important;
   .flavor-profiles .flavor-title {
     font-size: clamp(18px, 1.2vw + 14px, 22px);
     margin-bottom: 14px;
+  }
+}
+
+/* Responsive column adjustments for coffee/cold brew layout at different container widths */
+@media (min-width: 1400px) {
+  .layout-coffee .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(auto-fit, 190px);
+  }
+  .layout-coffee .flavor-profiles .flavor-card {
+    width: 190px;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .layout-coffee .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(auto-fit, 180px);
+  }
+  .layout-coffee .flavor-profiles .flavor-card {
+    width: 180px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .layout-coffee .flavor-profiles .flavor-grid {
+    grid-template-columns: repeat(auto-fit, 170px);
+  }
+  .layout-coffee .flavor-profiles .flavor-card {
+    width: 170px;
   }
 }
 
