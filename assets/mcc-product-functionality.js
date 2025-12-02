@@ -646,3 +646,296 @@ window.MCC = window.MCCProduct;
   mo.observe(document.documentElement, { childList: true, subtree: true });
 })();
 
+/* ===== MCC — Sticky Sidebar Constraint (Desktop Only) ===== */
+(function initStickySidebar() {
+  // Wait for DOM to be ready
+  function tryInit() {
+    const sidebarContent = document.querySelector('.product-sidebar .sidebar-content');
+    const productContainer = document.querySelector('.product-container');
+    
+    if (!sidebarContent || !productContainer) {
+      // Retry after a short delay in case elements aren't ready yet
+      setTimeout(tryInit, 100);
+      return;
+    }
+
+    // Only apply on desktop
+    const mediaQuery = window.matchMedia('(min-width: 769px)');
+    if (!mediaQuery.matches) return;
+
+    let rafId = null;
+
+    function getHeaderHeight() {
+      // First try CSS variable (most reliable)
+      const cssVar = getComputedStyle(document.documentElement).getPropertyValue('--mcc-header-h').trim();
+      if (cssVar && cssVar !== '0px' && cssVar !== '') {
+        const parsed = parseInt(cssVar, 10);
+        if (parsed > 0) return parsed;
+      }
+      
+      // Fallback: calculate directly from header element
+      // Try both selectors (shopify-section-header is what sets the CSS var)
+      const header = document.querySelector('.shopify-section-header') || document.querySelector('.section-header');
+      if (header) {
+        const height = Math.round(header.getBoundingClientRect().height);
+        if (height > 0) return height;
+      }
+      
+      // Last resort: return a reasonable default
+      return 100; // Default header height fallback
+    }
+
+    function updateStickyState() {
+      // Cancel any pending RAF
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+
+      rafId = requestAnimationFrame(() => {
+        const headerHeight = getHeaderHeight();
+        const containerRect = productContainer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        // Calculate the top offset (header height + 20px buffer)
+        const stickyTop = headerHeight + 20;
+        
+        // Get the natural height of the sidebar BEFORE any constraints are applied
+        // Use scrollHeight which gives us the full content height regardless of max-height constraints
+        // This avoids layout shifts from temporarily changing styles
+        const sidebarNaturalHeight = sidebarContent.scrollHeight;
+        
+        // Now get the current rect for positioning calculations
+        const sidebarRect = sidebarContent.getBoundingClientRect();
+        
+        // DEBUG: Log key values (remove after debugging)
+        if (window.DEBUG_STICKY_SIDEBAR) {
+          console.log('=== Sticky Sidebar Debug ===');
+          console.log('containerTop:', containerRect.top);
+          console.log('containerBottom:', containerRect.bottom);
+          console.log('viewportHeight:', viewportHeight);
+          console.log('stickyTop:', stickyTop);
+          console.log('sidebarNaturalHeight:', sidebarNaturalHeight);
+          console.log('sidebarCurrentHeight:', sidebarRect.height);
+        }
+
+        // Get container boundaries
+        const containerTop = containerRect.top;
+        const containerBottom = containerRect.bottom;
+        const containerLeft = containerRect.left;
+        const containerWidth = containerRect.width;
+        const sidebarHeight = sidebarNaturalHeight; // Use natural height for calculations
+        const footerBuffer = 40; // Space to leave above footer
+
+        // Determine positioning strategy:
+        // 1. If container is completely off-screen (containerBottom < stickyTop), hide sidebar
+        // 2. If container bottom is too high (approaching footer), use fixed with bottom constraint
+        // 3. If container top is above sticky position (container scrolling off top), use fixed to keep sidebar visible
+        // 4. Otherwise, use sticky for smooth native behavior
+        
+        const containerScrolledOffTop = containerTop < stickyTop;
+        const containerCompletelyOffScreen = containerBottom < stickyTop;
+        
+        // Calculate if sidebar would extend past available space (footer constraint)
+        // Use viewport-relative calculation for better accuracy (Step 4: Refine condition logic)
+        const viewportBottom = viewportHeight;
+        const containerBottomRelativeToViewport = containerBottom;
+        const sidebarBottomIfSticky = stickyTop + sidebarHeight;
+        
+        // The sidebar should be constrained when it would extend past:
+        // - The container bottom (container ending)
+        // - The viewport bottom (footer area)
+        // Use whichever is more restrictive (smaller)
+        const maxAvailableBottom = Math.min(containerBottomRelativeToViewport, viewportBottom);
+        const availableSpaceForSidebar = maxAvailableBottom - footerBuffer - stickyTop;
+        
+        // Sidebar needs to be pushed up if its bottom (when at stickyTop) would exceed available bottom
+        const containerBottomTooHigh = sidebarBottomIfSticky > (maxAvailableBottom - footerBuffer);
+        
+        // DEBUG: Log constraint calculations
+        if (window.DEBUG_STICKY_SIDEBAR) {
+          console.log('availableSpaceForSidebar:', availableSpaceForSidebar);
+          console.log('containerBottomTooHigh:', containerBottomTooHigh);
+          console.log('containerScrolledOffTop:', containerScrolledOffTop);
+          console.log('containerCompletelyOffScreen:', containerCompletelyOffScreen);
+        }
+
+        if (containerCompletelyOffScreen) {
+          // Container is completely off-screen - hide sidebar to prevent it from floating
+          sidebarContent.style.position = 'relative';
+          sidebarContent.style.top = 'auto';
+          sidebarContent.style.left = 'auto';
+          sidebarContent.style.width = 'auto';
+          sidebarContent.style.maxHeight = 'none';
+          sidebarContent.style.overflowY = 'visible';
+          sidebarContent.style.removeProperty('bottom');
+        } else if (containerBottomTooHigh) {
+          // Check footer constraint FIRST (more specific condition)
+          // This takes priority over containerScrolledOffTop
+          // Container bottom is too high - push sidebar up by adjusting top position instead of constraining height
+          // Get the sidebar column's position to maintain horizontal alignment
+          const sidebarColumn = sidebarContent.closest('.product-sidebar');
+          const sidebarColumnRect = sidebarColumn ? sidebarColumn.getBoundingClientRect() : null;
+          
+          // Use the sidebar column's left position, or calculate from container if not available
+          let leftPosition = sidebarColumnRect ? sidebarColumnRect.left : null;
+          if (!leftPosition) {
+            // Fallback: calculate approximate position (right column in 5fr 3fr grid)
+            const containerPadding = 20; // From CSS
+            const containerMaxWidth = 1400; // From CSS
+            const actualContainerWidth = Math.min(containerWidth, containerMaxWidth);
+            const gridGap = parseFloat(getComputedStyle(productContainer).gap) || 60;
+            const leftColumnWidth = (actualContainerWidth - gridGap) * (5 / 8);
+            leftPosition = containerLeft + containerPadding + leftColumnWidth + gridGap;
+          }
+          
+          // Step 1: Remove height constraints - maintain natural height
+          // Calculate where the sidebar bottom should be (container bottom - footer buffer)
+          const maxAvailableBottomRecalc = Math.min(containerBottomRelativeToViewport, viewportBottom);
+          const targetBottom = maxAvailableBottomRecalc - footerBuffer;
+          
+          // Calculate the adjusted top position to push sidebar up
+          // This keeps the sidebar at its natural height but moves it up so bottom aligns with target
+          const adjustedTop = targetBottom - sidebarHeight;
+          
+          // Allow sidebar to go behind header if needed (when pushed up)
+          // Remove the minTop constraint to allow pushing above header when needed
+          const finalTop = adjustedTop;
+          
+          // DEBUG: Log footer constraint block
+          if (window.DEBUG_STICKY_SIDEBAR) {
+            console.log('--- Footer Constraint Block (Push Up) ---');
+            console.log('maxAvailableBottomRecalc:', maxAvailableBottomRecalc);
+            console.log('targetBottom:', targetBottom);
+            console.log('sidebarHeight:', sidebarHeight);
+            console.log('adjustedTop:', adjustedTop);
+            console.log('finalTop:', finalTop);
+            console.log('Setting styles:', {
+              position: 'fixed',
+              top: finalTop,
+              left: leftPosition,
+              width: sidebarRect.width,
+              maxHeight: 'none',
+              overflowY: 'visible',
+              bottom: 'auto'
+            });
+          }
+          
+          sidebarContent.style.position = 'fixed';
+          sidebarContent.style.top = `${finalTop}px`;
+          sidebarContent.style.left = `${leftPosition}px`;
+          sidebarContent.style.width = `${sidebarRect.width}px`;
+          sidebarContent.style.maxHeight = 'none'; // Maintain natural height
+          sidebarContent.style.overflowY = 'visible'; // No scrollbar needed
+          sidebarContent.style.removeProperty('bottom');
+        } else if (containerScrolledOffTop) {
+          // Container has scrolled off top - use fixed to keep sidebar visible
+          // Get the sidebar column's position to maintain horizontal alignment
+          const sidebarColumn = sidebarContent.closest('.product-sidebar');
+          const sidebarColumnRect = sidebarColumn ? sidebarColumn.getBoundingClientRect() : null;
+          
+          // Use the sidebar column's left position, or calculate from container if not available
+          let leftPosition = sidebarColumnRect ? sidebarColumnRect.left : null;
+          if (!leftPosition) {
+            // Fallback: calculate approximate position (right column in 5fr 3fr grid)
+            const containerPadding = 20; // From CSS
+            const containerMaxWidth = 1400; // From CSS
+            const actualContainerWidth = Math.min(containerWidth, containerMaxWidth);
+            const gridGap = parseFloat(getComputedStyle(productContainer).gap) || 60;
+            const leftColumnWidth = (actualContainerWidth - gridGap) * (5 / 8);
+            leftPosition = containerLeft + containerPadding + leftColumnWidth + gridGap;
+          }
+          
+          // Step 3: ALWAYS check if we need to push up for footer, even when container scrolled off top
+          // Calculate if sidebar would extend past available space
+          const maxBottom = Math.min(containerBottomRelativeToViewport, viewportBottom) - footerBuffer;
+          const sidebarWouldExtendPast = stickyTop + sidebarHeight > maxBottom;
+          
+          if (sidebarWouldExtendPast) {
+            // Push sidebar up instead of constraining height
+            const targetBottom = maxBottom;
+            const adjustedTop = targetBottom - sidebarHeight;
+            // Allow it to go above stickyTop if needed (header can scroll over it)
+            const finalTop = adjustedTop; // Remove the minTop constraint to allow pushing above header
+            
+            sidebarContent.style.position = 'fixed';
+            sidebarContent.style.top = `${finalTop}px`;
+            sidebarContent.style.left = `${leftPosition}px`;
+            sidebarContent.style.width = `${sidebarRect.width}px`;
+            sidebarContent.style.maxHeight = 'none'; // Maintain natural height
+            sidebarContent.style.overflowY = 'visible'; // No scrollbar needed
+            sidebarContent.style.removeProperty('bottom');
+            
+            if (window.DEBUG_STICKY_SIDEBAR) {
+              console.log('--- Container Scrolled Off Top + Push Up ---');
+              console.log('targetBottom:', targetBottom);
+              console.log('adjustedTop:', adjustedTop);
+              console.log('finalTop:', finalTop);
+            }
+          } else {
+            // No push needed - sidebar fits within viewport
+            sidebarContent.style.position = 'fixed';
+            sidebarContent.style.top = `${stickyTop}px`;
+            sidebarContent.style.left = `${leftPosition}px`;
+            sidebarContent.style.width = `${sidebarRect.width}px`;
+            sidebarContent.style.maxHeight = 'none';
+            sidebarContent.style.overflowY = 'visible';
+            sidebarContent.style.removeProperty('bottom');
+          }
+        } else {
+          // Step 4: Normal sticky behavior - container is in view, use native sticky
+          sidebarContent.style.position = 'sticky';
+          sidebarContent.style.top = `${stickyTop}px`;
+          sidebarContent.style.left = 'auto';
+          sidebarContent.style.width = 'auto';
+          sidebarContent.style.removeProperty('bottom');
+          sidebarContent.style.maxHeight = 'none';
+          sidebarContent.style.overflowY = 'visible';
+        }
+      });
+    }
+
+    // Throttled scroll handler
+    let scrollTimeout = null;
+    function handleScroll() {
+      if (scrollTimeout) return;
+      scrollTimeout = setTimeout(() => {
+        updateStickyState();
+        scrollTimeout = null;
+      }, 16); // ~60fps
+    }
+
+    // Setup listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', updateStickyState);
+    document.addEventListener('shopify:section:load', updateStickyState);
+    
+    // Wait for CSS variable to be set, then initialize
+    function waitForHeaderVar(maxAttempts = 10) {
+      const cssVar = getComputedStyle(document.documentElement).getPropertyValue('--mcc-header-h').trim();
+      if (cssVar && cssVar !== '0px' && cssVar !== '' && parseInt(cssVar, 10) > 0) {
+        updateStickyState();
+      } else if (maxAttempts > 0) {
+        setTimeout(() => waitForHeaderVar(maxAttempts - 1), 100);
+      } else {
+        // Fallback: run anyway with calculated height
+        updateStickyState();
+      }
+    }
+    
+    // Start waiting for header var, but also run immediately as fallback
+    waitForHeaderVar();
+    // Also run after DOMContentLoaded in case it's not ready yet
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(updateStickyState, 100);
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryInit);
+  } else {
+    tryInit();
+  }
+})();
+

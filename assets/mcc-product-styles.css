@@ -21,6 +21,8 @@
   margin-right: auto;
   padding: 0 20px;
   box-sizing: border-box;
+  /* Ensure grid container can properly contain sticky elements */
+  align-items: start;
 }
 
 /* Ensure grid columns can shrink below their content size */
@@ -1386,34 +1388,39 @@ cursor: pointer !important;
 
 /* Sidebar */
 .product-sidebar {
-  height: fit-content;
   width: 100%;
+  align-self: start;
 }
 
 .sidebar-content {
-  position: fixed;
+  position: sticky;
+  top: calc(var(--mcc-header-h, 100px) + 20px); /* Account for header height + spacing */
   background: #fff;
   border: 1px solid var(--border);
   padding: 12px 30px 30px 30px;
   border-radius: 12px;
-  /* Width scales with container: 30% of the 3fr column (which is 3/8 of container) */
-  /* As container flexes, sidebar width flexes proportionally */
-  width: clamp(280px, 30%, 500px);
+  /* Full width of sidebar column - grid will handle sizing */
+  width: 100%;
   max-width: 500px;
   box-sizing: border-box;
 }
 
 /* Intermediate breakpoint: switch to sticky positioning so sidebar flexes with container */
 @media (max-width: 1200px) and (min-width: 769px) {
+  .product-sidebar {
+    align-self: start;
+  }
+  
   .sidebar-content {
     position: sticky;
-    top: 20px;
+    top: calc(var(--mcc-header-h, 100px) + 20px); /* Account for header height + spacing */
     /* Full width of sidebar column so it flexes with container */
     width: 100%;
     max-width: 100%;
     /* Responsive padding that scales */
     padding: 12px clamp(16px, 2vw, 24px) clamp(20px, 2.5vw, 30px) clamp(16px, 2vw, 24px);
     box-sizing: border-box;
+    align-self: start;
   }
 }
 
