@@ -11,39 +11,18 @@
   "name": "t:sections.footer.name",
   "type": "footer",
   "sections": {
-    "footer": {
-      "type": "footer",
-      "blocks": {
-        "image_z6cAMp": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/HeartLogo_5c4251bd-c3ff-4fec-8849-65c3ec7852d8.png",
-            "image_width": 100,
-            "alignment": "center"
-          }
-        }
-      },
-      "block_order": [
-        "image_z6cAMp"
-      ],
-      "custom_css": [],
+    "mcc_landing_footer": {
+      "type": "mcc-landing-footer",
+      "name": "MCC Landing — Footer",
       "settings": {
-        "color_scheme": "scheme-1",
-        "newsletter_enable": false,
-        "newsletter_heading": "Subscribe to our emails",
-        "enable_follow_on_shop": true,
-        "show_social": true,
-        "enable_country_selector": true,
-        "enable_language_selector": true,
-        "payment_enable": true,
-        "show_policy": true,
-        "margin_top": 0,
-        "padding_top": 36,
-        "padding_bottom": 36
+        "use_video_background": true,
+        "contact_link": "shopify://pages/contact",
+        "wholesale_link": "shopify://pages/wholesale",
+        "partnerships_link": "shopify://pages/partnerships"
       }
     }
   },
   "order": [
-    "footer"
+    "mcc_landing_footer"
   ]
 }
