@@ -3,16 +3,46 @@
   assign beans_col = collections['beans'] | default: collections['coffee']
   assign merch_col = collections['merch']
   assign coldbrew_col = collections['cold-brew'] | default: collections['coldbrew']
+  
+  comment
+    Hard-coded footer version control (for future flexibility)
+    Determine if this is a landing page or internal page
+  endcomment
+  assign is_landing_mcc = false
+  if template == 'index'
+    assign is_landing_mcc = true
+  elsif template == 'page.landing-mcc'
+    assign is_landing_mcc = true
+  elsif template.name == 'page' and template.suffix == 'landing-mcc'
+    assign is_landing_mcc = true
+  endif
+  
+  comment
+    Set footer version: 'landing' for landing pages, 'internal' for all other pages
+    For now, both render the same content, but structure is ready for different versions
+  endcomment
+  if is_landing_mcc
+    assign footer_version = 'landing'
+  else
+    assign footer_version = 'internal'
+  endif
 -%}
 
 <section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
-  {%- if section.settings.use_video_background and section.settings.video != blank -%}
-    {%- liquid
-      assign video_element = section.settings.video | video_tag: autoplay: true, loop: true, muted: true, preload: 'auto'
-      assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
-    -%}
-    {{ video_element }}
+  {%- if section.settings.use_video_background -%}
+    {%- if section.settings.video != blank -%}
+      {%- liquid
+        assign video_element = section.settings.video | video_tag: autoplay: true, loop: true, muted: true, preload: 'auto'
+        assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
+      -%}
+      {{ video_element }}
+    {%- else -%}
+      {%- comment -%} Hard-coded fallback: Use the same video as landing page {%- endcomment -%}
+      <video class="mcc-footer-video-bg" playsinline data-video-fallback="true" autoplay loop muted preload="auto">
+        <source src="{{ 'footer_bg_comp_test1.mp4' | asset_url }}" type="video/mp4">
+      </video>
+    {%- endif -%}
   {%- endif -%}
   <div class="mcc-footer-wrapper" data-cascade>
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
@@ -130,6 +160,7 @@
 .shopify-section:has(.mcc-landing-footer),
 .shopify-section:has([data-mcc-landing="footer"]),
 [id*="shopify-section"]:has(.mcc-landing-footer),
+[id*="shopify-section-footer"]:has(.mcc-landing-footer),
 .shopify-section:has(.mcc-landing-footer) > * {
   background: transparent !important;
   background-color: transparent !important;
@@ -197,12 +228,16 @@ section.mcc-landing-footer::before,
   pointer-events: none;
   {%- if section.settings.background_image != blank -%}
   background-image: url('{{ section.settings.background_image | image_url: width: 2400 }}');
-  {%- else -%}
-  background-image: url('{{ 'Footer img placeholder.png' | asset_url }}');
-  {%- endif -%}
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  {%- else -%}
+  {%- comment -%} Hard-coded fallback: Use the same background image as landing page {%- endcomment -%}
+  background-image: url('{{ 'Footer img placeholder.png' | asset_url }}');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  {%- endif -%}
 }
 
 /* Show background image by default when video is enabled (as fallback while video loads) */
