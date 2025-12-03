@@ -624,7 +624,11 @@ html:not(.mcc-merch-mode) [id*="shopify-section-main-account"] [class*="section-
 html:not(.mcc-merch-mode) .shopify-section:has(.customer.addresses h1) [class*="section-"][class*="-padding"],
 html:not(.mcc-merch-mode) [id*="shopify-section-main-addresses"] [class*="section-"][class*="-padding"],
 html:not(.mcc-merch-mode) .shopify-section:has(.customer.order h1) [class*="section-"][class*="-padding"],
-html:not(.mcc-merch-mode) [id*="shopify-section-main-order"] [class*="section-"][class*="-padding"] {
+html:not(.mcc-merch-mode) [id*="shopify-section-main-order"] [class*="section-"][class*="-padding"],
+/* Product pages: Remove section padding to prevent excess spacing (header margin-bottom handles spacing) */
+html:not(.mcc-merch-mode) .shopify-section:has(.mcc-product) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-product"] [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(product-info) [class*="section-"][class*="-padding"] {
   padding-top: 0 !important;
 }
 
