@@ -83,12 +83,15 @@
 
   .section-header {
     position: sticky; /* This is for fixing a Safari z-index issue. PR #2147 */
-    margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
+    /* Hard-coded margin-bottom for consistent spacing below header across all pages */
+    /* This replaces section.settings.margin_bottom to prevent theme editor overrides */
+    margin-bottom: 60px !important;
   }
 
   @media screen and (min-width: 750px) {
     .section-header {
-      margin-bottom: {{ section.settings.margin_bottom }}px;
+      /* Desktop: same 60px spacing for consistency */
+      margin-bottom: 60px !important;
     }
   }
 
