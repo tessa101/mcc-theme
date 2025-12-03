@@ -550,6 +550,26 @@ h2.ml-title,
   }
 }
 
+/* Phase 3: Remove section padding conflicts - header margin-bottom now handles spacing */
+/* Remove padding-top from all sections containing page titles to prevent conflicts */
+/* This ensures consistent spacing via header margin-bottom (60px) */
+html:not(.mcc-merch-mode) .shopify-section:has(.collection-hero__title) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(cart-items .title--primary) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(.main-page-title) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-page"] [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(.customer.login h1) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(#login) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-login"] [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .customer.login[class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(.customer__title) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-account"] [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(.customer.addresses h1) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-addresses"] [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(.customer.order h1) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) [id*="shopify-section-main-order"] [class*="section-"][class*="-padding"] {
+  padding-top: 0 !important;
+}
+
 /* Add title padding using ::before pseudo-element for collection, cart, login, and page templates */
 {%- if template.name == 'collection' or template.name == 'cart' or template.name == 'customers/login' or template contains 'login' or (template.name == 'page' and template != 'index') -%}
 /* Target the actual content sections, not header sections */
