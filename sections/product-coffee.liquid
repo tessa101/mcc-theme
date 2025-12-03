@@ -169,6 +169,13 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 <script src="{{ 'mcc-product-functionality.js' | asset_url }}" defer></script>
 {{ 'mcc-product-styles.css' | asset_url | stylesheet_tag }}
 
+{%- style -%}
+  /* Override .product-container margin-top (was 80px, now 0 since header margin-bottom handles spacing) */
+  html:not(.mcc-merch-mode) .product-container {
+    margin-top: 0 !important;
+  }
+{%- endstyle -%}
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.classList.add('layout-coffee');
