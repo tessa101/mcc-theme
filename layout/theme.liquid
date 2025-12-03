@@ -503,13 +503,57 @@ h2.ml-title,
   }
 }
 
-/* Page titles: 40px on mobile */
+/* Fix H1 Title Spacing and Font Size Issues */
+
+/* Step 1: Desktop H1 Margins - 20px top/bottom for consistent spacing */
+@media (min-width: 768px) {
+  html:not(.mcc-merch-mode) .collection-hero__title,
+  html:not(.mcc-merch-mode) .main-page-title,
+  html:not(.mcc-merch-mode) .customer.login h1,
+  html:not(.mcc-merch-mode) #login,
+  html:not(.mcc-merch-mode) .customer__title,
+  html:not(.mcc-merch-mode) .customer.addresses h1,
+  html:not(.mcc-merch-mode) cart-items .title--primary {
+    margin: 20px 0 !important;
+  }
+}
+
+/* Step 2: Mobile H1 Margins - 20px top/bottom for consistent spacing */
 @media (max-width: 767px) {
   html:not(.mcc-merch-mode) .collection-hero__title,
   html:not(.mcc-merch-mode) .main-page-title,
   html:not(.mcc-merch-mode) .customer.login h1,
-  html:not(.mcc-merch-mode) #login {
-    font-size: 40px !important;
+  html:not(.mcc-merch-mode) #login,
+  html:not(.mcc-merch-mode) .customer__title,
+  html:not(.mcc-merch-mode) .customer.addresses h1,
+  html:not(.mcc-merch-mode) cart-items .title--primary {
+    margin: 20px 0 !important;
+  }
+}
+
+/* Step 3: Mobile H1 Font Sizes - Standardize all to 44px */
+@media (max-width: 767px) {
+  html:not(.mcc-merch-mode) .collection-hero__title,
+  html:not(.mcc-merch-mode) .main-page-title,
+  html:not(.mcc-merch-mode) .customer.login h1,
+  html:not(.mcc-merch-mode) #login,
+  html:not(.mcc-merch-mode) .customer__title,
+  html:not(.mcc-merch-mode) .customer.addresses h1,
+  html:not(.mcc-merch-mode) cart-items .title--primary {
+    font-size: 44px !important;
+  }
+}
+
+/* Step 4: Fix Cart Drawer Title Visibility on Mobile */
+@media (max-width: 767px) {
+  cart-drawer .drawer__heading,
+  .cart-drawer .drawer__heading {
+    color: rgb(var(--color-foreground)) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1.8rem !important;
+    font-weight: 400 !important;
   }
 }
 

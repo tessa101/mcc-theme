@@ -91,6 +91,10 @@ cart-drawer:not(.is-empty) .cart-drawer__collection {
 
 .drawer__heading {
   margin: 0 0 1rem;
+  color: rgb(var(--color-foreground));
+  display: block;
+  visibility: visible;
+  opacity: 1;
 }
 
 .drawer__close {
