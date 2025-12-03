@@ -96,6 +96,13 @@ MCC Merch Product Detail Page — v1 (safe starter)
 <script src="{{ 'mcc-product-functionality.js' | asset_url }}" defer></script>
 {{ 'mcc-product-styles.css' | asset_url | stylesheet_tag }}
 
+{%- style -%}
+  /* Override .product-container margin-top (was 80px, now 0 since header margin-bottom handles spacing) */
+  html:not(.mcc-merch-mode) .product-container {
+    margin-top: 0 !important;
+  }
+{%- endstyle -%}
+
 <!-- === Merch PDP: Left Blocks Scroll Animation (matching coffee/gallery) === -->
 <style id="merch-blocks-scroll-animation">
 /* Initial hidden state for all content blocks (matching coffee/gallery exactly) */
