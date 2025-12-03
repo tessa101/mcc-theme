@@ -640,6 +640,11 @@ html:not(.mcc-merch-mode) .template-product .product {
   margin-top: 0 !important;
 }
 
+/* Override .product-container margin-top (was 80px, now 0 since header margin-bottom handles spacing) */
+html:not(.mcc-merch-mode) .template-product .product-container {
+  margin-top: 0 !important;
+}
+
 /* Phase 4: Removed ::before pseudo-element approach */
 /* Header margin-bottom (60px) now handles all spacing consistently */
 /* Section padding removal rules above prevent conflicts */
