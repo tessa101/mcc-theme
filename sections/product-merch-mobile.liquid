@@ -166,6 +166,11 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
           {% endif %}
         </section>
 
+        <!-- ===== Footer (moved inside drawer) ===== -->
+        <section class="content-section mcc-footer-in-drawer" id="merch-mobile-footer-container">
+          {%- comment -%} Footer will be moved here via JavaScript {%- endcomment -%}
+        </section>
+
       </div><!-- /.mm-content -->
     </div><!-- /.mm-sheet -->
   </div><!-- /.mm-drawer -->
@@ -179,13 +184,148 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
   /* Layering */
   #product_merch_mobile .mm-drawer{ z-index: 998 !important; } /* below announcement bar (999/9999), scrolls under it like header */
 
-  /* Mobile-only footer hide */
+  /* Ensure footer inside drawer has proper z-index and doesn't interfere with gallery */
   @media (max-width: 749px){
+    /* Footer inside drawer should be in normal flow, not above gallery */
+    #product_merch_mobile .mm-content .mcc-landing-footer,
+    #product_merch_mobile .mm-content [data-mcc-landing="footer"],
+    #product_merch_mobile .mm-content section.mcc-landing-footer,
+    #product_merch_mobile .mm-content .mcc-footer-in-drawer {
+      z-index: auto !important;
+      position: relative !important;
+    }
+    
+    /* Footer wrapper inside drawer */
+    #product_merch_mobile .mm-content .mcc-footer-wrapper {
+      z-index: auto !important;
+      position: relative !important;
+    }
+    
+    /* Ensure gallery stays above footer and creates proper stacking context */
+    #product_merch_mobile .mm-gallery {
+      z-index: 1 !important;
+      position: relative !important;
+      isolation: isolate !important; /* Create new stacking context */
+    }
+    
+    /* Footer outside drawer should be hidden */
+    body.template-product .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer),
+    body.template-product [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]) {
+      z-index: -999 !important;
+      position: relative !important;
+    }
+  }
+
+  /* Mobile-only footer hide - hide footer outside drawer, show inside drawer */
+  @media (max-width: 749px){
+    /* Hide footer that's outside the drawer (from footer-group) */
+    body.template-product #shopify-section-footer-group,
+    body.template-product [id*="footer-group"],
     body.template-product #shopify-section-footer,
     body.template-product [id^="shopify-section-footer"],
-    body.template-product [id*="__footer"],
-    body.template-product footer,
-    body.template-product [role="contentinfo"]{ display: none !important; }
+    body.template-product [id*="shopify-section-footer"]:not(#product_merch_mobile *),
+    body.template-product [id*="__footer"]:not(#product_merch_mobile *),
+    body.template-product footer:not(#product_merch_mobile footer),
+    body.template-product [role="contentinfo"]:not(#product_merch_mobile [role="contentinfo"]),
+    /* Hide mcc-landing-footer that's outside the drawer */
+    body.template-product .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer),
+    body.template-product section.mcc-landing-footer:not(#product_merch_mobile section.mcc-landing-footer),
+    body.template-product [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]),
+    /* Hide parent sections containing footer (outside drawer) */
+    body.template-product [id*="shopify-section"]:has(.mcc-landing-footer):not(#product_merch_mobile *),
+    body.template-product .shopify-section:has(.mcc-landing-footer):not(#product_merch_mobile *){ 
+      display: none !important; 
+      visibility: hidden !important;
+      opacity: 0 !important;
+      z-index: -999 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+    
+    /* Footer inside drawer should be visible and properly styled */
+    #product_merch_mobile .mm-content .mcc-landing-footer,
+    #product_merch_mobile .mm-content [data-mcc-landing="footer"],
+    #product_merch_mobile .mm-content section.mcc-landing-footer,
+    #product_merch_mobile .mm-content .mcc-footer-in-drawer .mcc-landing-footer {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: auto !important;
+      position: relative !important;
+      height: auto !important;
+      overflow: visible !important;
+      pointer-events: auto !important;
+      margin-top: 32px; /* Add spacing above footer in drawer */
+      /* Ensure background image/video is preserved */
+      background-color: transparent !important;
+      padding: 60px 20px 40px !important; /* Adjust padding for mobile drawer */
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+    
+    /* Ensure footer background image/video shows in drawer - preserve original styles */
+    #product_merch_mobile .mm-content .mcc-landing-footer,
+    #product_merch_mobile .mm-content [data-mcc-landing="footer"] {
+      /* Ensure the footer maintains its background styling from mcc-landing-footer.liquid */
+      position: relative !important;
+    }
+    
+    #product_merch_mobile .mm-content .mcc-landing-footer::before,
+    #product_merch_mobile .mm-content [data-mcc-landing="footer"]::before {
+      /* The footer's own CSS should handle this, but ensure it's visible and positioned correctly */
+      content: '' !important;
+      display: block !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: -1 !important;
+    }
+    
+    /* Ensure footer wrapper is centered and full width */
+    #product_merch_mobile .mm-content .mcc-footer-wrapper {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      display: grid !important;
+      grid-template-columns: 1fr 2fr !important;
+      gap: 32px !important;
+      align-items: start !important;
+    }
+    
+    /* On very small screens, stack footer columns */
+    @media (max-width: 480px) {
+      #product_merch_mobile .mm-content .mcc-footer-wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+      }
+    }
+    
+    /* Footer container should be full width - break out of drawer padding */
+    #product_merch_mobile .mm-content .mcc-footer-in-drawer,
+    #product_merch_mobile .mm-content #merch-mobile-footer-container {
+      width: calc(100% + 64px) !important; /* 100% + left padding (32px) + right padding (32px) */
+      max-width: calc(100% + 64px) !important;
+      margin-left: -32px !important; /* Break out of product-sections left padding */
+      margin-right: -32px !important; /* Break out of product-sections right padding */
+      padding: 0 !important;
+      background: transparent !important; /* Override content-section white background */
+      position: relative !important;
+    }
+    
+    /* Ensure footer inside drawer doesn't get white background from content-section */
+    #product_merch_mobile .mm-content .mcc-footer-in-drawer .mcc-landing-footer,
+    #product_merch_mobile .mm-content #merch-mobile-footer-container .mcc-landing-footer {
+      background: transparent !important; /* Let the ::before handle the background */
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
   }
 
   /* Announcement Bar lift for merch mobile template */
@@ -213,13 +353,106 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 </style>
 
 <script>
-  // Safety net: if a different footer ID is used, hide it on mobile after load.
+  // Move footer into drawer on merch mobile pages
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.matchMedia('(max-width: 749px)').matches) return;
-    var footer = document.querySelector(
-      'footer, [role="contentinfo"], [id^="shopify-section-footer"], [id*="__footer"]'
-    );
-    if (footer) footer.style.display = 'none';
+    
+    var drawerContent = document.querySelector('#product_merch_mobile .mm-content');
+    var footerContainer = document.querySelector('#merch-mobile-footer-container');
+    
+    if (!drawerContent || !footerContainer) return;
+    
+    // Find the footer outside the drawer
+    var footer = document.querySelector('.mcc-landing-footer, [data-mcc-landing="footer"], section.mcc-landing-footer');
+    
+    // Also check parent sections
+    if (!footer) {
+      var footerSection = document.querySelector('[id*="shopify-section"]:has(.mcc-landing-footer), .shopify-section:has(.mcc-landing-footer)');
+      if (footerSection) {
+        footer = footerSection.querySelector('.mcc-landing-footer, [data-mcc-landing="footer"]');
+      }
+    }
+    
+    if (footer && !footer.closest('#product_merch_mobile')) {
+      // Clone the footer to move into drawer (deep clone to preserve all elements including video)
+      var footerClone = footer.cloneNode(true);
+      footerClone.removeAttribute('id'); // Remove any IDs to avoid duplicates
+      
+      // Add a class to identify it as the drawer footer
+      footerClone.classList.add('mcc-footer-in-drawer');
+      
+      // Ensure the clone maintains all styles and background elements
+      footerClone.style.display = 'block';
+      footerClone.style.visibility = 'visible';
+      footerClone.style.opacity = '1';
+      
+      // Insert into drawer
+      footerContainer.appendChild(footerClone);
+      
+      // Re-initialize video if it exists in the cloned footer
+      var clonedVideo = footerClone.querySelector('.mcc-footer-video-bg');
+      if (clonedVideo) {
+        // Re-set video attributes to ensure it plays
+        clonedVideo.setAttribute('autoplay', 'true');
+        clonedVideo.setAttribute('loop', 'true');
+        clonedVideo.setAttribute('muted', 'true');
+        clonedVideo.setAttribute('playsinline', 'true');
+        // Try to play the video
+        if (clonedVideo.play) {
+          clonedVideo.play().catch(function(e) {
+            console.log('Footer video autoplay prevented:', e);
+          });
+        }
+      }
+      
+      // Ensure footer background image is preserved - check if ::before has background
+      // The footer's own CSS should handle this, but ensure styles are applied
+      setTimeout(function() {
+        var footerElement = footerContainer.querySelector('.mcc-landing-footer, [data-mcc-landing="footer"]');
+        if (footerElement) {
+          // Force reflow to ensure ::before pseudo-element is rendered
+          footerElement.offsetHeight;
+          // Ensure the footer maintains its styling
+          footerElement.style.position = 'relative';
+          footerElement.style.overflow = 'hidden';
+          footerElement.style.background = 'transparent';
+          
+          // Get background image from original footer's ::before if available
+          var originalFooter = footer;
+          if (originalFooter) {
+            try {
+              var originalComputed = window.getComputedStyle(originalFooter, '::before');
+              var originalBgImage = originalComputed.backgroundImage;
+              if (originalBgImage && originalBgImage !== 'none' && originalBgImage !== '') {
+                // Copy the background image to the cloned footer's ::before
+                // Since we can't directly set ::before, we'll ensure the footer's CSS applies
+                // The footer's own CSS should handle this via the ::before pseudo-element
+              }
+            } catch(e) {
+              // ::before might not be accessible, that's okay - footer CSS should handle it
+            }
+          }
+        }
+      }, 100);
+      
+      // Hide the original footer outside the drawer
+      var originalSection = footer.closest('[id*="shopify-section"], .shopify-section');
+      if (originalSection && !originalSection.closest('#product_merch_mobile')) {
+        originalSection.style.display = 'none';
+        originalSection.style.visibility = 'hidden';
+        originalSection.style.opacity = '0';
+        originalSection.style.height = '0';
+        originalSection.style.overflow = 'hidden';
+        originalSection.style.pointerEvents = 'none';
+      } else {
+        footer.style.display = 'none';
+        footer.style.visibility = 'hidden';
+        footer.style.opacity = '0';
+        footer.style.height = '0';
+        footer.style.overflow = 'hidden';
+        footer.style.pointerEvents = 'none';
+      }
+    }
   });
 </script>
 
