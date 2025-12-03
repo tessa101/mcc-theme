@@ -625,11 +625,19 @@ html:not(.mcc-merch-mode) .shopify-section:has(.customer.addresses h1) [class*="
 html:not(.mcc-merch-mode) [id*="shopify-section-main-addresses"] [class*="section-"][class*="-padding"],
 html:not(.mcc-merch-mode) .shopify-section:has(.customer.order h1) [class*="section-"][class*="-padding"],
 html:not(.mcc-merch-mode) [id*="shopify-section-main-order"] [class*="section-"][class*="-padding"],
-/* Product pages: Remove section padding to prevent excess spacing (header margin-bottom handles spacing) */
+/* Product pages: Remove section padding and product margin to prevent excess spacing */
+/* Header margin-bottom (60px) now handles spacing, so remove additional spacing */
 html:not(.mcc-merch-mode) .shopify-section:has(.mcc-product) [class*="section-"][class*="-padding"],
 html:not(.mcc-merch-mode) [id*="shopify-section-main-product"] [class*="section-"][class*="-padding"],
-html:not(.mcc-merch-mode) .shopify-section:has(product-info) [class*="section-"][class*="-padding"] {
+html:not(.mcc-merch-mode) .shopify-section:has(product-info) [class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) product-info[class*="section-"][class*="-padding"],
+html:not(.mcc-merch-mode) .shopify-section:has(product-info) product-info[class*="section-"][class*="-padding"] {
   padding-top: 0 !important;
+}
+
+/* Override .product margin-top (was 85px, now 0 since header margin-bottom handles spacing) */
+html:not(.mcc-merch-mode) .template-product .product {
+  margin-top: 0 !important;
 }
 
 /* Phase 4: Removed ::before pseudo-element approach */
