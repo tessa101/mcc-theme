@@ -544,7 +544,8 @@ h2.ml-title,
   }
 }
 
-/* Step 4: Fix Cart Drawer Title Visibility on Mobile */
+/* Step 4: Fix Cart Drawer Title Visibility and Font Size */
+/* Mobile: 24px */
 @media (max-width: 767px) {
   cart-drawer .drawer__heading,
   .cart-drawer .drawer__heading {
@@ -552,7 +553,20 @@ h2.ml-title,
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    font-size: 1.8rem !important;
+    font-size: 24px !important;
+    font-weight: 400 !important;
+  }
+}
+
+/* Desktop: 32px to match other H2 text */
+@media (min-width: 768px) {
+  cart-drawer .drawer__heading,
+  .cart-drawer .drawer__heading {
+    color: rgb(var(--color-foreground)) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 32px !important;
     font-weight: 400 !important;
   }
 }
