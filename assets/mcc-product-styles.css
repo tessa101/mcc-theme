@@ -31,6 +31,13 @@
   min-width: 0;
 }
 
+/* Desktop: Add top padding to product-main to align with sidebar */
+@media (min-width: 768px) {
+  .product-main {
+    padding-top: 20px;
+  }
+}
+
 /* Recharge parts */
 recharge-subscription-widget::part(rc-purchase-option__selector) {
   font-size: 16px !important;
