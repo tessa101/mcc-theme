@@ -11,9 +11,41 @@ One full-width hero image with optional click-to-cycle functionality
   assign current_index = 0
 -%}
 
-<div class="product-gallery gallery-hero" data-gallery-hero data-enable-cycle="{{ enable_click_cycle }}">
+<style>
+/* Initial hidden state for hero gallery (matching vertical gallery exactly) */
+[data-gallery-hero-section="{{ section.id }}"] .gallery-hero-container,
+.layout-coffee [data-gallery-hero] .gallery-hero-container,
+.product-gallery.gallery-hero .gallery-hero-container {
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+  transition-delay: 0.15s !important; /* Match sidebar delay */
+}
+
+/* Visible state when initialized (matching vertical gallery exactly) */
+[data-gallery-hero-section="{{ section.id }}"] .gallery-hero-container.is-inview,
+.layout-coffee [data-gallery-hero] .gallery-hero-container.is-inview,
+.product-gallery.gallery-hero .gallery-hero-container.is-inview {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-gallery-hero-section="{{ section.id }}"] .gallery-hero-container,
+  .layout-coffee [data-gallery-hero] .gallery-hero-container,
+  .product-gallery.gallery-hero .gallery-hero-container {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+<div class="product-gallery gallery-hero" data-gallery-hero data-gallery-hero-section="{{ section.id }}" data-enable-cycle="{{ enable_click_cycle }}">
   {% if desktop_image or mobile_image %}
-    <div class="gallery-hero-container">
+    <div class="gallery-hero-container" style="opacity: 0; transform: translateY(40px);">
       {% if enable_click_cycle and all_images.size > 1 %}
         <div class="gallery-hero-image" data-hero-gallery onclick="if(window.MCC && window.MCC.cycleHeroImage) { window.MCC.cycleHeroImage(event, '{{ section.id }}'); }">
           <picture>
@@ -68,4 +100,92 @@ One full-width hero image with optional click-to-cycle functionality
   ]
 </script>
 {% endif %}
+
+<script>
+/* ===== Coffee Hero Gallery — fade-up animation (matching vertical gallery) ===== */
+(function() {
+  function initHeroGallery() {
+    const gallery = document.querySelector('[data-gallery-hero-section="{{ section.id }}"]') || 
+                     document.querySelector('.product-gallery.gallery-hero');
+    if (!gallery) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (gallery.__mccHeroInited) return;
+    gallery.__mccHeroInited = true;
+
+    const container = gallery.querySelector('.gallery-hero-container');
+    if (!container) return;
+
+    // Add is-inview class with delay to match sidebar and vertical gallery
+    // Remove inline style to allow CSS transition to work
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        container.style.removeProperty('opacity');
+        container.style.removeProperty('transform');
+        container.classList.add('is-inview');
+      }, 150); // Match sidebar delay
+    });
+  }
+
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the gallery when it's ready
+    const gallery = document.querySelector('[data-gallery-hero-section="{{ section.id }}"]') || 
+                     document.querySelector('.product-gallery.gallery-hero');
+    if (gallery) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (gallery.__mccHeroInited) {
+        gallery.__mccHeroInited = false;
+      }
+      initHeroGallery();
+      return true;
+    } else {
+      // Gallery not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if gallery still not initialized after 1 second, force show
+  setTimeout(function() {
+    const gallery = document.querySelector('[data-gallery-hero-section="{{ section.id }}"]') || 
+                     document.querySelector('.product-gallery.gallery-hero');
+    if (gallery) {
+      const container = gallery.querySelector('.gallery-hero-container');
+      if (container && !container.classList.contains('is-inview')) {
+        container.style.removeProperty('opacity');
+        container.style.removeProperty('transform');
+        container.classList.add('is-inview');
+      }
+    }
+  }, 1000);
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
+  } else {
+    // DOM already ready, run immediately
+    runInit();
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetGallery = e.target.querySelector('[data-gallery-hero-section="{{ section.id }}"]') || 
+                          e.target.querySelector('.product-gallery.gallery-hero') ||
+                          (e.target.closest && e.target.closest('[data-gallery-hero-section="{{ section.id }}"]')) ||
+                          (e.target.closest && e.target.closest('.product-gallery.gallery-hero'));
+    if (targetGallery) {
+      // Reset initialization flag if section reloaded
+      if (targetGallery.__mccHeroInited) {
+        targetGallery.__mccHeroInited = false;
+      }
+      initHeroGallery();
+    }
+  });
+})();
+</script>
 

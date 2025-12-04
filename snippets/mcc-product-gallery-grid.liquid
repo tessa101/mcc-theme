@@ -9,9 +9,38 @@ Main large image with 2 secondary thumbnails below
   assign all_images = product.media | where: 'media_type', 'image'
 -%}
 
-<div class="product-gallery">
+<style>
+/* Initial hidden state for grid gallery (matching vertical gallery exactly) */
+[data-gallery-grid="{{ section.id }}"] .gallery-grid,
+.layout-coffee .product-gallery .gallery-grid {
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+  transition-delay: 0.15s !important; /* Match sidebar delay */
+}
+
+/* Visible state when initialized (matching vertical gallery exactly) */
+[data-gallery-grid="{{ section.id }}"] .gallery-grid.is-inview,
+.layout-coffee .product-gallery .gallery-grid.is-inview {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-gallery-grid="{{ section.id }}"] .gallery-grid,
+  .layout-coffee .product-gallery .gallery-grid {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+<div class="product-gallery" data-gallery-grid="{{ section.id }}">
   {% if product.media.size > 0 %}
-    <div class="gallery-grid">
+    <div class="gallery-grid" style="opacity: 0; transform: translateY(40px);">
       <!-- Main Image -->
       <div class="gallery-main" onclick="MCC.switchMainImage('{{ desktop_image | image_url: width: 1200 }}', '{{ desktop_image.alt | escape }}')">
         <img
@@ -55,4 +84,87 @@ Main large image with 2 secondary thumbnails below
     </div>
   {% endif %}
 </div>
+
+<script>
+/* ===== Coffee Grid Gallery — fade-up animation (matching vertical gallery) ===== */
+(function() {
+  function initGridGallery() {
+    const gallery = document.querySelector('[data-gallery-grid="{{ section.id }}"]');
+    if (!gallery) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (gallery.__mccGridInited) return;
+    gallery.__mccGridInited = true;
+
+    const grid = gallery.querySelector('.gallery-grid');
+    if (!grid) return;
+
+    // Add is-inview class with delay to match sidebar and vertical gallery
+    // Remove inline style to allow CSS transition to work
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        grid.style.removeProperty('opacity');
+        grid.style.removeProperty('transform');
+        grid.classList.add('is-inview');
+      }, 150); // Match sidebar delay
+    });
+  }
+
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the gallery when it's ready
+    const gallery = document.querySelector('[data-gallery-grid="{{ section.id }}"]');
+    if (gallery) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (gallery.__mccGridInited) {
+        gallery.__mccGridInited = false;
+      }
+      initGridGallery();
+      return true;
+    } else {
+      // Gallery not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if gallery still not initialized after 1 second, force show
+  setTimeout(function() {
+    const gallery = document.querySelector('[data-gallery-grid="{{ section.id }}"]');
+    if (gallery) {
+      const grid = gallery.querySelector('.gallery-grid');
+      if (grid && !grid.classList.contains('is-inview')) {
+        grid.style.removeProperty('opacity');
+        grid.style.removeProperty('transform');
+        grid.classList.add('is-inview');
+      }
+    }
+  }, 1000);
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
+  } else {
+    // DOM already ready, run immediately
+    runInit();
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetGallery = e.target.querySelector('[data-gallery-grid="{{ section.id }}"]') || 
+                          (e.target.closest && e.target.closest('[data-gallery-grid="{{ section.id }}"]'));
+    if (targetGallery) {
+      // Reset initialization flag if section reloaded
+      if (targetGallery.__mccGridInited) {
+        targetGallery.__mccGridInited = false;
+      }
+      initGridGallery();
+    }
+  });
+})();
+</script>
 
