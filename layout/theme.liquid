@@ -23,6 +23,86 @@
 })();
 </script>
 
+<!-- MCC Header Height CSS Variable - Set synchronously to prevent sidebar slide-down -->
+<script>
+(function() {
+  // Set header height CSS variable synchronously to prevent sidebar positioning flash
+  function setHeaderVar() {
+    const hdr = document.querySelector('.shopify-section-header');
+    const h = hdr ? Math.round(hdr.getBoundingClientRect().height) : 0;
+    if (h > 0) {
+      document.documentElement.style.setProperty('--mcc-header-h', h + 'px');
+      // Show sidebar once we have the correct header height
+      // Use requestAnimationFrame to ensure CSS variable is applied before showing
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          const sidebarContent = document.querySelector('.sidebar-content');
+          if (sidebarContent) {
+            sidebarContent.classList.add('mcc-sidebar-ready');
+          }
+        });
+      });
+      return true; // Indicate we got the actual height
+    } else {
+      // Fallback: use reasonable default if header not found yet
+      document.documentElement.style.setProperty('--mcc-header-h', '100px');
+      return false; // Indicate we're using fallback
+    }
+  }
+  
+  // Ensure sidebar starts hidden on every load/reload
+  const sidebarContent = document.querySelector('.sidebar-content');
+  if (sidebarContent) {
+    sidebarContent.classList.remove('mcc-sidebar-ready');
+  }
+  
+  // Try to set immediately if header already exists
+  if (document.readyState === 'loading') {
+    // Header might not exist yet, use MutationObserver to catch it
+    const observer = new MutationObserver(function() {
+      const hdr = document.querySelector('.shopify-section-header');
+      if (hdr) {
+        const success = setHeaderVar();
+        if (success) {
+          observer.disconnect();
+        }
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    
+    // Also try on DOMContentLoaded as backup
+    document.addEventListener('DOMContentLoaded', function() {
+      const success = setHeaderVar();
+      observer.disconnect();
+      // If still no header found after DOMContentLoaded, show sidebar anyway after short delay
+      if (!success) {
+        setTimeout(function() {
+          const sidebarContent = document.querySelector('.sidebar-content');
+          if (sidebarContent && !sidebarContent.classList.contains('mcc-sidebar-ready')) {
+            sidebarContent.classList.add('mcc-sidebar-ready');
+          }
+        }, 200);
+      }
+    });
+    
+    // Safety timeout: show sidebar after 600ms even if header not found
+    setTimeout(function() {
+      const sidebarContent = document.querySelector('.sidebar-content');
+      if (sidebarContent && !sidebarContent.classList.contains('mcc-sidebar-ready')) {
+        sidebarContent.classList.add('mcc-sidebar-ready');
+      }
+    }, 600);
+  } else {
+    // Document already loaded, set immediately
+    setHeaderVar();
+  }
+  
+  // Keep it updated on resize and scroll (header height can change)
+  window.addEventListener('resize', setHeaderVar);
+  window.addEventListener('scroll', setHeaderVar, { passive: true });
+})();
+</script>
+
  <!-- MCC Anti-Blank (single guard) -->
 {%- unless template == 'product.merch_mobile' -%}
   <!-- AntiBlank / Guard -->
@@ -663,6 +743,14 @@ html:not(.mcc-merch-mode) .template-product .product-container {
   {%- assign is_landing_mcc = true -%}
 {%- endif -%}
 
+{%- comment -%} Detect merch product pages to skip footer rendering (footer is moved into drawer via JS) {%- endcomment -%}
+{%- assign is_merch_product = false -%}
+{%- if template.name == 'product' and template.suffix == 'merch' -%}
+  {%- assign is_merch_product = true -%}
+{%- elsif template == 'product.merch' -%}
+  {%- assign is_merch_product = true -%}
+{%- endif -%}
+
 <body class="gradient layout-{{ template.suffix | default: 'default' }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}{% if is_landing_mcc %} is-landing-mcc{% endif %}">
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
@@ -678,7 +766,8 @@ html:not(.mcc-merch-mode) .template-product .product-container {
       {{ content_for_layout }}
     </main>
 
-    {%- unless is_landing_mcc -%}
+    {%- comment -%} Skip footer on landing pages and merch product pages (footer is moved into drawer on merch mobile) {%- endcomment -%}
+    {%- unless is_landing_mcc or is_merch_product -%}
       {% sections 'footer-group' %}
     {%- endunless -%}
 
@@ -828,33 +917,5 @@ document.addEventListener('DOMContentLoaded', () => {
   const hasMerch = !!document.querySelector('.product-merchandise-mobile-section, .mobile-product-detail');
   document.documentElement.classList.toggle('mcc-merch-mode', hasMerch);
 });
-</script>
-
-<script>
-(function () {
-  // Keep a real header height in a CSS var we can reuse.
-  function setHeaderVar() {
-    const hdr = document.querySelector('.shopify-section-header');
-    const h = hdr ? Math.round(hdr.getBoundingClientRect().height) : 0;
-    document.documentElement.style.setProperty('--mcc-header-h', h + 'px');
-  }
-  document.addEventListener('DOMContentLoaded', setHeaderVar);
-  window.addEventListener('resize', setHeaderVar);
-  // If your header becomes sticky after scroll, keep it fresh:
-  window.addEventListener('scroll', setHeaderVar, { passive: true });
-})();
-</script>
-
-<script>
-(function () {
-  function setHeaderVar(){
-    const hdr = document.querySelector('.shopify-section-header');
-    const h = hdr ? Math.round(hdr.getBoundingClientRect().height) : 0;
-    document.documentElement.style.setProperty('--mcc-header-h', h + 'px');
-  }
-  document.addEventListener('DOMContentLoaded', setHeaderVar);
-  window.addEventListener('resize', setHeaderVar);
-  window.addEventListener('scroll', setHeaderVar, { passive: true });
-})();
 </script>
 
