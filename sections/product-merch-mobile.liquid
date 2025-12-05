@@ -529,51 +529,142 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 
 
 <script>
-/* Fallback heart toggle with animation and state updates */
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-mm-fave]');
-  if (!btn) return;
+/* ===== MCC Merch Mobile — Favorites Button with localStorage ===== */
+(function() {
+  const STORAGE_KEY = 'mcc-favorites';
+  const section = document.querySelector('#product_merch_mobile');
+  if (!section) return;
   
-  const icon = btn.querySelector('.mm-fave-icon');
-  const text = btn.querySelector('.mm-fave-text');
-  const isActive = btn.classList.contains('is-active');
+  const productId = section.getAttribute('data-product-id');
+  if (!productId) return;
   
-  // Toggle active state
-  btn.classList.toggle('is-active');
-  const newIsActive = btn.classList.contains('is-active');
-  
-  // Update icon and text
-  if (icon) {
-    // Ensure icon is inline-block for transform to work
-    if (window.getComputedStyle(icon).display === 'inline') {
-      icon.style.display = 'inline-block';
+  // Get favorites from localStorage
+  function getFavorites() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
     }
-    
-    // Update heart character (empty to filled)
-    if (newIsActive) {
-      icon.textContent = '♥';
-      btn.setAttribute('aria-label', 'Added to favorites');
-      if (text) text.textContent = 'Added to favorites';
-    } else {
-      icon.textContent = '♡';
-      btn.setAttribute('aria-label', '{{ a11y }}');
-      if (text) text.textContent = 'Add to favorites';
-    }
-    
-    // Trigger animation after state update
-    requestAnimationFrame(function() {
-      icon.classList.remove('mcc-heart-animate');
-      // Force reflow to restart animation
-      void icon.offsetWidth;
-      icon.classList.add('mcc-heart-animate');
-      
-      // Remove class after animation completes
-      setTimeout(function() {
-        icon.classList.remove('mcc-heart-animate');
-      }, 500);
-    });
   }
-});
+  
+  // Save favorites to localStorage
+  function saveFavorites(favorites) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+    } catch (e) {
+      console.warn('Failed to save favorites:', e);
+    }
+  }
+  
+  // Check if product is favorited
+  function isFavorited(productId) {
+    const favorites = getFavorites();
+    return favorites.includes(String(productId));
+  }
+  
+  // Toggle favorite status
+  function toggleFavorite(productId) {
+    const favorites = getFavorites();
+    const productIdStr = String(productId);
+    const index = favorites.indexOf(productIdStr);
+    
+    if (index > -1) {
+      // Remove from favorites
+      favorites.splice(index, 1);
+    } else {
+      // Add to favorites
+      favorites.push(productIdStr);
+    }
+    
+    saveFavorites(favorites);
+    return index === -1; // Returns true if added, false if removed
+  }
+  
+  // Get or store default label on button
+  function getDefaultLabel(btn) {
+    if (!btn) return 'Add to favorites';
+    
+    // Store original label on first access if not already stored
+    if (!btn.dataset.mccDefaultLabel) {
+      const originalLabel = btn.getAttribute('aria-label') || 'Add to favorites';
+      btn.dataset.mccDefaultLabel = originalLabel;
+    }
+    
+    return btn.dataset.mccDefaultLabel || 'Add to favorites';
+  }
+  
+  // Update button state
+  function updateButtonState(btn, isActive) {
+    if (!btn) return;
+    
+    const icon = btn.querySelector('.mm-fave-icon');
+    const text = btn.querySelector('.mm-fave-text');
+    const defaultLabel = getDefaultLabel(btn);
+    
+    // Update classes
+    if (isActive) {
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-label', 'Added to favorites');
+    } else {
+      btn.classList.remove('is-active');
+      btn.setAttribute('aria-label', defaultLabel);
+    }
+    
+    // Update icon and text
+    if (icon) {
+      // Ensure icon is inline-block for transform to work
+      if (window.getComputedStyle(icon).display === 'inline') {
+        icon.style.display = 'inline-block';
+      }
+      
+      icon.textContent = isActive ? '♥' : '♡';
+    }
+    
+    if (text) {
+      text.textContent = isActive ? 'Added to favorites' : 'Add to favorites';
+    }
+  }
+  
+  // Initialize button state on page load
+  function initButtonState() {
+    const btn = document.querySelector('[data-mm-fave]');
+    if (!btn) return;
+    
+    const isActive = isFavorited(productId);
+    updateButtonState(btn, isActive);
+  }
+  
+  // Handle button click
+  function handleClick(e) {
+    const btn = e.target.closest('[data-mm-fave]');
+    if (!btn) return;
+    
+    const isNowActive = toggleFavorite(productId);
+    
+    // Update button state (animation will be triggered automatically by mcc-product-functionality.js
+    // via MutationObserver watching aria-label changes and click handler)
+    updateButtonState(btn, isNowActive);
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initButtonState();
+      document.addEventListener('click', handleClick);
+    });
+  } else {
+    initButtonState();
+    document.addEventListener('click', handleClick);
+  }
+  
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    if (e.target.querySelector('#product_merch_mobile') || e.target.closest('#product_merch_mobile')) {
+      setTimeout(initButtonState, 100);
+    }
+  });
+})();
 </script>
 
 {% schema %}

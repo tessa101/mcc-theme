@@ -648,9 +648,21 @@ window.MCC = window.MCCProduct;
 
 /* ===== MCC — Favorites Button Heart Animation ===== */
 (function initFavoritesAnimation() {
+  // Track last animation time per button to prevent duplicate animations
+  const lastAnimationTime = new WeakMap();
+  const ANIMATION_COOLDOWN = 600; // ms - prevent animations within this window
+  
   // Function to trigger heart animation
   function animateHeart(button) {
     if (!button) return;
+    
+    // Check if animation was recently triggered (debounce)
+    const lastTime = lastAnimationTime.get(button);
+    const now = Date.now();
+    if (lastTime && (now - lastTime) < ANIMATION_COOLDOWN) {
+      return; // Skip if animation was triggered recently
+    }
+    lastAnimationTime.set(button, now);
     
     // Find heart icon - could be SVG, span with heart character, or icon element
     let heartIcon = null;
@@ -719,18 +731,28 @@ window.MCC = window.MCCProduct;
     
     // Also listen for click events as a fallback
     button.addEventListener('click', function(e) {
-      // Trigger animation immediately on click
-      animateHeart(button);
+      // For [data-mm-fave] buttons (localStorage-based), only trigger once
+      // Widget buttons need multiple checks to catch async updates
+      const isDataMmFave = button.hasAttribute('data-mm-fave');
       
-      // Also trigger after a delay to catch widget updates
-      setTimeout(function() {
+      if (isDataMmFave) {
+        // localStorage buttons update synchronously, so only trigger once
+        // The MutationObserver will catch the aria-label change
         animateHeart(button);
-      }, 100);
-      
-      // One more check after widget has fully updated
-      setTimeout(function() {
+      } else {
+        // Widget buttons: trigger multiple times to catch async updates
         animateHeart(button);
-      }, 300);
+        
+        // Also trigger after a delay to catch widget updates
+        setTimeout(function() {
+          animateHeart(button);
+        }, 100);
+        
+        // One more check after widget has fully updated
+        setTimeout(function() {
+          animateHeart(button);
+        }, 300);
+      }
     }, true); // Use capture phase to catch early
   }
   
