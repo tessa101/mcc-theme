@@ -707,6 +707,150 @@
   };
 })();
 
+/* ===== Drawer Sections Scroll Animation (matching coffee mobile) ===== */
+(function() {
+  function initDrawerSectionsScrollAnimation() {
+    const drawerContent = document.querySelector('#product_merch_mobile .mm-content');
+    const drawerSheet = document.querySelector('#product_merch_mobile .mm-sheet');
+    
+    if (!drawerContent || !drawerSheet) return;
+    
+    // Allow re-initialization on reload by checking flag after finding element
+    if (drawerContent.__mccDrawerSectionsInited) return;
+    drawerContent.__mccDrawerSectionsInited = true;
+    
+    // Select all sections to animate (skip form sections and footer)
+    const sections = Array.from(drawerContent.querySelectorAll(
+      '.mcc-merch-description, .coffee-accordion.content-section, .content-section.coffee-recs'
+    )).filter(function(section) {
+      // Skip form sections (variant picker, quantity, buy buttons)
+      const ariaLabel = section.getAttribute('aria-label');
+      if (ariaLabel && (ariaLabel === 'Options' || ariaLabel === 'Quantity' || ariaLabel === 'Purchase')) {
+        return false;
+      }
+      // Skip footer
+      if (section.id === 'merch-mobile-footer-container' || section.classList.contains('mcc-footer-in-drawer')) {
+        return false;
+      }
+      return true;
+    });
+    
+    if (sections.length === 0) return;
+    
+    // IntersectionObserver for scroll-triggered animations (matching coffee mobile)
+    const io = new IntersectionObserver(function(entries, obs) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-inview');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { 
+      root: drawerSheet, // Use drawer scroll container as root
+      threshold: 0.12, // Match coffee mobile
+      rootMargin: '0px'
+    });
+    
+    // Set up sections: first gets is-inview with delay, rest are observed
+    sections.forEach(function(el, i) {
+      if (i === 0) {
+        // First section (description) - add is-inview with slight delay to match coffee sidebar
+        // Use requestAnimationFrame to ensure it happens after CSS is applied
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            el.classList.add('is-inview');
+          }, 150); // Match coffee sidebar delay
+        });
+      } else {
+        // Observe subsequent sections for scroll animation
+        io.observe(el);
+      }
+    });
+  }
+  
+  // Run initialization after drawer is ready
+  function runInit() {
+    // Wait for drawer to be ready (animation complete)
+    const drawer = document.querySelector('#product_merch_mobile .mm-drawer');
+    if (drawer && drawer.classList.contains('is-drawer-ready')) {
+      // Verify drawer is in its final position (not off-screen)
+      const drawerRect = drawer.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      
+      // Check if drawer is visible (at least partially on screen)
+      // Drawer should be at peek position (bottom of screen) or open position (top of screen)
+      const isDrawerVisible = drawerRect.bottom > windowHeight * 0.5;
+      
+      if (isDrawerVisible) {
+        // Drawer is ready and visible, initialize sections animation
+        const drawerContent = document.querySelector('#product_merch_mobile .mm-content');
+        if (drawerContent) {
+          // Reset flag if it exists to allow re-initialization on reload
+          if (drawerContent.__mccDrawerSectionsInited) {
+            drawerContent.__mccDrawerSectionsInited = false;
+          }
+          initDrawerSectionsScrollAnimation();
+          return true;
+        }
+      } else {
+        // Drawer is ready but not yet visible (still animating), wait a bit more
+        // This prevents sections from appearing at top while drawer is off-screen
+        if (runInit.attempts === undefined) runInit.attempts = 0;
+        runInit.attempts++;
+        if (runInit.attempts < 20) {
+          setTimeout(runInit, 50);
+        }
+        return false;
+      }
+    }
+    // Drawer not ready yet, try again soon (max 40 attempts = 2 seconds)
+    if (runInit.attempts === undefined) runInit.attempts = 0;
+    runInit.attempts++;
+    if (runInit.attempts < 40) {
+      setTimeout(runInit, 50);
+    }
+    return false;
+  }
+  
+  // Safety fallback: if sections still not initialized after 2 seconds, force show first section
+  setTimeout(function() {
+    const drawerContent = document.querySelector('#product_merch_mobile .mm-content');
+    if (drawerContent) {
+      const firstSection = drawerContent.querySelector('.mcc-merch-description:first-child');
+      if (firstSection && !firstSection.classList.contains('is-inview')) {
+        firstSection.classList.add('is-inview');
+      }
+    }
+  }, 2000);
+  
+  // Start initialization after DOM is ready
+  // Wait for drawer animation to complete: 300ms delay + 800ms animation + 200ms buffer = 1300ms
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(runInit, 1300); // Wait for drawer animation to complete
+    });
+  } else {
+    // DOM already ready, start after delay to ensure drawer animation is complete
+    setTimeout(runInit, 1300);
+  }
+  
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetContent = e.target.querySelector('#product_merch_mobile .mm-content') || 
+                          (e.target.closest && e.target.closest('#product_merch_mobile .mm-content'));
+    if (targetContent) {
+      // Reset initialization flag if section reloaded
+      if (targetContent.__mccDrawerSectionsInited) {
+        targetContent.__mccDrawerSectionsInited = false;
+      }
+      // Re-initialize after a short delay
+      setTimeout(function() {
+        initDrawerSectionsScrollAnimation();
+      }, 100);
+    }
+  });
+})();
+
 
 
 /* === Merch Mobile — Coffee-style accordion logic (robust) === */

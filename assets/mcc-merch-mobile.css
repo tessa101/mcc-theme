@@ -484,6 +484,44 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   min-height: 0;
 }
 
+/* ===== Drawer Sections Scroll Animation (matching coffee mobile) ===== */
+@media (max-width: 749px) {
+  /* Initial hidden state for drawer sections */
+  #product_merch_mobile .mm-content .mcc-merch-description,
+  #product_merch_mobile .mm-content .coffee-accordion.content-section,
+  #product_merch_mobile .mm-content .content-section.coffee-recs {
+    opacity: 0 !important;
+    transform: translateY(40px) !important;
+    transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1);
+    will-change: opacity, transform;
+  }
+
+  /* Visible state when scrolled into view */
+  #product_merch_mobile .mm-content .mcc-merch-description.is-inview,
+  #product_merch_mobile .mm-content .coffee-accordion.content-section.is-inview,
+  #product_merch_mobile .mm-content .content-section.coffee-recs.is-inview {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* First section (description) fades in with delay */
+  #product_merch_mobile .mm-content .mcc-merch-description:first-child {
+    transition-delay: 0.15s !important; /* Match coffee sidebar delay */
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    #product_merch_mobile .mm-content .mcc-merch-description,
+    #product_merch_mobile .mm-content .coffee-accordion.content-section,
+    #product_merch_mobile .mm-content .content-section.coffee-recs {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+}
+
 /* Gesture hygiene */
 #product_merch_mobile .mm-handle,
 #product_merch_mobile [data-mm-handle]{ 
