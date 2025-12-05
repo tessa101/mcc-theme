@@ -78,6 +78,16 @@
   transition-delay:0.15s !important; /* Match sidebar delay */
 }
 
+/* Respect reduced motion for vertical gallery items */
+@media (prefers-reduced-motion: reduce) {
+  .layout-coffee .gallery-vertical-item,
+  .layout-coffee .product-gallery.gallery-vertical .gallery-vertical-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* Carousel Gallery Variant */
 .layout-coffee .gallery-carousel{width:100%;position:relative;margin-bottom:40px}
 .layout-coffee .gallery-carousel-slider,

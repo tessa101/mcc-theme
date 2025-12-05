@@ -119,6 +119,69 @@ MCC — Merch Mobile Vertical Gallery (parser-safe)
   .only-mobile { display: block; }
 }
 
+/* ---------- Merch Mobile Hero Gallery — fade-up animation (matching coffee mobile) ---------- */
+@media (max-width: 749px) {
+  /* Target the gallery wrapper (.mm-gallery) that contains this gallery */
+  #product_merch_mobile .mm-gallery[data-hero-mobile] {
+    opacity: 0 !important;
+    transform: translateY(40px) !important;
+    visibility: hidden !important;
+    transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                visibility 0s 0.8s !important;
+    transition-delay: 0.3s !important;
+    will-change: opacity, transform;
+  }
+
+  #product_merch_mobile .mm-gallery[data-hero-mobile].is-inview {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    transition-delay: 0.3s !important;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #product_merch_mobile .mm-gallery[data-hero-mobile] {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- Indicator bars fade-in animation (same timing as gallery, no translateY) ---------- */
+@media (max-width: 749px) {
+  /* Indicators fade in in place - counter parent's translateY to stay in position */
+  #product_merch_mobile .mm-gallery[data-hero-mobile] .mmv-indicators,
+  #product_merch_mobile .mm-gallery[data-hero-mobile] [data-indicators] {
+    opacity: 0 !important;
+    /* Counter the parent's translateY(40px) so indicators stay in place */
+    transform: translateY(calc(-50% - 40px)) !important;
+    transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1) !important;
+    transition-delay: 0.3s !important; /* Match gallery delay */
+  }
+
+  #product_merch_mobile .mm-gallery[data-hero-mobile].is-inview .mmv-indicators,
+  #product_merch_mobile .mm-gallery[data-hero-mobile].is-inview [data-indicators] {
+    opacity: 1 !important;
+    /* Restore normal centering transform when gallery is in view */
+    transform: translateY(-50%) !important;
+    transition-delay: 0.3s !important; /* Match gallery delay */
+  }
+}
+
+/* Respect reduced motion for indicators */
+@media (prefers-reduced-motion: reduce) {
+  #product_merch_mobile .mm-gallery[data-hero-mobile] .mmv-indicators,
+  #product_merch_mobile .mm-gallery[data-hero-mobile] [data-indicators] {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
+
 /* ---------- Gallery shell ---------- */
 .mmv-gallery{
   position: relative;
@@ -188,7 +251,7 @@ MCC — Merch Mobile Vertical Gallery (parser-safe)
   overflow: hidden;               /* prevent any overflow */
   z-index: 3;
   pointer-events: none;           /* allow clicks to pass through container */
-  will-change: contents;          /* optimize for content changes */
+  will-change: opacity;           /* optimize for fade-in animation */
 }
 
 /* Each indicator "bar" */
