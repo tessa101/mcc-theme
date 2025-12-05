@@ -184,13 +184,44 @@
   /* ---- geometry ---- */
   let peekHeight = 0, closedY = 0;
   const OPEN_Y = 0;
+  let isAnimating = false; // Track if drawer animation is in progress
 
   function measure(){
-    // neutralize to measure the drawer's **visual** height
-    const prev = drawer.style.transform;
-    drawer.style.transform = 'translateY(0)';
-    const h = Math.round(drawer.getBoundingClientRect().height);
-    drawer.style.transform = prev;
+    // Measure the drawer's height without affecting visual state during animation
+    let h = 0;
+    const isDrawerReady = drawer.classList.contains('is-drawer-ready');
+    const isDrawerOpen = drawer.classList.contains('is-open');
+    
+    // CRITICAL: Never manipulate transform during animation window
+    // This prevents the drawer from jumping to top during CSS animation
+    if (isAnimating && !isDrawerReady && !isDrawerOpen) {
+      // Animation in progress - use non-visual measurement methods only
+      h = Math.round(drawer.offsetHeight || drawer.scrollHeight || 0);
+      // If still 0, use viewport height as fallback (drawer is 100vh)
+      if (h === 0 || h < 100) {
+        h = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      }
+    } else if (isDrawerReady || isDrawerOpen) {
+      // Drawer is ready/open - safe to temporarily set transform for measurement
+      const prev = drawer.style.transform;
+      drawer.style.transform = 'translateY(0)';
+      h = Math.round(drawer.getBoundingClientRect().height);
+      drawer.style.transform = prev;
+    } else {
+      // Drawer not ready and not animating - use offsetHeight to avoid visual interference
+      // This handles the case before animation starts
+      h = Math.round(drawer.offsetHeight);
+      
+      // If offsetHeight is 0 or unreliable (e.g., element is hidden), fall back to scrollHeight
+      if (h === 0 || h < 100) {
+        h = Math.round(drawer.scrollHeight);
+      }
+      
+      // As a last resort, use viewport height (drawer is 100vh)
+      if (h === 0 || h < 100) {
+        h = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      }
+    }
 
     // safe "viewport" for the sheet; expose as CSS var (used by your CSS)
     const vh = Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight);
@@ -202,11 +233,21 @@
 
     closedY = Math.max(0, h - peekHeight);
 
-    if (!drawer.classList.contains('is-open')) {
-      drawer.style.transition = 'none';
-      drawer.style.transform  = `translateY(${closedY}px)`;
-      drawer.offsetHeight; // reflow
-      drawer.style.transition = '';
+    // Only set inline transform if drawer is ready (animation complete) or drawer is open
+    // NEVER set transform during animation window - let CSS handle it
+    if (!isDrawerOpen) {
+      if (isDrawerReady && !isAnimating) {
+        // Drawer animation complete - use inline styles for drag interactions
+        // Set transition for smooth drag interactions (will be overridden during drag)
+        drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
+        drawer.style.transform  = `translateY(${closedY}px)`;
+        drawer.offsetHeight; // reflow
+      }
+      // If not ready or animating, let CSS animation handle it
+    } else {
+      // Drawer is open - ensure it stays at top
+      drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
+      drawer.style.transform = `translateY(${OPEN_Y}px)`;
     }
   }
 
@@ -216,7 +257,17 @@
     drawer.style.transition = 'transform 360ms cubic-bezier(.16,1,.3,1)';
     drawer.style.transform  = `translateY(${y}px)`;
   }
-  function openDrawer(){ drawer.classList.add('is-open'); lockPage(true);  animateTo(OPEN_Y); }
+  function openDrawer(){ 
+    // Ensure drawer is ready before opening (in case user opens before animation completes)
+    if (!drawer.classList.contains('is-drawer-ready')) {
+      drawer.classList.add('is-drawer-ready');
+      drawer.style.removeProperty('opacity');
+      drawer.style.removeProperty('visibility');
+    }
+    drawer.classList.add('is-open'); 
+    lockPage(true);  
+    animateTo(OPEN_Y); 
+  }
   function closeDrawer(){ 
     drawer.classList.remove('is-open'); 
     animateTo(closedY); 
@@ -562,6 +613,63 @@
   handle.addEventListener('click', ()=>{ if(!dragging) toggleDrawer(); });
   peekEl.addEventListener('click', ()=>{ if(!dragging) toggleDrawer(); });
 
+  /* ---- drawer animation initialization ---- */
+  function initDrawerAnimation() {
+    if (!drawer) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (drawer.__mccDrawerAnimInited) return;
+    drawer.__mccDrawerAnimInited = true;
+    
+    // Mark animation as in progress to prevent measure() from interfering
+    isAnimating = true;
+    
+    // Wait for measure() to complete so peek height is calculated
+    // Then add is-drawer-ready class after delay to trigger animation
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        // If drawer is already open (user opened it before animation), skip animation
+        if (drawer.classList.contains('is-open')) {
+          isAnimating = false;
+          drawer.classList.add('is-drawer-ready');
+          return;
+        }
+        
+        // Remove any inline styles that might interfere with CSS transitions
+        // But DON'T remove transform - CSS is handling it via translateY(100%)
+        drawer.style.removeProperty('opacity');
+        drawer.style.removeProperty('visibility');
+        // Don't remove transform - let CSS animation handle it
+        drawer.classList.add('is-drawer-ready');
+        
+        // Clear animation flag after a short delay to ensure CSS transition has started
+        setTimeout(function() {
+          isAnimating = false;
+        }, 100); // Short delay to ensure CSS transition has begun
+        
+        // After animation completes, let measure() handle positioning for drag interactions
+        setTimeout(function() {
+          if (!drawer.classList.contains('is-open')) {
+            measure(); // Re-measure to set inline transform for drag
+          }
+        }, 800); // Wait for animation to complete (300ms delay + 800ms duration)
+      }, 300); // 300ms delay to match gallery animation
+    });
+  }
+  
+  // Safety fallback: if drawer still not initialized after 1.5 seconds, force show it
+  setTimeout(function() {
+    if (drawer && !drawer.classList.contains('is-drawer-ready')) {
+      isAnimating = false; // Clear animation flag
+      drawer.style.removeProperty('opacity');
+      drawer.style.removeProperty('visibility');
+      // Don't remove transform - let CSS handle it
+      drawer.classList.add('is-drawer-ready');
+      if (!drawer.classList.contains('is-open')) {
+        measure(); // Set position for drag interactions
+      }
+    }
+  }, 1500);
+
   /* ---- lifecycle ---- */
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', measure);
@@ -569,7 +677,20 @@
   }
   window.addEventListener('resize', measure);
   new MutationObserver(measure).observe(sheet, {childList:true, subtree:true, attributes:true});
-  window.addEventListener('load', measure);
+  
+  // Initialize drawer animation after measure() completes on load
+  window.addEventListener('load', function() {
+    measure(); // Calculate peek height first
+    initDrawerAnimation(); // Then start animation
+  });
+  
+  // Also try immediately if DOM is already ready
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(function() {
+      measure();
+      initDrawerAnimation();
+    }, 0);
+  }
   
   // Update gallery height after drawer position changes
   function updateGalleryHeight() {
@@ -1906,5 +2027,85 @@
   }
 
   requestAnimationFrame(syncPeek);
+})();
+
+/* === Merch Mobile Hero Gallery — fade-up animation (matching coffee mobile) === */
+(function() {
+  function initMobileHeroAnimation() {
+    const heroGallery = document.querySelector('#product_merch_mobile .mm-gallery[data-hero-mobile]');
+    if (!heroGallery) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (heroGallery.__mccMobileHeroInited) return;
+    heroGallery.__mccMobileHeroInited = true;
+    
+    // Add is-inview class after 300ms delay to trigger animation
+    // Remove any inline styles that might interfere with CSS transitions
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        heroGallery.style.removeProperty('opacity');
+        heroGallery.style.removeProperty('transform');
+        heroGallery.style.removeProperty('visibility');
+        heroGallery.classList.add('is-inview');
+      }, 300); // 300ms delay as specified
+    });
+  }
+
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the gallery when it's ready
+    const heroGallery = document.querySelector('#product_merch_mobile .mm-gallery[data-hero-mobile]');
+    if (heroGallery) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (heroGallery.__mccMobileHeroInited) {
+        heroGallery.__mccMobileHeroInited = false;
+      }
+      initMobileHeroAnimation();
+      return true;
+    } else {
+      // Gallery not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if gallery still not initialized after 1 second, force show
+  setTimeout(function() {
+    const heroGallery = document.querySelector('#product_merch_mobile .mm-gallery[data-hero-mobile]');
+    if (heroGallery && !heroGallery.classList.contains('is-inview')) {
+      heroGallery.style.removeProperty('opacity');
+      heroGallery.style.removeProperty('transform');
+      heroGallery.style.removeProperty('visibility');
+      heroGallery.classList.add('is-inview');
+    }
+  }, 1000);
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
+  } else {
+    // DOM already ready, run immediately
+    runInit();
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetGallery = e.target.querySelector('#product_merch_mobile .mm-gallery[data-hero-mobile]') || 
+                          (e.target.closest && e.target.closest('#product_merch_mobile .mm-gallery[data-hero-mobile]'));
+    if (targetGallery) {
+      // Reset initialization flag if section reloaded
+      if (targetGallery.__mccMobileHeroInited) {
+        targetGallery.__mccMobileHeroInited = false;
+      }
+      targetGallery.classList.remove('is-inview');
+      setTimeout(function() {
+        targetGallery.classList.add('is-inview');
+      }, 300);
+    }
+  });
 })();
 

@@ -5,6 +5,50 @@
   overscroll-behavior-y: none;
 }
 
+/* ===== Footer hiding (early, before gallery animation) ===== */
+/* Hide footer outside drawer immediately on merch mobile pages */
+@media (max-width: 749px) {
+  body.template-product #shopify-section-footer-group,
+  body.template-product [id*="footer-group"],
+  body.template-product #shopify-section-footer,
+  body.template-product [id^="shopify-section-footer"],
+  body.template-product [id*="shopify-section-footer"]:not(#product_merch_mobile *),
+  body.template-product [id*="__footer"]:not(#product_merch_mobile *),
+  body.template-product footer:not(#product_merch_mobile footer),
+  body.template-product [role="contentinfo"]:not(#product_merch_mobile [role="contentinfo"]),
+  body.template-product .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer),
+  body.template-product section.mcc-landing-footer:not(#product_merch_mobile section.mcc-landing-footer),
+  body.template-product [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]),
+  body.template-product [id*="shopify-section"]:has(.mcc-landing-footer):not(#product_merch_mobile *),
+  body.template-product .shopify-section:has(.mcc-landing-footer):not(#product_merch_mobile *) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -999 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    position: relative !important;
+  }
+  
+  /* Hide footer container inside drawer initially - show after gallery animation */
+  #product_merch_mobile #merch-mobile-footer-container {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    transition: opacity 0.4s ease, visibility 0.4s ease, height 0s 0.4s !important;
+  }
+  
+  #product_merch_mobile #merch-mobile-footer-container.is-visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
+    transition: opacity 0.4s ease, visibility 0.4s ease !important;
+  }
+}
+
 /* Gallery (unchanged) */
 #product_merch_mobile .mm-gallery{
   position: absolute; 
@@ -15,7 +59,7 @@
   height:72vh;                  /* fallback; JS will override dynamically */
   overflow:hidden; 
   background:#f1f1f1;
-  z-index: 1;                    /* Ensure gallery stays below drawer */
+  z-index: 10 !important;        /* Ensure gallery stays above footer but below drawer */
 }
 #product_merch_mobile .mm-gallery .mm-image,
 #product_merch_mobile .mm-gallery img{
@@ -374,9 +418,15 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   left: 0; right: 0; bottom: 0;
   height: 100vh; 
   max-height: 100vh;
-  transform: translateY(calc(100% - var(--mm-peek-height))) translateZ(0);
-  transition: transform 360ms cubic-bezier(.16,1,.3,1);
-  will-change: transform;
+  /* Initial state for slide-up animation: completely off-screen */
+  transform: translateY(100%) translateZ(0);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+              visibility 0s 0.8s;
+  transition-delay: 0.3s; /* Match gallery animation delay */
+  will-change: transform, opacity;
   backface-visibility: hidden; /* Prevent flickering during transform */
   overflow: hidden;
   z-index: 998;                    /* below announcement bar (999), scrolls under it like header */
@@ -386,6 +436,27 @@ body.cart-drawer-open .mm-drawer[data-mm-drawer] {
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -10px 30px rgba(0,0,0,.14);
   padding-bottom: calc(var(--mm-safe-bottom) + 8px);
+}
+
+/* Drawer ready state: slide up to peek position */
+#product_merch_mobile .mm-drawer.is-drawer-ready,
+#product_merch_mobile [data-mm-drawer].is-drawer-ready {
+  transform: translateY(calc(100% - var(--mm-peek-height))) translateZ(0);
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.3s; /* Match initial delay */
+  /* JavaScript will set inline transition for drag interactions after animation completes */
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #product_merch_mobile .mm-drawer,
+  #product_merch_mobile [data-mm-drawer] {
+    opacity: 1 !important;
+    transform: translateY(calc(100% - var(--mm-peek-height))) translateZ(0) !important;
+    visibility: visible !important;
+    transition: transform 360ms cubic-bezier(.16,1,.3,1) !important; /* Keep only transform for drag interactions */
+  }
 }
 
 /* Sheet: single scroll container */
