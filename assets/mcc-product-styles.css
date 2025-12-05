@@ -1410,6 +1410,25 @@ cursor: pointer !important;
   width: 100%;
   max-width: 500px;
   box-sizing: border-box;
+  /* Use fade-up animation to mask positioning flash - matches gallery/content sections */
+  /* Start hidden - will be shown when mcc-sidebar-ready class is added */
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  visibility: hidden;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+    transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+    visibility 0s 0.8s; /* Keep visibility hidden until animation completes */
+  transition-delay: 0.15s; /* Slight delay to ensure CSS variable is set */
+}
+
+/* Show sidebar once ready (class added by JavaScript) */
+.sidebar-content.mcc-sidebar-ready {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible;
+  transition-delay: 0.15s; /* Delay matches initial delay */
 }
 
 /* Intermediate breakpoint: switch to sticky positioning so sidebar flexes with container */
@@ -1428,6 +1447,15 @@ cursor: pointer !important;
     padding: 12px clamp(16px, 2vw, 24px) clamp(20px, 2.5vw, 30px) clamp(16px, 2vw, 24px);
     box-sizing: border-box;
     align-self: start;
+  }
+}
+
+/* Respect reduced motion for sidebar animation */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-content {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
 
@@ -1869,7 +1897,8 @@ background: #54A8E5; /* Hover state */
 
   .product-hero-mobile {
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 0;
+    padding-bottom: 0;
     width: 100%;
     order: 1;
   }
@@ -1879,6 +1908,8 @@ background: #54A8E5; /* Hover state */
     height: auto;
     display: block;
     border-radius: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
   }
 
   .product-gallery {
@@ -1898,10 +1929,14 @@ background: #54A8E5; /* Hover state */
 
   .sidebar-content {
     position:relative !important;
-    margin: 0 20px 20px;
+    top: 0 !important;
+    margin: 20px 20px 40px;
     width: calc(100% - 40px);
     padding-left: 20px;
     padding-right: 20px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    overflow: visible;
   }
 
   #product_merch_mobile h1.product-title,
@@ -2375,11 +2410,10 @@ border-radius: 0px !important;
   transform: none;
 }
 
-/* show hero immediately */
+/* First item fades in with delay - no longer immediately visible */
 .product-merch .mcc-merch-gallery .mgg-item:first-child {
-  opacity: 1;
-  transform: none;
-  transition-delay: 0ms !important;
+  /* Remove immediate visibility - let animation handle it */
+  transition-delay: 0.15s !important; /* Match sidebar delay */
 }
 
 /* ===== MCC PDP (universal) — reusable fade-up motion ===== */

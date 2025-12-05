@@ -74,7 +74,8 @@
 }
 .layout-coffee .gallery-vertical-item:first-child,
 .layout-coffee .product-gallery.gallery-vertical .gallery-vertical-item:first-child{
-  opacity:1 !important;transform:none !important;transition-delay:0ms !important
+  /* Remove immediate visibility - let animation handle it */
+  transition-delay:0.15s !important; /* Match sidebar delay */
 }
 
 /* Carousel Gallery Variant */
@@ -216,7 +217,7 @@
 
 /* Mobile reflow */
 @media (max-width:768px){
-  .layout-coffee .product-hero-mobile{display:block;margin-bottom:20px;width:100%;order:1}
+  .layout-coffee .product-hero-mobile{display:block;margin-bottom:0;width:100%;order:1}
   .layout-coffee .product-gallery{display:none}
   .layout-coffee .product-main{width:100%;order:3}
   .layout-coffee .product-sidebar{width:100%;order:2;position:static}

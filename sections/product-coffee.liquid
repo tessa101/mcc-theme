@@ -11,7 +11,7 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
   data-is-cold-brew="{{ is_cold_brew }}">
 
   <!-- Mobile Hero Image -->
-  <div class="product-hero-mobile" >
+  <div class="product-hero-mobile" data-hero-mobile style="opacity: 0; transform: translateY(40px); visibility: hidden;">
     {% assign mobile_image = product.media[3] | default: product.featured_media %}
     {% if mobile_image %}
       <img
@@ -20,7 +20,7 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
         class="product-image-mobile"
         width="{{ mobile_image.width }}"
         height="{{ mobile_image.height }}"
-        loading="lazy">
+        loading="eager">
     {% endif %}
   </div>
 
@@ -244,6 +244,40 @@ header.header,
 }
 </style>
 
+<!-- === Coffee PDP: Mobile Hero Image Animation === -->
+<style id="coffee-mobile-hero-animation">
+/* Mobile hero image fade-up animation (matching gallery pattern) */
+@media (max-width: 768px) {
+  .product-hero-mobile[data-hero-mobile] {
+    opacity: 0 !important;
+    transform: translateY(40px) !important;
+    visibility: hidden !important;
+    transition: opacity 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                transform 0.8s cubic-bezier(0.33, 0.02, 0.1, 1),
+                visibility 0s 0.8s !important;
+    transition-delay: 0.3s !important;
+    will-change: opacity, transform;
+  }
+
+  .product-hero-mobile[data-hero-mobile].is-inview {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    transition-delay: 0.3s !important;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .product-hero-mobile[data-hero-mobile] {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    transition: none !important;
+  }
+}
+</style>
+
 <!-- === Coffee PDP: Accordion CSS (no extra padding; relies on .product-sections) === -->
 <style id="coffee-accordion-css">
 /* Accordion containers */
@@ -372,11 +406,10 @@ header.header,
   transform: none !important;
 }
 
-/* First block is immediately visible (matching gallery exactly) */
+/* First block fades in with delay - no longer immediately visible */
 .product-sections .coffee-accordion:first-child {
-  opacity: 1 !important;
-  transform: none !important;
-  transition-delay: 0ms !important;
+  /* Remove immediate visibility - let animation handle it */
+  transition-delay: 0.15s !important; /* Match sidebar delay */
 }
 
 /* Respect reduced motion */
@@ -635,7 +668,9 @@ document.addEventListener('DOMContentLoaded', function() {
 (function() {
   function initBlocksScrollAnimation() {
     const productSections = document.querySelector('.product-sections');
-    if (!productSections || productSections.__mccBlocksInited) return;
+    if (!productSections) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (productSections.__mccBlocksInited) return;
     productSections.__mccBlocksInited = true;
 
     const blocks = Array.from(productSections.querySelectorAll('.coffee-accordion'));
@@ -651,11 +686,16 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }, { threshold: 0.12 });
 
-    // Set up blocks exactly like gallery: first gets is-inview immediately, rest are observed
+    // Set up blocks: first gets is-inview with delay, rest are observed
     blocks.forEach((el, i) => {
       if (i === 0) {
-        // First block is immediately visible
-        el.classList.add('is-inview');
+        // First block - add is-inview with slight delay to match sidebar
+        // Use requestAnimationFrame to ensure it happens after CSS is applied
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            el.classList.add('is-inview');
+          }, 150); // Match sidebar delay
+        });
       } else {
         // Observe subsequent blocks for scroll animation
         io.observe(el);
@@ -663,12 +703,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Run immediately and on DOM ready
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the blocks when they're ready
+    const productSections = document.querySelector('.product-sections');
+    if (productSections) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (productSections.__mccBlocksInited) {
+        productSections.__mccBlocksInited = false;
+      }
+      initBlocksScrollAnimation();
+      return true;
+    } else {
+      // Blocks not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if blocks still not initialized after 1 second, force show first block
+  setTimeout(function() {
+    const productSections = document.querySelector('.product-sections');
+    if (productSections) {
+      const firstBlock = productSections.querySelector('.coffee-accordion:first-child');
+      if (firstBlock && !firstBlock.classList.contains('is-inview')) {
+        firstBlock.classList.add('is-inview');
+      }
+    }
+  }, 1000);
+  
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBlocksScrollAnimation);
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
   } else {
     // DOM already ready, run immediately
-    setTimeout(initBlocksScrollAnimation, 0);
+    runInit();
   }
 
   // Also run on section load (Shopify theme editor)
@@ -681,6 +755,89 @@ document.addEventListener('DOMContentLoaded', function() {
         targetSections.__mccBlocksInited = false;
       }
       initBlocksScrollAnimation();
+    }
+  });
+})();
+</script>
+
+<!-- === Coffee PDP: Mobile Hero Image Animation Init === -->
+<script>
+/* ===== Coffee Mobile Hero — fade-up animation (300ms delay) ===== */
+(function() {
+  function initMobileHeroAnimation() {
+    const heroMobile = document.querySelector('.product-hero-mobile[data-hero-mobile]');
+    if (!heroMobile) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (heroMobile.__mccMobileHeroInited) return;
+    heroMobile.__mccMobileHeroInited = true;
+    
+    // Add is-inview class after 300ms delay to trigger animation
+    // Remove any inline styles that might interfere with CSS transitions
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        heroMobile.style.removeProperty('opacity');
+        heroMobile.style.removeProperty('transform');
+        heroMobile.style.removeProperty('visibility');
+        heroMobile.classList.add('is-inview');
+      }, 300); // 300ms delay as specified
+    });
+  }
+
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the hero when it's ready
+    const heroMobile = document.querySelector('.product-hero-mobile[data-hero-mobile]');
+    if (heroMobile) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (heroMobile.__mccMobileHeroInited) {
+        heroMobile.__mccMobileHeroInited = false;
+      }
+      initMobileHeroAnimation();
+      return true;
+    } else {
+      // Hero not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if hero still not initialized after 1 second, force show
+  setTimeout(function() {
+    const heroMobile = document.querySelector('.product-hero-mobile[data-hero-mobile]');
+    if (heroMobile && !heroMobile.classList.contains('is-inview')) {
+      heroMobile.style.removeProperty('opacity');
+      heroMobile.style.removeProperty('transform');
+      heroMobile.style.removeProperty('visibility');
+      heroMobile.classList.add('is-inview');
+    }
+  }, 1000);
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
+  } else {
+    // DOM already ready, run immediately
+    runInit();
+  }
+
+  // Also run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    const targetHero = e.target.querySelector('.product-hero-mobile[data-hero-mobile]') || 
+                      (e.target.closest && e.target.closest('.product-hero-mobile[data-hero-mobile]'));
+    if (targetHero) {
+      // Reset initialization flag if section reloaded
+      if (targetHero.__mccMobileHeroInited) {
+        targetHero.__mccMobileHeroInited = false;
+      }
+      targetHero.classList.remove('is-inview');
+      setTimeout(function() {
+        targetHero.classList.add('is-inview');
+      }, 300);
     }
   });
 })();
