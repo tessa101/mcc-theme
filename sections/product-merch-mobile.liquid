@@ -5,6 +5,17 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 • Reviews Badge block rendered at top of content (optional)
 {% endcomment %}
 
+<script>
+  // IMMEDIATE: Hide footer before any rendering (runs synchronously)
+  (function() {
+    if (window.matchMedia && window.matchMedia('(max-width: 749px)').matches) {
+      var style = document.createElement('style');
+      style.textContent = '@media (max-width: 749px) { body.template-product .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer), body.template-product [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]), body.template-product section.mcc-landing-footer:not(#product_merch_mobile section.mcc-landing-footer), body.template-product #shopify-section-footer-group, body.template-product [id*="footer-group"], body.template-product #shopify-section-footer, body.template-product [id^="shopify-section-footer"], body.template-product [id*="shopify-section-footer"]:not(#product_merch_mobile *) { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; } #product_merch_mobile #merch-mobile-footer-container { opacity: 0 !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; } }';
+      document.head.insertBefore(style, document.head.firstChild);
+    }
+  })();
+</script>
+
 <section id="product_merch_mobile"
   class="product-merch-mobile only-mobile"
   data-product-id="{{ product.id }}"
@@ -12,7 +23,7 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
   aria-label="Merch Product Page (Mobile)">
 
   <!-- === Vertical Gallery (outside drawer) === -->
-  <div class="mm-gallery" data-mm-gallery>
+  <div class="mm-gallery" data-mm-gallery data-hero-mobile>
     {% render 'mcc-merch-mobile-vertical-gallery', product: product, section: section %}
   </div>
 
@@ -167,7 +178,7 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
         </section>
 
         <!-- ===== Footer (moved inside drawer) ===== -->
-        <section class="content-section mcc-footer-in-drawer" id="merch-mobile-footer-container">
+        <section class="content-section mcc-footer-in-drawer" id="merch-mobile-footer-container" style="opacity: 0 !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important;">
           {%- comment -%} Footer will be moved here via JavaScript {%- endcomment -%}
         </section>
 
@@ -203,7 +214,7 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
     
     /* Ensure gallery stays above footer and creates proper stacking context */
     #product_merch_mobile .mm-gallery {
-      z-index: 1 !important;
+      z-index: 10 !important;  /* Higher than footer to ensure it appears above */
       isolation: isolate !important; /* Create new stacking context */
     }
     
@@ -385,8 +396,25 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
       footerClone.style.visibility = 'visible';
       footerClone.style.opacity = '1';
       
-      // Insert into drawer
+      // Insert into drawer (but keep container hidden initially)
       footerContainer.appendChild(footerClone);
+      
+      // Ensure container stays hidden (override any styles from cloned footer)
+      footerContainer.style.setProperty('opacity', '0', 'important');
+      footerContainer.style.setProperty('visibility', 'hidden', 'important');
+      footerContainer.style.setProperty('height', '0', 'important');
+      footerContainer.style.setProperty('overflow', 'hidden', 'important');
+      
+      // Show footer container after gallery animation has started (300ms delay + buffer)
+      // This ensures gallery loads in first before footer appears
+      setTimeout(function() {
+        footerContainer.classList.add('is-visible');
+        footerContainer.style.setProperty('opacity', '1', 'important');
+        footerContainer.style.setProperty('visibility', 'visible', 'important');
+        footerContainer.style.setProperty('height', 'auto', 'important');
+        footerContainer.style.setProperty('overflow', 'visible', 'important');
+        footerContainer.style.setProperty('transition', 'opacity 0.4s ease, visibility 0.4s ease', 'important');
+      }, 500); // 300ms gallery delay + 200ms buffer
       
       // Re-initialize video if it exists in the cloned footer
       var clonedVideo = footerClone.querySelector('.mcc-footer-video-bg');
@@ -501,11 +529,50 @@ MCC — Merch Product Detail Page (Mobile Drawer Base)
 
 
 <script>
-/* Fallback heart toggle only (no-op if app handles UI) */
+/* Fallback heart toggle with animation and state updates */
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-mm-fave]');
   if (!btn) return;
+  
+  const icon = btn.querySelector('.mm-fave-icon');
+  const text = btn.querySelector('.mm-fave-text');
+  const isActive = btn.classList.contains('is-active');
+  
+  // Toggle active state
   btn.classList.toggle('is-active');
+  const newIsActive = btn.classList.contains('is-active');
+  
+  // Update icon and text
+  if (icon) {
+    // Ensure icon is inline-block for transform to work
+    if (window.getComputedStyle(icon).display === 'inline') {
+      icon.style.display = 'inline-block';
+    }
+    
+    // Update heart character (empty to filled)
+    if (newIsActive) {
+      icon.textContent = '♥';
+      btn.setAttribute('aria-label', 'Added to favorites');
+      if (text) text.textContent = 'Added to favorites';
+    } else {
+      icon.textContent = '♡';
+      btn.setAttribute('aria-label', '{{ a11y }}');
+      if (text) text.textContent = 'Add to favorites';
+    }
+    
+    // Trigger animation after state update
+    requestAnimationFrame(function() {
+      icon.classList.remove('mcc-heart-animate');
+      // Force reflow to restart animation
+      void icon.offsetWidth;
+      icon.classList.add('mcc-heart-animate');
+      
+      // Remove class after animation completes
+      setTimeout(function() {
+        icon.classList.remove('mcc-heart-animate');
+      }, 500);
+    });
+  }
 });
 </script>
 

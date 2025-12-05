@@ -358,8 +358,59 @@
 }
 
 /* Fallback heart icon size to match Coffee vibe */
-.product-merch-mobile .mm-fave-btn .mm-fave-icon { font-size: 18px; transform: translateY(-1px); }
-.product-merch-mobile .mm-fave-btn.is-active { border-color: #333; }
+.product-merch-mobile .mm-fave-btn .mm-fave-icon { 
+  font-size: 18px; 
+  transform: translateY(-1px);
+  transition: color 0.3s ease;
+  display: inline-block; /* Ensure transform works for animation */
+  transform-origin: center;
+}
+
+
+/* Fallback button - active state (red heart only, text stays same) */
+.product-merch-mobile .mm-fave-btn.is-active { 
+  border-color: #333; 
+  color: #333 !important; /* Keep text color same */
+}
+
+.product-merch-mobile .mm-fave-btn.is-active .mm-fave-icon {
+  color: #EC1D25 !important;
+}
+
+/* Smooth text transition */
+.product-merch-mobile .mm-fave-btn .mm-fave-text {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Bounce animation for mobile merch fallback heart - preserves translateY */
+@keyframes heartBounceMobile {
+  0% {
+    transform: translateY(-1px) scale(1);
+  }
+  30% {
+    transform: translateY(-1px) scale(1.3);
+  }
+  60% {
+    transform: translateY(-1px) scale(0.95);
+  }
+  100% {
+    transform: translateY(-1px) scale(1);
+  }
+}
+
+/* Bounce animation for mobile merch fallback heart */
+.product-merch-mobile .mm-fave-btn .mm-fave-icon.mcc-heart-animate {
+  animation: heartBounceMobile 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+  transform-origin: center;
+  display: inline-block; /* Ensure transform works */
+}
+
+/* Respect reduced motion for mobile */
+@media (prefers-reduced-motion: reduce) {
+  .product-merch-mobile .mm-fave-btn .mm-fave-icon.mcc-heart-animate {
+    animation: none;
+  }
+}
 
 /* Space between Add to cart and Favorites */
 .product-merch-mobile .content-section[aria-label="Purchase"] { margin-bottom: 0; } /* reset if needed */

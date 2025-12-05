@@ -646,6 +646,149 @@ window.MCC = window.MCCProduct;
   mo.observe(document.documentElement, { childList: true, subtree: true });
 })();
 
+/* ===== MCC — Favorites Button Heart Animation ===== */
+(function initFavoritesAnimation() {
+  // Function to trigger heart animation
+  function animateHeart(button) {
+    if (!button) return;
+    
+    // Find heart icon - could be SVG, span with heart character, or icon element
+    let heartIcon = null;
+    
+    // Try SVG first (most common for widgets)
+    heartIcon = button.querySelector('svg');
+    
+    // Try mobile merch fallback icon
+    if (!heartIcon) {
+      heartIcon = button.querySelector('.mm-fave-icon');
+    }
+    
+    // Try other common selectors
+    if (!heartIcon) {
+      heartIcon = button.querySelector('[class*="heart"]:not([class*="text"]):not([class*="label"])');
+    }
+    
+    if (!heartIcon) {
+      // Look for SVG inside wishlist containers
+      const wishlistContainer = button.closest('[class*="wishlist"], [id*="wishlist"]');
+      if (wishlistContainer) {
+        heartIcon = wishlistContainer.querySelector('svg');
+      }
+    }
+    
+    if (heartIcon) {
+      // Ensure it's inline-block for transform to work
+      const computedStyle = window.getComputedStyle(heartIcon);
+      if (computedStyle.display === 'inline') {
+        heartIcon.style.display = 'inline-block';
+      }
+      
+      // Remove animation class to restart it
+      heartIcon.classList.remove('mcc-heart-animate');
+      // Force reflow to restart animation
+      void heartIcon.offsetWidth;
+      // Add animation class
+      heartIcon.classList.add('mcc-heart-animate');
+      
+      // Remove class after animation completes
+      setTimeout(function() {
+        heartIcon.classList.remove('mcc-heart-animate');
+      }, 500);
+    }
+  }
+  
+  // Function to observe button state changes
+  function observeButton(button) {
+    if (!button || button.__mccFavoritesObserved) return;
+    button.__mccFavoritesObserved = true;
+    
+    // Observe aria-label changes
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-label') {
+          // Trigger animation when state changes
+          animateHeart(button);
+        }
+      });
+    });
+    
+    observer.observe(button, {
+      attributes: true,
+      attributeFilter: ['aria-label']
+    });
+    
+    // Also listen for click events as a fallback
+    button.addEventListener('click', function(e) {
+      // Trigger animation immediately on click
+      animateHeart(button);
+      
+      // Also trigger after a delay to catch widget updates
+      setTimeout(function() {
+        animateHeart(button);
+      }, 100);
+      
+      // One more check after widget has fully updated
+      setTimeout(function() {
+        animateHeart(button);
+      }, 300);
+    }, true); // Use capture phase to catch early
+  }
+  
+  // Function to find and observe all favorites buttons
+  function findAndObserveButtons() {
+    // Find all potential favorites buttons
+    const selectors = [
+      'button[aria-label="Add to favorites"]',
+      'button[aria-label="Added to favorites"]',
+      '#wishlisthero-product-page-button-container button',
+      '.block-wishlist button',
+      '.swym-add-to-wishlist',
+      '[data-mm-fave]'
+    ];
+    
+    selectors.forEach(function(selector) {
+      const buttons = document.querySelectorAll(selector);
+      buttons.forEach(observeButton);
+    });
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', findAndObserveButtons);
+  } else {
+    findAndObserveButtons();
+  }
+  
+  // Also observe for dynamically added buttons
+  const globalObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) { // Element node
+          // Check if the added node is a button or contains buttons
+          if (node.matches && (node.matches('button[aria-label*="favorite"]') || node.matches('[data-mm-fave]'))) {
+            observeButton(node);
+          }
+          // Check for buttons inside the added node
+          const buttons = node.querySelectorAll && node.querySelectorAll('button[aria-label*="favorite"], [data-mm-fave]');
+          if (buttons) {
+            buttons.forEach(observeButton);
+          }
+        }
+      });
+    });
+  });
+  
+  globalObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+  
+  // Re-run on section load (Shopify theme editor)
+  document.addEventListener('shopify:section:load', function() {
+    setTimeout(findAndObserveButtons, 100);
+  });
+})();
+
 /* ===== MCC — Sticky Sidebar Constraint (Desktop Only) ===== */
 (function initStickySidebar() {
   // Wait for DOM to be ready
@@ -664,6 +807,7 @@ window.MCC = window.MCCProduct;
     if (!mediaQuery.matches) return;
 
     let rafId = null;
+    let isInitialized = false; // Track if we've done initial positioning
 
     function getHeaderHeight() {
       // First try CSS variable (most reliable)
@@ -883,13 +1027,26 @@ window.MCC = window.MCCProduct;
           }
         } else {
           // Step 4: Normal sticky behavior - container is in view, use native sticky
-          sidebarContent.style.position = 'sticky';
-          sidebarContent.style.top = `${stickyTop}px`;
-          sidebarContent.style.left = 'auto';
-          sidebarContent.style.width = 'auto';
-          sidebarContent.style.removeProperty('bottom');
-          sidebarContent.style.maxHeight = 'none';
-          sidebarContent.style.overflowY = 'visible';
+          // Don't apply inline styles - let CSS handle it to prevent slide-down on load
+          // Only remove inline styles if they were previously set (for fixed positioning cases)
+          const currentPosition = getComputedStyle(sidebarContent).position;
+          if (currentPosition === 'fixed') {
+            // Previously was fixed, now switch back to sticky - remove inline styles
+            sidebarContent.style.position = '';
+            sidebarContent.style.top = '';
+            sidebarContent.style.left = '';
+            sidebarContent.style.width = '';
+            sidebarContent.style.removeProperty('bottom');
+            sidebarContent.style.maxHeight = '';
+            sidebarContent.style.overflowY = '';
+          }
+          // If already sticky via CSS, don't touch it - CSS will handle positioning
+          // This prevents the slide-down animation by not overriding CSS with inline styles
+        }
+        
+        // Mark as initialized after first run
+        if (!isInitialized) {
+          isInitialized = true;
         }
       });
     }
