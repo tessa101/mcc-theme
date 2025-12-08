@@ -16,9 +16,11 @@
       "name": "MCC Landing — Footer",
       "settings": {
         "use_video_background": true,
-        "contact_link": "shopify://pages/contact",
+        "video": "shopify://files/videos/footer_bg_comp_test1.mp4",
+        "about_us_link": "",
         "wholesale_link": "shopify://pages/wholesale",
-        "partnerships_link": "shopify://pages/partnerships"
+        "partnerships_link": "shopify://pages/partnerships",
+        "contact_link": "shopify://pages/contact"
       }
     }
   },

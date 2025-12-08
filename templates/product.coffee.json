@@ -15,7 +15,12 @@
         "gallery": {
           "type": "gallery",
           "settings": {
-            "variant": "grid"
+            "variant": "hero",
+            "enable_click_cycle": false,
+            "autoplay": false,
+            "autoplay_speed": 5,
+            "show_arrows": true,
+            "show_dots": true
           }
         },
         "details": {
@@ -34,7 +39,7 @@
           "type": "growing_details",
           "settings": {}
         },
-        "brewing_methods": {
+        "brewing_methods_EmXfd3": {
           "type": "brewing_methods",
           "settings": {}
         },
@@ -94,7 +99,7 @@
         "description",
         "flavor_profile",
         "growing_details",
-        "brewing_methods",
+        "brewing_methods_EmXfd3",
         "reviews",
         "recommendations",
         "title",

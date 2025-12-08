@@ -27,14 +27,6 @@
     "mcc_landing_available_LD34qG": {
       "type": "mcc-landing-available",
       "blocks": {
-        "logo_pdd3Yb": {
-          "type": "logo",
-          "settings": {
-            "logo": "shopify://shop_images/Howdys.png",
-            "caption": "Howdy's Cafe",
-            "link": "https://www.howdyscafe.com/"
-          }
-        },
         "logo_4BWA8z": {
           "type": "logo",
           "settings": {
@@ -47,24 +39,24 @@
           "type": "logo",
           "settings": {
             "logo": "shopify://shop_images/Kristys.webp",
-            "caption": "Kristy's Village Cafe",
+            "caption": "Kristy's Malibu",
             "link": "https://kristysvillagecafe.com/"
           }
         },
         "logo_UM9Rbn": {
           "type": "logo",
           "settings": {
-            "logo": "shopify://shop_images/Vintage.webp",
-            "caption": "Caption",
-            "link": ""
+            "logo": "shopify://shop_images/Johns.png",
+            "caption": "Johns Garden",
+            "link": "https://www.johnsgardenmalibu.com"
           }
         },
         "logo_XTaNJL": {
           "type": "logo",
           "settings": {
-            "logo": "shopify://shop_images/Kristys.webp",
-            "caption": "Caption",
-            "link": ""
+            "logo": "shopify://shop_images/SURF.png",
+            "caption": "Surf Out Post",
+            "link": "https://www.surfoutpost.co"
           }
         },
         "logo_FYE8yr": {
@@ -85,7 +77,6 @@
         }
       },
       "block_order": [
-        "logo_pdd3Yb",
         "logo_4BWA8z",
         "logo_MdQi9d",
         "logo_UM9Rbn",
@@ -95,7 +86,7 @@
       ],
       "name": "MCC Landing — Available",
       "settings": {
-        "title": "AVAILABLE AT",
+        "title": "Grab a can today",
         "cols": 5,
         "cols_mobile": 3,
         "logo_max_width": 120
@@ -111,8 +102,8 @@
             "title_color": "",
             "title_size_v2": 0,
             "alignment": "center",
-            "instafeed_margin_top": 100,
-            "instafeed_margin_bottom": 0,
+            "instafeed_margin_top": 20,
+            "instafeed_margin_bottom": 40,
             "instafeed_margin_sides": 0,
             "show_instagram_link": true,
             "link_alignment": "left",
@@ -135,18 +126,23 @@
       "type": "mcc-landing-newsletter",
       "name": "MCC Landing — Newsletter",
       "settings": {
-        "title": "Stay in the Loop!",
+        "title": "Stay in the loop!",
         "subtitle": "Sign up with your email address to receive news and updates.",
-        "button_label": "Sign Up"
+        "email_placeholder": "Your email address",
+        "button_label": "Sign Up",
+        "disclaimer": "By entering your email address, you agree to receive future communications from Malibu Coffee Company."
       }
     },
     "mcc_landing_footer_6VqEgF": {
       "type": "mcc-landing-footer",
       "name": "MCC Landing — Footer",
       "settings": {
-        "contact_link": "shopify://pages/contact",
+        "use_video_background": true,
+        "video": "shopify://files/videos/kling_20251209_H265_2.mp4",
+        "about_us_link": "",
         "wholesale_link": "shopify://pages/wholesale",
-        "partnerships_link": "shopify://pages/partnerships"
+        "partnerships_link": "shopify://pages/partnerships",
+        "contact_link": "shopify://pages/contact"
       }
     },
     "replo_hero_2_Ty7rnk": {

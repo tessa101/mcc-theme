@@ -15,7 +15,12 @@
         "gallery": {
           "type": "gallery",
           "settings": {
-            "variant": "grid"
+            "variant": "hero",
+            "enable_click_cycle": false,
+            "autoplay": false,
+            "autoplay_speed": 5,
+            "show_arrows": true,
+            "show_dots": true
           }
         },
         "details": {
@@ -54,26 +59,52 @@
             "top_margin": 12
           }
         },
+        "coming_soon_description_HPW6AT": {
+          "type": "coming_soon_description",
+          "settings": {}
+        },
+        "available_stores_TCYdbf": {
+          "type": "available_stores",
+          "settings": {
+            "title": "Grab a can today",
+            "cols": 3,
+            "logo_max_size": 100,
+            "cols_mobile": 3,
+            "logo_max_size_mobile": 80
+          }
+        },
+        "coming_soon_wLEB8J": {
+          "type": "coming_soon",
+          "settings": {
+            "title": "Buy it soon here!",
+            "email_button_text": "Email me"
+          }
+        },
         "price": {
           "type": "price",
+          "disabled": true,
           "settings": {}
         },
         "variant_picker": {
           "type": "variant_picker",
+          "disabled": true,
           "settings": {}
         },
         "quantity_selector": {
           "type": "quantity_selector",
+          "disabled": true,
           "settings": {
             "quantity_label": "QUANTITY"
           }
         },
         "recharge_subscriptions_subscription_widget_v2_rtfhGU": {
           "type": "shopify://apps/recharge-subscriptions/blocks/subscription-widget-v2/371eed76-0b44-4869-9813-730372ea378e",
+          "disabled": true,
           "settings": {}
         },
         "buy_buttons": {
           "type": "buy_buttons",
+          "disabled": true,
           "settings": {}
         },
         "wishlist_FyrYe4": {
@@ -94,6 +125,9 @@
         "recommendations",
         "title",
         "reviews_badge_custom",
+        "coming_soon_description_HPW6AT",
+        "available_stores_TCYdbf",
+        "coming_soon_wLEB8J",
         "price",
         "variant_picker",
         "quantity_selector",
@@ -170,4 +204,3 @@
     "1753492302924e2579"
   ]
 }
-
