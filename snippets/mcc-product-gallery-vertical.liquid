@@ -73,14 +73,14 @@ Similar to merch desktop gallery pattern
 .layout-coffee [data-gallery-vertical="{{ section.id }}"] .gallery-vertical-item.is-inview {
   opacity: 1 !important;
   transform: none !important;
+  transition-delay: 0.15s !important; /* Ensure delay is applied when visible */
 }
 
-/* First item (hero) is immediately visible (matching merch desktop exactly) */
+/* First item (hero) fades in with delay - no longer immediately visible */
 [data-gallery-vertical="{{ section.id }}"] .gallery-vertical-item:first-child,
 .layout-coffee [data-gallery-vertical="{{ section.id }}"] .gallery-vertical-item:first-child {
-  opacity: 1 !important;
-  transform: none !important;
-  transition-delay: 0ms !important;
+  /* Remove immediate visibility - let animation handle it */
+  transition-delay: 0.15s !important; /* Match sidebar delay */
 }
 </style>
 
@@ -140,7 +140,9 @@ Similar to merch desktop gallery pattern
 (function() {
   function initGallery() {
     const gallery = document.querySelector('[data-gallery-vertical="{{ section.id }}"]');
-    if (!gallery || gallery.__mccInited) return;
+    if (!gallery) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (gallery.__mccInited) return;
     gallery.__mccInited = true;
 
     const items = Array.from(gallery.querySelectorAll('.gallery-vertical-item'));
@@ -156,11 +158,16 @@ Similar to merch desktop gallery pattern
       });
     }, { threshold: 0.12 });
 
-    // Set up items exactly like merch: first gets is-inview immediately, rest are observed
+    // Set up items: first item gets is-inview with delay, rest are observed
     items.forEach((el, i) => {
       if (i === 0) {
-        // First item (hero) is immediately visible
-        el.classList.add('is-inview');
+        // First item (hero) - add is-inview with slight delay to match sidebar
+        // Use requestAnimationFrame to ensure it happens after CSS is applied
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            el.classList.add('is-inview');
+          }, 150); // Match sidebar delay
+        });
       } else {
         // Observe subsequent items for scroll animation
         io.observe(el);
@@ -168,12 +175,46 @@ Similar to merch desktop gallery pattern
     });
   }
 
-  // Run immediately and on DOM ready
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the gallery when it's ready
+    const gallery = document.querySelector('[data-gallery-vertical="{{ section.id }}"]');
+    if (gallery) {
+      // Reset flag if it exists to allow re-initialization on reload
+      if (gallery.__mccInited) {
+        gallery.__mccInited = false;
+      }
+      initGallery();
+      return true;
+    } else {
+      // Gallery not found yet, try again soon (max 20 attempts = 1 second)
+      if (runInit.attempts === undefined) runInit.attempts = 0;
+      runInit.attempts++;
+      if (runInit.attempts < 20) {
+        setTimeout(runInit, 50);
+      }
+      return false;
+    }
+  }
+  
+  // Safety fallback: if gallery still not initialized after 1 second, force show first item
+  setTimeout(function() {
+    const gallery = document.querySelector('[data-gallery-vertical="{{ section.id }}"]');
+    if (gallery) {
+      const firstItem = gallery.querySelector('.gallery-vertical-item:first-child');
+      if (firstItem && !firstItem.classList.contains('is-inview')) {
+        firstItem.classList.add('is-inview');
+      }
+    }
+  }, 1000);
+  
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGallery);
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
   } else {
     // DOM already ready, run immediately
-    setTimeout(initGallery, 0);
+    runInit();
   }
 
   // Also run on section load (Shopify theme editor)

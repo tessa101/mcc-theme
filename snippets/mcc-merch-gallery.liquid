@@ -57,7 +57,12 @@ MCC Merch Media Gallery (desktop, vertical) — self-contained with inline JS
     document.getElementById('MerchGallery-{{ section.id }}') ||
     (document.currentScript && document.currentScript.closest('.mcc-merch-gallery')) ||
     (document.currentScript && document.currentScript.previousElementSibling && document.currentScript.previousElementSibling.classList?.contains('mcc-merch-gallery') ? document.currentScript.previousElementSibling : null);
-  if (!root || root.__mccInited) return;
+  if (!root) return;
+  // Allow re-initialization on reload by checking flag after finding element
+  if (root.__mccInited) {
+    // Reset flag to allow re-initialization
+    root.__mccInited = false;
+  }
   root.__mccInited = true;
 
   // Utils
@@ -298,10 +303,33 @@ MCC Merch Media Gallery (desktop, vertical) — self-contained with inline JS
 
   // Reveal nicety
   const items = qsa(root, '.mgg-item');
+  if (items.length === 0) return;
+  
   const io = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('is-inview'); obs.unobserve(entry.target); } });
   }, { threshold: 0.12 });
-  items.forEach((el, i) => i ? io.observe(el) : el.classList.add('is-inview'));
+  
+  items.forEach((el, i) => {
+    if (i === 0) {
+      // First item - add is-inview with slight delay to match sidebar
+      // Use requestAnimationFrame to ensure it happens after CSS is applied
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          el.classList.add('is-inview');
+        }, 150); // Match sidebar delay
+      });
+    } else {
+      io.observe(el);
+    }
+  });
+  
+  // Safety fallback: if first item still not visible after 1 second, force show it
+  setTimeout(function() {
+    const firstItem = items[0];
+    if (firstItem && !firstItem.classList.contains('is-inview')) {
+      firstItem.classList.add('is-inview');
+    }
+  }, 1000);
 })();
 </script>
 

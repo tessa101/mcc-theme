@@ -125,11 +125,10 @@ MCC Merch Product Detail Page — v1 (safe starter)
   transform: none !important;
 }
 
-/* First block is immediately visible (matching coffee/gallery exactly) */
+/* First block fades in with delay - no longer immediately visible */
 .product-merch .product-sections > *:first-child {
-  opacity: 1 !important;
-  transform: none !important;
-  transition-delay: 0ms !important;
+  /* Remove immediate visibility - let animation handle it */
+  transition-delay: 0.15s !important; /* Match sidebar delay */
 }
 
 /* Respect reduced motion */
@@ -296,7 +295,9 @@ You can prune/add blocks later (e.g., size chart, features) without breaking lay
     if (!productMerch) return;
     
     const productSections = productMerch.querySelector('.product-sections');
-    if (!productSections || productSections.__mccMerchBlocksInited) return;
+    if (!productSections) return;
+    // Allow re-initialization on reload by checking flag after finding element
+    if (productSections.__mccMerchBlocksInited) return;
     productSections.__mccMerchBlocksInited = true;
 
     // Select all left rail sections
@@ -316,11 +317,16 @@ You can prune/add blocks later (e.g., size chart, features) without breaking lay
       });
     }, { threshold: 0.12 });
 
-    // Set up sections exactly like coffee/gallery: first gets is-inview immediately, rest are observed
+    // Set up sections: first gets is-inview with delay, rest are observed
     sections.forEach((el, i) => {
       if (i === 0) {
-        // First section is immediately visible
-        el.classList.add('is-inview');
+        // First section - add is-inview with slight delay to match sidebar
+        // Use requestAnimationFrame to ensure it happens after CSS is applied
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            el.classList.add('is-inview');
+          }, 150); // Match sidebar delay
+        });
       } else {
         // Observe subsequent sections for scroll animation
         io.observe(el);
@@ -328,12 +334,51 @@ You can prune/add blocks later (e.g., size chart, features) without breaking lay
     });
   }
 
-  // Run immediately and on DOM ready
+  // Run immediately and on DOM ready - ensure it runs on every load
+  function runInit() {
+    // Try multiple times to catch the blocks when they're ready
+    const productMerch = document.querySelector('.product-merch[data-section="{{ section.id }}"]');
+    if (productMerch) {
+      const productSections = productMerch.querySelector('.product-sections');
+      if (productSections) {
+        // Reset flag if it exists to allow re-initialization on reload
+        if (productSections.__mccMerchBlocksInited) {
+          productSections.__mccMerchBlocksInited = false;
+        }
+        initMerchBlocksScrollAnimation();
+        return true;
+      }
+    }
+    // Blocks not found yet, try again soon (max 20 attempts = 1 second)
+    if (runInit.attempts === undefined) runInit.attempts = 0;
+    runInit.attempts++;
+    if (runInit.attempts < 20) {
+      setTimeout(runInit, 50);
+    }
+    return false;
+  }
+  
+  // Safety fallback: if blocks still not initialized after 1 second, force show first block
+  setTimeout(function() {
+    const productMerch = document.querySelector('.product-merch[data-section="{{ section.id }}"]');
+    if (productMerch) {
+      const productSections = productMerch.querySelector('.product-sections');
+      if (productSections) {
+        const firstBlock = productSections.querySelector('.mcc-merch-description:first-child, .mcc-merch-details:first-child, .coffee-accordion:first-child, .content-section.coffee-recs:first-child');
+        if (firstBlock && !firstBlock.classList.contains('is-inview')) {
+          firstBlock.classList.add('is-inview');
+        }
+      }
+    }
+  }, 1000);
+  
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMerchBlocksScrollAnimation);
+    document.addEventListener('DOMContentLoaded', runInit);
+    // Also try immediately in case DOM is ready but event hasn't fired
+    setTimeout(runInit, 0);
   } else {
     // DOM already ready, run immediately
-    setTimeout(initMerchBlocksScrollAnimation, 0);
+    runInit();
   }
 
   // Also run on section load (Shopify theme editor)
