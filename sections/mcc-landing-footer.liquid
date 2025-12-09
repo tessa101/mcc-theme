@@ -398,129 +398,265 @@ section.mcc-landing-footer::before,
 @media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
   @keyframes kelpUndulate {
     0%, 100% { 
-      transform: rotate(-2deg) translateX(-1px) translateY(0px) skewY(0.5deg);
+      transform: rotate(-1.5deg) translateX(-2px) translateY(0px) skewY(0.3deg);
     }
-    12.5% { 
-      transform: rotate(1deg) translateX(3px) translateY(-1px) skewY(-1deg);
+    10% { 
+      transform: rotate(-0.5deg) translateX(-1px) translateY(-0.5px) skewY(0.1deg);
     }
-    25% { 
-      transform: rotate(3deg) translateX(5px) translateY(-2px) skewY(-1.5deg);
+    20% { 
+      transform: rotate(0.5deg) translateX(1px) translateY(-1px) skewY(-0.2deg);
     }
-    37.5% { 
-      transform: rotate(2deg) translateX(4px) translateY(-1px) skewY(-0.5deg);
+    30% { 
+      transform: rotate(1.5deg) translateX(3px) translateY(-1.5px) skewY(-0.5deg);
+    }
+    40% { 
+      transform: rotate(2deg) translateX(4px) translateY(-2px) skewY(-0.7deg);
     }
     50% { 
-      transform: rotate(-1deg) translateX(-3px) translateY(1px) skewY(1deg);
+      transform: rotate(1.5deg) translateX(3px) translateY(-1.5px) skewY(-0.5deg);
     }
-    62.5% { 
-      transform: rotate(-2.5deg) translateX(-4px) translateY(2px) skewY(1.5deg);
+    60% { 
+      transform: rotate(0.5deg) translateX(1px) translateY(-1px) skewY(-0.2deg);
     }
-    75% { 
-      transform: rotate(-1deg) translateX(-2px) translateY(1px) skewY(0.5deg);
+    70% { 
+      transform: rotate(-0.5deg) translateX(-1px) translateY(-0.5px) skewY(0.1deg);
     }
-    87.5% { 
-      transform: rotate(1.5deg) translateX(2px) translateY(0px) skewY(-0.5deg);
+    80% { 
+      transform: rotate(-1.5deg) translateX(-3px) translateY(0px) skewY(0.4deg);
+    }
+    90% { 
+      transform: rotate(-1deg) translateX(-2px) translateY(0px) skewY(0.3deg);
     }
   }
 
   /* Target individual strand groups within each kelp SVG */
   /* Use both ID and class selectors for flexibility */
   
-  /* Left-side kelp strands */
+  /* Left-side kelp - PARENT GROUP: moves all strands together */
+  .mcc-kelp-left svg #left-side-kelp,
+  .mcc-kelp-left svg [id="left-side-kelp"] {
+    animation: kelpUndulate 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Left-side kelp - CHILD STRANDS: independent motion relative to parent */
   .mcc-kelp-left svg #l-sprig,
   .mcc-kelp-left svg [id="l-sprig"],
   .mcc-kelp-left svg #l-kelp,
   .mcc-kelp-left svg [id="l-kelp"],
   .mcc-kelp-left svg #l-lettuce,
   .mcc-kelp-left svg [id="l-lettuce"] {
-    animation: kelpUndulate 5s ease-in-out infinite;
+    animation: kelpUndulate 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     transform-origin: bottom center;
   }
 
-  /* Right-side front kelp strands */
+  /* Right-side front kelp - TOP PARENT: no animation to prevent transform stacking */
+  /* Animation removed - only r-front-kelp animates to move strands together */
+  .mcc-kelp-right-front svg #right-side-front-kelp,
+  .mcc-kelp-right-front svg [id="right-side-front-kelp"] {
+    /* No animation - prevents transform stacking with r-front-kelp */
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp - INTERMEDIATE PARENT: contains strands - PRIMARY ANIMATION */
+  .mcc-kelp-right-front svg #r-front-kelp,
+  .mcc-kelp-right-front svg [id="r-front-kelp"] {
+    animation: kelpUndulate 6.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+    will-change: transform; /* Optimize for transform animations */
+  }
+
+  /* Right-side front kelp - DIRECT CHILDREN: independent motion relative to top parent */
   .mcc-kelp-right-front svg #r-sea-sprig,
   .mcc-kelp-right-front svg [id="r-sea-sprig"],
   .mcc-kelp-right-front svg #r-sea-glob,
   .mcc-kelp-right-front svg [id="r-sea-glob"] {
-    animation: kelpUndulate 5.2s ease-in-out infinite;
+    animation: kelpUndulate 6.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     transform-origin: bottom center;
   }
 
-  /* Right-side front kelp - individual strands */
+  /* Right-side front kelp - INDIVIDUAL STRANDS: children of r-front-kelp */
+  /* These inherit parent motion from r-front-kelp - no independent animation to maintain coherence */
   .mcc-kelp-right-front svg #right-strand-1,
   .mcc-kelp-right-front svg [id="right-strand-1"],
   .mcc-kelp-right-front svg #right-strand-2,
-  .mcc-kelp-right-front svg [id="right-strand-2"] {
-    animation: kelpUndulate 5.4s ease-in-out infinite;
+  .mcc-kelp-right-front svg [id="right-strand-2"],
+  .mcc-kelp-right-front svg #right-strand-3,
+  .mcc-kelp-right-front svg [id="right-strand-3"],
+  /* Also target ALL nested groups and paths inside strand groups to prevent fallback animation */
+  .mcc-kelp-right-front svg #right-strand-1 *,
+  .mcc-kelp-right-front svg [id="right-strand-1"] *,
+  .mcc-kelp-right-front svg #right-strand-2 *,
+  .mcc-kelp-right-front svg [id="right-strand-2"] *,
+  .mcc-kelp-right-front svg #right-strand-3 *,
+  .mcc-kelp-right-front svg [id="right-strand-3"] * {
+    /* Only disable animation - let SVG's natural transform inheritance handle parent-to-child transforms */
+    animation: none !important;
+  }
+  /* Set transform-origin on strand groups themselves */
+  .mcc-kelp-right-front svg #right-strand-1,
+  .mcc-kelp-right-front svg [id="right-strand-1"],
+  .mcc-kelp-right-front svg #right-strand-2,
+  .mcc-kelp-right-front svg [id="right-strand-2"],
+  .mcc-kelp-right-front svg #right-strand-3,
+  .mcc-kelp-right-front svg [id="right-strand-3"] {
     transform-origin: bottom center;
   }
 
-  /* Right-side mid kelp strands (top-anchored) */
+  /* Right-side mid kelp - PARENT: moves all strands together */
+  .mcc-kelp-right-mid svg #right-side-mid-kelp,
+  .mcc-kelp-right-mid svg [id="right-side-mid-kelp"] {
+    animation: kelpUndulate 6.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center; /* Changed from top center - kelp should sway from base */
+    will-change: transform; /* Optimize for transform animations */
+  }
+
+  /* Right-side mid kelp strands (top-anchored) - children inherit parent motion */
+  .mcc-kelp-right-mid svg #right-mid-strand-1,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"],
+  .mcc-kelp-right-mid svg #right-mid-strand-2,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"],
+  /* Also target ALL nested groups and paths inside strand groups to prevent fallback animation */
+  .mcc-kelp-right-mid svg #right-mid-strand-1 *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] *,
+  .mcc-kelp-right-mid svg #right-mid-strand-2 *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] * {
+    /* Only disable animation - let SVG's natural transform inheritance handle parent-to-child transforms */
+    animation: none !important;
+  }
+  /* Set transform-origin on strand groups themselves */
   .mcc-kelp-right-mid svg #right-mid-strand-1,
   .mcc-kelp-right-mid svg [id="right-mid-strand-1"],
   .mcc-kelp-right-mid svg #right-mid-strand-2,
   .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
-    animation: kelpUndulate 5.5s ease-in-out infinite;
-    transform-origin: top center;
-  }
-  
-  /* Fallback: animate all groups if specific IDs aren't found */
-  .mcc-kelp-left svg g[id],
-  .mcc-kelp-right-front svg g[id],
-  .mcc-kelp-right-mid svg g[id] {
-    animation: kelpUndulate 5s ease-in-out infinite;
-    transform-origin: bottom center;
+    transform-origin: bottom center; /* Changed from top center - kelp should sway from base */
   }
 
   /* Different animation delays for natural variation - Left side */
-  .mcc-kelp-left svg #l-sprig,
-  .mcc-kelp-left svg [id="l-sprig"] {
+  /* Parent group - base motion for all strands */
+  .mcc-kelp-left svg #left-side-kelp,
+  .mcc-kelp-left svg [id="left-side-kelp"] {
     animation-delay: 0s;
     animation-duration: 5s;
   }
+  /* Child strands - independent variation on top of parent motion */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"] {
+    animation-delay: 0s;
+    animation-duration: 6s;
+  }
   .mcc-kelp-left svg #l-kelp,
   .mcc-kelp-left svg [id="l-kelp"] {
-    animation-delay: 0.4s;
-    animation-duration: 5.3s;
+    animation-delay: 0.5s;
+    animation-duration: 6.3s;
   }
   .mcc-kelp-left svg #l-lettuce,
   .mcc-kelp-left svg [id="l-lettuce"] {
-    animation-delay: 0.8s;
-    animation-duration: 5.1s;
+    animation-delay: 1s;
+    animation-duration: 6.1s;
   }
 
   /* Different animation delays - Right front */
+  /* Top parent - no animation delays (no animation) */
+  /* Intermediate parent - motion for strand group */
+  .mcc-kelp-right-front svg #r-front-kelp,
+  .mcc-kelp-right-front svg [id="r-front-kelp"] {
+    animation-delay: 0s;
+    animation-duration: 6.2s;
+  }
+  /* Direct children - independent variation */
   .mcc-kelp-right-front svg #r-sea-sprig,
   .mcc-kelp-right-front svg [id="r-sea-sprig"] {
-    animation-delay: 0.2s;
-    animation-duration: 5.2s;
-  }
-  .mcc-kelp-right-front svg #right-strand-1,
-  .mcc-kelp-right-front svg [id="right-strand-1"] {
-    animation-delay: 0.6s;
-    animation-duration: 5.4s;
-  }
-  .mcc-kelp-right-front svg #right-strand-2,
-  .mcc-kelp-right-front svg [id="right-strand-2"] {
-    animation-delay: 1s;
-    animation-duration: 5.6s;
+    animation-delay: 0.3s;
+    animation-duration: 6.2s;
   }
   .mcc-kelp-right-front svg #r-sea-glob,
   .mcc-kelp-right-front svg [id="r-sea-glob"] {
-    animation-delay: 1.4s;
-    animation-duration: 5.3s;
+    animation-delay: 1.6s;
+    animation-duration: 6.3s;
+  }
+  /* Individual strands - children of r-front-kelp */
+  /* No animation delays/durations - these inherit parent motion */
+  
+  /* Different animation delays - Right mid parent */
+  .mcc-kelp-right-mid svg #right-side-mid-kelp,
+  .mcc-kelp-right-mid svg [id="right-side-mid-kelp"] {
+    animation-delay: 0s;
+    animation-duration: 6.5s;
+  }
+  /* Right mid strands - no animation delays/durations - inherit parent motion */
+
+  /* Fallback: animate any remaining groups that don't match specific IDs */
+  /* This comes last so specific rules above take precedence */
+  .mcc-kelp-left svg g[id]:not([id^="l-"]),
+  .mcc-kelp-right-front svg g[id]:not([id^="r-"]):not([id^="right-strand"]),
+  .mcc-kelp-right-mid svg g[id]:not([id^="right-mid-strand"]) {
+    animation: kelpUndulate 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
   }
 
-  /* Different animation delays - Right mid */
-  .mcc-kelp-right-mid svg #right-mid-strand-1,
-  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] {
+  /* TEMPORARY FALLBACK: Animate all paths directly when no group IDs are present */
+  /* Lower specificity - will be overridden by ID-based selectors above once SVG files are updated */
+  /* Note: svg > path only matches direct children, not paths inside groups */
+  .mcc-kelp-left svg > path,
+  .mcc-kelp-right-front svg > path,
+  .mcc-kelp-right-mid svg > path {
+    animation: kelpUndulate 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+    will-change: transform;
+  }
+  
+  /* Explicitly exclude ALL elements that are descendants of strand groups from any animation */
+  .mcc-kelp-right-front svg [id^="right-strand"] *,
+  .mcc-kelp-right-front svg [id="right-strand-1"] *,
+  .mcc-kelp-right-front svg [id="right-strand-2"] *,
+  .mcc-kelp-right-front svg [id="right-strand-3"] *,
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"] *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] * {
+    /* Only disable animation - all nested elements will inherit parent group transforms naturally */
+    animation: none !important;
+  }
+
+  /* Add variation to path animations - stagger delays for natural movement */
+  /* Left kelp: 4 paths with different timing */
+  .mcc-kelp-left svg > path:nth-of-type(1) {
+    animation-delay: 0s;
+    animation-duration: 6s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(2) {
+    animation-delay: 0.5s;
+    animation-duration: 6.3s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(3) {
+    animation-delay: 1s;
+    animation-duration: 6.1s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(4) {
+    animation-delay: 1.5s;
+    animation-duration: 6.2s;
+  }
+
+  /* Right-front kelp: alternate timing for 66 paths */
+  .mcc-kelp-right-front svg > path:nth-of-type(odd) {
+    animation-delay: 0.2s;
+    animation-duration: 5.2s;
+  }
+  .mcc-kelp-right-front svg > path:nth-of-type(even) {
+    animation-delay: 0.6s;
+    animation-duration: 5.4s;
+  }
+
+  /* Right-mid kelp: top-anchored, alternate timing for 12 paths */
+  .mcc-kelp-right-mid svg > path:nth-of-type(odd) {
     animation-delay: 0.3s;
     animation-duration: 5.5s;
+    transform-origin: top center;
   }
-  .mcc-kelp-right-mid svg #right-mid-strand-2,
-  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
+  .mcc-kelp-right-mid svg > path:nth-of-type(even) {
     animation-delay: 0.7s;
     animation-duration: 5.7s;
+    transform-origin: top center;
   }
 
   /* Performance optimization */
@@ -912,12 +1048,31 @@ section.mcc-landing-footer::before,
         return;
       }
       
-      fetch(svgUrl)
+      // Add cache-busting parameter to force reload of updated SVG files
+      const cacheBuster = '?v=' + Date.now();
+      const svgUrlWithCache = svgUrl + (svgUrl.includes('?') ? '&' : '?') + cacheBuster;
+      
+      console.log('Fetching SVG with cache-bust:', svgUrlWithCache);
+      
+      fetch(svgUrlWithCache)
         .then(function(response) {
           if (!response.ok) throw new Error('Failed to load SVG');
           return response.text();
         })
         .then(function(svgText) {
+          // Log SVG structure to verify groups
+          console.log('SVG loaded, first 500 chars:', svgText.substring(0, 500));
+          // Check if groups exist anywhere in the SVG
+          const hasGroups = svgText.includes('<g id=') || svgText.includes('<g id="') || svgText.includes("id='");
+          console.log('SVG contains group elements with IDs:', hasGroups);
+          if (hasGroups) {
+            // Find all group IDs in the text
+            const groupIdMatches = svgText.match(/<g\s+id=["']([^"']+)["']/g);
+            if (groupIdMatches) {
+              console.log('Found group IDs in SVG text:', groupIdMatches);
+            }
+          }
+          
           container.innerHTML = svgText;
           // Ensure SVG is constrained and doesn't cause expansion
           const svg = container.querySelector('svg');
@@ -983,12 +1138,54 @@ section.mcc-landing-footer::before,
               }, 100); // Small delay to ensure SVG is rendered
             }
             
-            // Debug: Log found strand groups
-            const strands = svg.querySelectorAll('g[id], [id]');
-            console.log('Kelp SVG loaded:', container.className, 'Found', strands.length, 'strand groups');
-            strands.forEach(function(strand) {
-              console.log('  - Strand ID:', strand.id);
-            });
+            // Debug: Log found strand groups - check for IDs on any element type
+            // Try multiple selectors to find groups
+            const allElementsWithIds = svg.querySelectorAll('[id]');
+            const groupsWithIds = svg.querySelectorAll('g[id]');
+            const directChildrenWithIds = Array.from(svg.children).filter(function(el) { return el.id; });
+            
+            console.log('Kelp SVG loaded:', container.className);
+            console.log('  - Total elements with IDs:', allElementsWithIds.length);
+            console.log('  - Groups with IDs:', groupsWithIds.length);
+            console.log('  - Direct children with IDs:', directChildrenWithIds.length);
+            
+            if (allElementsWithIds.length === 0) {
+              // If no IDs found, log the SVG structure for debugging
+              console.warn('No IDs found in SVG. SVG structure:', {
+                tagName: svg.tagName,
+                id: svg.id,
+                children: svg.children.length,
+                firstChild: svg.firstElementChild ? svg.firstElementChild.tagName : 'none'
+              });
+              // Try to find any groups or paths
+              const allGroups = svg.querySelectorAll('g');
+              const allPaths = svg.querySelectorAll('path');
+              console.log('  - Found', allGroups.length, 'groups and', allPaths.length, 'paths');
+              
+              // Log first few paths to see their structure
+              if (allPaths.length > 0) {
+                console.log('  - First path attributes:', Array.from(allPaths[0].attributes).map(function(attr) {
+                  return attr.name + '=' + attr.value;
+                }).join(', '));
+                if (allPaths.length > 1) {
+                  console.log('  - Second path attributes:', Array.from(allPaths[1].attributes).map(function(attr) {
+                    return attr.name + '=' + attr.value;
+                  }).join(', '));
+                }
+              }
+              
+              if (allGroups.length > 0) {
+                console.log('  - First group attributes:', Array.from(allGroups[0].attributes).map(function(attr) {
+                  return attr.name + '=' + attr.value;
+                }).join(', '));
+              }
+              
+              console.warn('⚠️ SVG files need to have IDs on groups for animations to work. Current SVG has no IDs.');
+            } else {
+              allElementsWithIds.forEach(function(element) {
+                console.log('  - Element:', element.tagName, 'ID:', element.id);
+              });
+            }
           }
           // Apply animations after SVG is loaded
           applyKelpAnimations(container);
@@ -1003,6 +1200,127 @@ section.mcc-landing-footer::before,
   function applyKelpAnimations(container) {
     // Force reflow to ensure CSS animations apply
     void container.offsetWidth;
+    
+    // Verify animations are applied
+    const svg = container.querySelector('svg');
+    if (svg) {
+      const animatedElements = svg.querySelectorAll('[id]');
+      let animatedCount = 0;
+      let strandGroups = [];
+      let parentGroups = [];
+      
+      animatedElements.forEach(function(el) {
+        const computedStyle = window.getComputedStyle(el);
+        const animationName = computedStyle.animationName;
+        const transform = computedStyle.transform;
+        const id = el.id;
+        
+        // Check for strand groups (should have animation: none)
+        if (id && (id.indexOf('right-strand') !== -1 || id.indexOf('right-mid-strand') !== -1)) {
+          strandGroups.push({
+            id: id,
+            hasAnimation: animationName && animationName !== 'none',
+            transform: transform !== 'none' ? 'has transform' : 'none'
+          });
+        }
+        
+        // Check for parent groups (should have animation)
+        if (id && (id === 'r-front-kelp' || id === 'right-side-mid-kelp')) {
+          parentGroups.push({
+            id: id,
+            hasAnimation: animationName && animationName !== 'none',
+            animationName: animationName
+          });
+        }
+        
+        if (animationName && animationName !== 'none') {
+          animatedCount++;
+        }
+      });
+      
+      console.log('Animation check for', container.className + ':', animatedCount, 'of', animatedElements.length, 'elements have animations applied');
+      
+      // Log ALL elements with IDs to see what we're working with
+      console.log('=== ALL ELEMENTS WITH IDs ===');
+      animatedElements.forEach(function(el) {
+        console.log('  -', el.tagName, 'ID:', el.id || '(no id)');
+      });
+      
+      // Check for parent groups - be more flexible in detection
+      const rFrontKelp = svg.querySelector('#r-front-kelp, [id="r-front-kelp"]');
+      const rightSideMidKelp = svg.querySelector('#right-side-mid-kelp, [id="right-side-mid-kelp"]');
+      
+      // Log parent animation status with detailed info
+      console.log('=== PARENT GROUPS ===');
+      if (rFrontKelp) {
+        const computedStyle = window.getComputedStyle(rFrontKelp);
+        const animationName = computedStyle.animationName;
+        const hasAnimation = animationName && animationName !== 'none';
+        if (hasAnimation) {
+          console.log('✓ r-front-kelp - HAS animation:', animationName);
+        } else {
+          console.error('✗ r-front-kelp - MISSING animation! This is why strands move independently.');
+          console.log('  Computed animation-name:', animationName);
+          console.log('  Computed transform:', computedStyle.transform);
+        }
+      } else {
+        console.error('✗ r-front-kelp - NOT FOUND in SVG!');
+      }
+      
+      if (rightSideMidKelp) {
+        const computedStyle = window.getComputedStyle(rightSideMidKelp);
+        const animationName = computedStyle.animationName;
+        const hasAnimation = animationName && animationName !== 'none';
+        if (hasAnimation) {
+          console.log('✓ right-side-mid-kelp - HAS animation:', animationName);
+        } else {
+          console.error('✗ right-side-mid-kelp - MISSING animation!');
+          console.log('  Computed animation-name:', animationName);
+        }
+      } else {
+        console.warn('⚠️ right-side-mid-kelp - NOT FOUND in SVG (this is OK if checking right-front)');
+      }
+      
+      // Log strand groups status (should have animation: none)
+      if (strandGroups.length > 0) {
+        console.log('=== STRAND GROUPS (should have animation: none) ===');
+        strandGroups.forEach(function(s) {
+          const strandEl = svg.querySelector('#' + s.id + ', [id="' + s.id + '"]');
+          if (strandEl) {
+            const computedStyle = window.getComputedStyle(strandEl);
+            const animationName = computedStyle.animationName;
+            const transform = computedStyle.transform;
+            if (animationName && animationName !== 'none') {
+              console.error('✗', s.id, '- STILL HAS animation:', animationName, '- This breaks coherence!');
+            } else {
+              console.log('✓', s.id, '- correctly has animation: none');
+              // Check if it's inheriting parent transform
+              if (transform && transform !== 'none') {
+                console.log('  → Has transform (inherited from parent):', transform.substring(0, 50) + '...');
+              } else {
+                console.warn('  → WARNING: No transform - may not be inheriting from parent!');
+              }
+            }
+          }
+        });
+        const strandsWithAnimation = strandGroups.filter(function(s) { return s.hasAnimation; });
+        if (strandsWithAnimation.length > 0) {
+          console.warn('⚠️', strandsWithAnimation.length, 'strand groups still have animations - this is why they move independently!');
+        } else {
+          console.log('✓ All strand groups correctly have animation: none');
+        }
+      }
+      
+      // Log which specific elements have animations (for debugging)
+      console.log('=== ALL ELEMENTS WITH ANIMATIONS ===');
+      animatedElements.forEach(function(el) {
+        const computedStyle = window.getComputedStyle(el);
+        const animationName = computedStyle.animationName;
+        if (animationName && animationName !== 'none') {
+          console.log('  -', el.tagName, el.id || '(no id)', '- animation:', animationName);
+        }
+      });
+    }
   }
   
   // Load SVGs when DOM is ready
