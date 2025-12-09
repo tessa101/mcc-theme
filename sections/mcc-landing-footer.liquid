@@ -37,13 +37,23 @@
         assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
       -%}
       {{ video_element }}
-    {%- else -%}
-      {%- comment -%} Hard-coded fallback: Use the same video as landing page {%- endcomment -%}
-      <video class="mcc-footer-video-bg" playsinline data-video-fallback="true" autoplay loop muted preload="auto">
-        <source src="{{ 'footer_bg_comp_test1.mp4' | asset_url }}" type="video/mp4">
-      </video>
     {%- endif -%}
   {%- endif -%}
+  
+  {%- comment -%} Kelp overlays (desktop only) - Project Spongebob {%- endcomment -%}
+  {%- if section.settings.use_video_background -%}
+    <div class="mcc-footer-kelp-container">
+      {%- comment -%} Right-side mid kelp (background layer) {%- endcomment -%}
+      <div class="mcc-kelp-right-mid" data-kelp-svg="{{ 'right-side-mid-kelp.svg' | asset_url }}"></div>
+      
+      {%- comment -%} Right-side front kelp (foreground layer) {%- endcomment -%}
+      <div class="mcc-kelp-right-front" data-kelp-svg="{{ 'right-side-front-kelp.svg' | asset_url }}"></div>
+      
+      {%- comment -%} Left-side kelp {%- endcomment -%}
+      <div class="mcc-kelp-left" data-kelp-svg="{{ 'left-side-kelp.svg' | asset_url }}"></div>
+    </div>
+  {%- endif -%}
+  
   <div class="mcc-footer-wrapper" data-cascade>
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
     <div class="mcc-footer-left">
@@ -165,6 +175,19 @@
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
+  overflow: hidden !important; /* Ensure parent sections clip content */
+  /* Prevent parent from expanding */
+  max-height: 100% !important;
+  height: auto !important;
+}
+
+/* Ensure parent section doesn't expand beyond footer */
+.shopify-section:has(.mcc-landing-footer),
+[id*="shopify-section"]:has(.mcc-landing-footer) {
+  overflow: hidden !important;
+  /* Match footer height to prevent expansion */
+  height: fit-content !important;
+  max-height: fit-content !important;
 }
 
 /* Override .gradient class on parent section */
@@ -189,12 +212,22 @@ section.mcc-landing-footer,
 section.mcc-landing-footer.gradient,
 .mcc-landing-footer.gradient {
   position: relative;
-  padding: 60px 50px 40px;
+  padding: 60px 50px 16px;
   color: #fff !important;
-  overflow: hidden;
+  overflow: hidden !important; /* Clip kelp at footer boundaries - force clipping */
   background-color: transparent !important;
-  min-height: 200px;
-  display: block !important;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Maintain 16:9 aspect ratio */
+  min-height: 200px; /* Fallback for older browsers */
+  /* Explicitly set height based on aspect ratio to prevent expansion */
+  height: calc(100vw * 9 / 16); /* Height = width * 9/16 for 16:9 */
+  max-height: calc(100vw * 9 / 16); /* Prevent expansion beyond 16:9 */
+  display: flex !important;
+  flex-direction: column !important;
+  /* Ensure footer doesn't expand beyond aspect ratio */
+  box-sizing: border-box;
+  /* Force clipping at all screen sizes */
+  contain: layout style paint;
 }
 
 /* Video background */
@@ -206,7 +239,7 @@ section.mcc-landing-footer.gradient,
   height: 100%;
   object-fit: cover;
   object-position: center;
-  z-index: -1;
+  z-index: -2; /* Behind kelp layers */
   pointer-events: none;
   display: block;
   opacity: 1;
@@ -251,6 +284,271 @@ section.mcc-landing-footer::before,
   display: none !important;
 }
 
+/* Kelp container - Project Spongebob */
+.mcc-footer-kelp-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden !important; /* Clip kelp at footer boundaries - force */
+  pointer-events: none;
+  z-index: -1; /* Above video, below content */
+  display: none; /* Hidden by default, shown on desktop */
+  /* Ensure container doesn't expand beyond footer */
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Force clipping */
+  contain: layout style paint;
+}
+
+/* Show kelp on desktop only (≥769px) */
+@media (min-width: 769px) {
+  .mcc-footer-kelp-container {
+    display: block;
+  }
+}
+
+/* Left-side kelp */
+.mcc-kelp-left {
+  position: absolute;
+  bottom: 0; /* Anchor to footer bottom */
+  left: 0;
+  margin-left: -133px; /* Extends 133px left of footer */
+  height: 100%; /* Take full height of footer */
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-width: calc(100% + 133px); /* Allow extension left, but clip */
+  display: flex;
+  align-items: flex-end; /* Align SVG to bottom */
+}
+
+.mcc-kelp-left svg {
+  position: relative;
+  width: auto;
+  height: auto;
+  max-width: calc(100% + 133px); /* Allow extension left, but clip at container */
+  max-height: 100%; /* Clip at footer bottom */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  box-sizing: border-box;
+  transform-origin: bottom center;
+  margin-top: auto; /* Push to bottom in flex container */
+  /* Negative bottom margin to shift SVG down and align kelp bottom with container bottom */
+  margin-bottom: 0; /* Will be set via JavaScript */
+}
+
+/* Right-side mid kelp (background layer) */
+.mcc-kelp-right-mid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: -336px; /* Extends 336px above footer */
+  height: auto;
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-height: calc(100% + 336px); /* Allow extension above, but clip */
+}
+
+.mcc-kelp-right-mid svg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100% + 336px); /* Allow extension above, but clip at container */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  /* Ensure SVG doesn't cause container expansion */
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Right-side front kelp (foreground layer) */
+.mcc-kelp-right-front {
+  position: absolute;
+  bottom: 0; /* Anchor to footer bottom */
+  right: 0;
+  margin-right: -183px; /* Extends 183px right of footer */
+  height: 100%; /* Take full height of footer */
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-width: calc(100% + 183px); /* Allow extension right, but clip */
+  display: flex;
+  align-items: flex-end; /* Align SVG to bottom */
+}
+
+.mcc-kelp-right-front svg {
+  position: relative;
+  width: auto;
+  height: auto;
+  max-width: calc(100% + 183px); /* Allow extension right, but clip at container */
+  max-height: 100%; /* Clip at footer bottom */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  box-sizing: border-box;
+  transform-origin: bottom center;
+  margin-top: auto; /* Push to bottom in flex container */
+  /* Negative bottom margin to shift SVG down and align kelp bottom with container bottom */
+  margin-bottom: 0; /* Will be set via JavaScript */
+}
+
+/* Kelp wave animation - Project Spongebob */
+/* Individual strand animation for natural undulating wave effect */
+@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
+  @keyframes kelpUndulate {
+    0%, 100% { 
+      transform: rotate(-2deg) translateX(-1px) translateY(0px) skewY(0.5deg);
+    }
+    12.5% { 
+      transform: rotate(1deg) translateX(3px) translateY(-1px) skewY(-1deg);
+    }
+    25% { 
+      transform: rotate(3deg) translateX(5px) translateY(-2px) skewY(-1.5deg);
+    }
+    37.5% { 
+      transform: rotate(2deg) translateX(4px) translateY(-1px) skewY(-0.5deg);
+    }
+    50% { 
+      transform: rotate(-1deg) translateX(-3px) translateY(1px) skewY(1deg);
+    }
+    62.5% { 
+      transform: rotate(-2.5deg) translateX(-4px) translateY(2px) skewY(1.5deg);
+    }
+    75% { 
+      transform: rotate(-1deg) translateX(-2px) translateY(1px) skewY(0.5deg);
+    }
+    87.5% { 
+      transform: rotate(1.5deg) translateX(2px) translateY(0px) skewY(-0.5deg);
+    }
+  }
+
+  /* Target individual strand groups within each kelp SVG */
+  /* Use both ID and class selectors for flexibility */
+  
+  /* Left-side kelp strands */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"],
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"],
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation: kelpUndulate 5s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp strands */
+  .mcc-kelp-right-front svg #r-sea-sprig,
+  .mcc-kelp-right-front svg [id="r-sea-sprig"],
+  .mcc-kelp-right-front svg #r-sea-glob,
+  .mcc-kelp-right-front svg [id="r-sea-glob"] {
+    animation: kelpUndulate 5.2s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp - individual strands */
+  .mcc-kelp-right-front svg #right-strand-1,
+  .mcc-kelp-right-front svg [id="right-strand-1"],
+  .mcc-kelp-right-front svg #right-strand-2,
+  .mcc-kelp-right-front svg [id="right-strand-2"] {
+    animation: kelpUndulate 5.4s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Right-side mid kelp strands (top-anchored) */
+  .mcc-kelp-right-mid svg #right-mid-strand-1,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"],
+  .mcc-kelp-right-mid svg #right-mid-strand-2,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
+    animation: kelpUndulate 5.5s ease-in-out infinite;
+    transform-origin: top center;
+  }
+  
+  /* Fallback: animate all groups if specific IDs aren't found */
+  .mcc-kelp-left svg g[id],
+  .mcc-kelp-right-front svg g[id],
+  .mcc-kelp-right-mid svg g[id] {
+    animation: kelpUndulate 5s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Different animation delays for natural variation - Left side */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"] {
+    animation-delay: 0s;
+    animation-duration: 5s;
+  }
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"] {
+    animation-delay: 0.4s;
+    animation-duration: 5.3s;
+  }
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation-delay: 0.8s;
+    animation-duration: 5.1s;
+  }
+
+  /* Different animation delays - Right front */
+  .mcc-kelp-right-front svg #r-sea-sprig,
+  .mcc-kelp-right-front svg [id="r-sea-sprig"] {
+    animation-delay: 0.2s;
+    animation-duration: 5.2s;
+  }
+  .mcc-kelp-right-front svg #right-strand-1,
+  .mcc-kelp-right-front svg [id="right-strand-1"] {
+    animation-delay: 0.6s;
+    animation-duration: 5.4s;
+  }
+  .mcc-kelp-right-front svg #right-strand-2,
+  .mcc-kelp-right-front svg [id="right-strand-2"] {
+    animation-delay: 1s;
+    animation-duration: 5.6s;
+  }
+  .mcc-kelp-right-front svg #r-sea-glob,
+  .mcc-kelp-right-front svg [id="r-sea-glob"] {
+    animation-delay: 1.4s;
+    animation-duration: 5.3s;
+  }
+
+  /* Different animation delays - Right mid */
+  .mcc-kelp-right-mid svg #right-mid-strand-1,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] {
+    animation-delay: 0.3s;
+    animation-duration: 5.5s;
+  }
+  .mcc-kelp-right-mid svg #right-mid-strand-2,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
+    animation-delay: 0.7s;
+    animation-duration: 5.7s;
+  }
+
+  /* Performance optimization */
+  .mcc-kelp-left svg [id^="l-"],
+  .mcc-kelp-right-front svg [id^="r-"],
+  .mcc-kelp-right-front svg [id^="right-strand"],
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"],
+  .mcc-kelp-left svg g[id],
+  .mcc-kelp-right-front svg g[id],
+  .mcc-kelp-right-mid svg g[id] {
+    will-change: transform;
+  }
+}
+
+/* Disable animation for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .mcc-kelp-left svg [id^="l-"],
+  .mcc-kelp-right-front svg [id^="r-"],
+  .mcc-kelp-right-front svg [id^="right-strand"],
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"],
+  .mcc-kelp-left svg g[id],
+  .mcc-kelp-right-front svg g[id],
+  .mcc-kelp-right-mid svg g[id] {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 .mcc-footer-wrapper {
   position: relative;
   z-index: 1;
@@ -260,11 +558,14 @@ section.mcc-landing-footer::before,
   grid-template-columns: 1fr 2fr;
   gap: 32px;
   align-items: start;
+  flex: 1 0 auto;
 }
 
 .mcc-footer-left {
   margin-bottom: 0;
   justify-self: start;
+  margin-top: 40px;
+  padding-left: 20px;
 }
 
 .mcc-footer-logo-text,
@@ -342,14 +643,16 @@ section.mcc-landing-footer::before,
   grid-template-columns: repeat(3, 1fr);
   gap: 32px;
   align-items: start;
-  justify-self: end;
+  justify-self: start;
+  margin-top: 40px;
+  padding-left: 40px;
 }
 
 .mcc-footer-nav-title {
   font-family: 'Passion One', var(--font-sans) !important;
   font-size: 32px !important;
   font-weight: 400 !important;
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   margin: 0 0 16px !important;
   text-transform: none !important;
   line-height: 1.2 !important;
@@ -366,7 +669,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-nav-list a {
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   text-decoration: none !important;
   font-family: 'SuisseIntl', var(--font-sans) !important;
   font-size: 18px !important;
@@ -381,7 +684,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-text-only {
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   font-family: 'SuisseIntl', var(--font-sans) !important;
   font-size: 18px !important;
   font-weight: 400 !important;
@@ -392,30 +695,36 @@ section.mcc-landing-footer::before,
 
 .mcc-footer-bottom-wrapper {
   grid-column: 1 / -1;
-  margin-top: 60px;
-  padding-top: 40px;
+  margin-top: auto;
+  padding-top: 0;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 1;
+  width: 100%;
 }
 
 .mcc-footer-bottom {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 24px;
   width: 100%;
 }
 
 .mcc-footer-legal {
-  grid-column: 1;
-  justify-self: start;
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 0;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .mcc-footer-copyright {
-  color: #093944 !important;
+  color: #076F83 !important;
   font-size: 12px !important;
   margin: 0 !important;
   opacity: 1 !important;
@@ -423,7 +732,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-legal a {
-  color: #093944 !important;
+  color: #076F83 !important;
   font-size: 12px !important;
   text-decoration: none !important;
   transition: opacity 0.2s;
@@ -436,18 +745,17 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-policy-sep {
-  color: #093944 !important;
+  color: #076F83 !important;
   opacity: 1 !important;
   display: inline;
   margin: 0 4px;
 }
 
 .mcc-footer-logo {
-  grid-column: 2;
-  justify-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  order: -1;
 }
 
 .mcc-footer-logo-img {
@@ -459,7 +767,11 @@ section.mcc-landing-footer::before,
 @media (max-width: 768px) {
   section.mcc-landing-footer,
   .mcc-landing-footer {
-    padding: 40px 15px 32px;
+    padding: 40px 15px 16px;
+    aspect-ratio: 16 / 9; /* Maintain 16:9 on mobile too */
+    height: calc(100vw * 9 / 16) !important; /* Explicit height for mobile */
+    max-height: calc(100vw * 9 / 16) !important;
+    overflow: hidden !important; /* Force clipping on mobile */
   }
 
   .mcc-footer-wrapper {
@@ -470,10 +782,14 @@ section.mcc-landing-footer::before,
 
   .mcc-footer-left {
     justify-self: stretch;
+    margin-top: 20px;
+    padding-left: 0;
   }
 
   .mcc-footer-nav {
     justify-self: stretch;
+    margin-top: 20px;
+    padding-left: 0;
   }
 
   .mcc-footer-logo-text {
@@ -501,13 +817,13 @@ section.mcc-landing-footer::before,
   .mcc-footer-nav-title {
     font-size: 24px !important;
     line-height: 1.2 !important;
-    color: #093944 !important;
+    color: #82D0E2 !important;
   }
 
   .mcc-footer-nav-list a,
   .mcc-footer-text-only {
     font-size: 16px !important;
-    color: #093944 !important;
+    color: #82D0E2 !important;
     letter-spacing: 0.2px;
   }
 
@@ -523,23 +839,26 @@ section.mcc-landing-footer::before,
   .mcc-footer-legal {
     grid-column: 1;
     justify-self: center;
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    white-space: normal;
+    justify-content: center;
+    gap: 0;
+    white-space: nowrap;
+    flex-wrap: wrap;
   }
 
   .mcc-footer-copyright {
-    display: block;
+    display: inline;
   }
 
   .mcc-footer-legal a {
-    display: block;
+    display: inline;
   }
 
   .mcc-footer-policy-sep {
-    display: none;
+    display: inline;
+    margin: 0 4px;
   }
 
   .mcc-footer-logo {
@@ -550,6 +869,14 @@ section.mcc-landing-footer::before,
 }
 
 @media (min-width: 769px) and (max-width: 989px) {
+  section.mcc-landing-footer,
+  .mcc-landing-footer {
+    padding: 60px 50px 16px;
+    height: calc(100vw * 9 / 16) !important; /* Explicit height for tablet */
+    max-height: calc(100vw * 9 / 16) !important;
+    overflow: hidden !important; /* Force clipping on tablet */
+  }
+
   .mcc-footer-logo-text {
     font-size: 72px;
     line-height: 64px;
@@ -558,10 +885,138 @@ section.mcc-landing-footer::before,
   .mcc-footer-nav {
     gap: 32px;
   }
+
+  .mcc-footer-legal {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    flex-wrap: wrap;
+  }
 }
 </style>
 
 {%- if section.settings.use_video_background -%}
+<script>
+/* ===== Project Spongebob - Load Kelp SVGs Inline ===== */
+(function() {
+  function loadKelpSVGs() {
+    const kelpContainers = document.querySelectorAll('[data-kelp-svg]');
+    
+    kelpContainers.forEach(function(container) {
+      const svgUrl = container.getAttribute('data-kelp-svg');
+      if (!svgUrl || container.querySelector('svg')) {
+        // Already loaded, ensure animation is applied
+        applyKelpAnimations(container);
+        return;
+      }
+      
+      fetch(svgUrl)
+        .then(function(response) {
+          if (!response.ok) throw new Error('Failed to load SVG');
+          return response.text();
+        })
+        .then(function(svgText) {
+          container.innerHTML = svgText;
+          // Ensure SVG is constrained and doesn't cause expansion
+          const svg = container.querySelector('svg');
+          if (svg) {
+            // Constrain SVG to container size
+            svg.style.width = 'auto';
+            svg.style.height = 'auto';
+            svg.style.maxWidth = '100%';
+            svg.style.maxHeight = '100%';
+            svg.style.display = 'block';
+            svg.style.overflow = 'visible'; // Allow content, but container clips
+            svg.style.boxSizing = 'border-box';
+            
+            // For bottom-anchored kelp, calculate negative bottom margin to align bottom content
+            if (container.classList.contains('mcc-kelp-left') || 
+                container.classList.contains('mcc-kelp-right-front')) {
+              // Wait for SVG to render, then measure
+              setTimeout(function() {
+                // Get SVG viewBox to understand coordinate system
+                const viewBox = svg.viewBox.baseVal;
+                const viewBoxHeight = viewBox.height;
+                
+                // Get actual rendered dimensions
+                const renderedHeight = svg.offsetHeight || svg.clientHeight;
+                const containerHeight = container.offsetHeight;
+                
+                // If kelp content is at top of viewBox, we need to shift SVG DOWN
+                // Use negative margin-bottom to push it down and align kelp bottom with container bottom
+                if (renderedHeight > containerHeight && viewBoxHeight > 0) {
+                  // Shift DOWN by the excess height
+                  const excessHeight = renderedHeight - containerHeight;
+                  svg.style.marginBottom = '-' + excessHeight + 'px';
+                  console.log('Setting negative margin-bottom:', -excessHeight, 'px for', container.className, 
+                              '(viewBox height:', viewBoxHeight, ', rendered:', renderedHeight, ', container:', containerHeight + ')');
+                } else if (renderedHeight <= containerHeight && viewBoxHeight > 0) {
+                  // SVG fits in container, but kelp might still be at top of viewBox
+                  // Estimate empty space at bottom of viewBox (assuming kelp occupies most of it)
+                  // For left kelp: extends 66px below footer
+                  // For right-front kelp: extends 134px below footer
+                  let extensionPixels = 0;
+                  if (container.classList.contains('mcc-kelp-left')) {
+                    extensionPixels = 66; // From spec sheet
+                  } else if (container.classList.contains('mcc-kelp-right-front')) {
+                    extensionPixels = 134; // From spec sheet
+                  }
+                  
+                  if (extensionPixels > 0) {
+                    // Convert extension to negative margin to shift SVG down
+                    svg.style.marginBottom = '-' + extensionPixels + 'px';
+                    console.log('Setting negative margin-bottom:', -extensionPixels, 'px (from spec) for', container.className);
+                  } else {
+                    // Fallback: estimate based on viewBox
+                    const estimatedKelpHeight = viewBoxHeight * 0.8;
+                    const emptySpace = viewBoxHeight - estimatedKelpHeight;
+                    if (emptySpace > 0) {
+                      const pixelRatio = renderedHeight / viewBoxHeight;
+                      const shiftPixels = emptySpace * pixelRatio;
+                      svg.style.marginBottom = '-' + shiftPixels + 'px';
+                      console.log('Setting negative margin-bottom:', -shiftPixels, 'px (estimated) for', container.className);
+                    }
+                  }
+                }
+              }, 100); // Small delay to ensure SVG is rendered
+            }
+            
+            // Debug: Log found strand groups
+            const strands = svg.querySelectorAll('g[id], [id]');
+            console.log('Kelp SVG loaded:', container.className, 'Found', strands.length, 'strand groups');
+            strands.forEach(function(strand) {
+              console.log('  - Strand ID:', strand.id);
+            });
+          }
+          // Apply animations after SVG is loaded
+          applyKelpAnimations(container);
+        })
+        .catch(function(error) {
+          console.warn('Failed to load kelp SVG:', svgUrl, error);
+        });
+    });
+  }
+  
+  // Function to ensure animations are applied to loaded SVG elements
+  function applyKelpAnimations(container) {
+    // Force reflow to ensure CSS animations apply
+    void container.offsetWidth;
+  }
+  
+  // Load SVGs when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadKelpSVGs);
+  } else {
+    loadKelpSVGs();
+  }
+  
+  // Also try loading after a short delay to ensure everything is ready
+  setTimeout(loadKelpSVGs, 500);
+})();
+</script>
+
 <script>
 (function() {
   const video = document.querySelector('.mcc-footer-video-bg');
@@ -578,6 +1033,23 @@ section.mcc-landing-footer::before,
   // Get video source URL for logging (Shopify video_tag generates the source)
   const videoSrc = video.currentSrc || video.querySelector('source')?.src || video.src || 'unknown';
   console.log('Footer video source URL:', videoSrc);
+  
+  // Footer now uses CSS aspect-ratio: 16/9, so we don't need to calculate height
+  // This function is kept for compatibility but no longer sets height
+  function calculateFooterHeight() {
+    // Footer height is now controlled by CSS aspect-ratio: 16/9
+    // Video will use object-fit: cover to fill the 16:9 container
+    console.log('Footer using 16:9 aspect ratio (CSS controlled)');
+  }
+  
+  // Function to handle window resize
+  let resizeTimeout;
+  function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      calculateFooterHeight();
+    }, 250);
+  }
   
   // Function to show fallback image (hide video)
   function showFallback(reason) {
@@ -752,11 +1224,25 @@ section.mcc-landing-footer::before,
     hideFallback(); // Hide the fallback image
   });
   
+  // Handle video metadata loaded
+  video.addEventListener('loadedmetadata', function() {
+    console.log('Footer video metadata loaded');
+    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+    console.log('Footer using 16:9 aspect ratio (CSS controlled)');
+  });
+  
+  // Footer height is now CSS-controlled (16:9 aspect ratio)
+  // No need for resize listener for height calculation
+  // Video will automatically fit the 16:9 container with object-fit: cover
+  
   // Try to play immediately if video is already loaded
   if (video.readyState >= 2) {
     console.log('Footer video already loaded, attempting to play');
     forcePlay();
   }
+  
+  // Background image case is handled by letting the section grow naturally with content
+  // The ::before pseudo-element uses background-size: cover which will scale appropriately
   
   // Improved fallback: check video state more frequently
   let checkCount = 0;
