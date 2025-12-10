@@ -1359,6 +1359,209 @@ section.mcc-landing-footer::before,
 </script>
 
 <script>
+/* JavaScript Sine Wave Animation for Kelp Undulation - Option A */
+(function() {
+  'use strict';
+  
+  // Configuration for sine wave animation
+  const kelpAnimationConfig = {
+    // Strand IDs and their animation parameters
+    strands: {
+      // Right-side front kelp strands
+      'right-strand-1': {
+        horizontalAmplitude: 4.2,      // Max horizontal movement (px)
+        verticalAmplitude: 6.5,        // Max vertical movement (px)
+        rotationAmplitude: 3.2,         // Max rotation (degrees)
+        skewAmplitude: 0.55,            // Max skew (degrees)
+        horizontalFreq: 0.125,          // Horizontal wave frequency (cycles per second)
+        verticalFreq: 0.15,             // Vertical wave frequency (slightly different for organic feel)
+        rotationFreq: 0.125,            // Rotation frequency
+        phase: 0,                       // Phase offset (0 = start at 0)
+        duration: 8000                  // Animation duration (ms)
+      },
+      'right-strand-2': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 1.5,                     // 1.5s delay = wave propagation
+        duration: 8500
+      },
+      'right-strand-3': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 3,                       // 3s delay = wave propagation
+        duration: 8200
+      },
+      // Right-side mid kelp strands
+      'right-mid-strand-1': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 0,
+        duration: 8500
+      },
+      'right-mid-strand-2': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 1.8,
+        duration: 9000
+      },
+      // Left-side kelp strands
+      'l-sprig': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 0,
+        duration: 8000
+      },
+      'l-kelp': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 1.2,
+        duration: 8000
+      },
+      'l-lettuce': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 2.4,
+        duration: 8000
+      }
+    }
+  };
+  
+  let animationFrameId = null;
+  let startTime = null;
+  let animatedStrands = [];
+  
+  // Function to initialize sine wave animation
+  // Animate only parent strand groups to keep pieces together
+  function initSineWaveAnimation() {
+    // Wait for SVGs to load
+    setTimeout(function() {
+      const kelpContainers = document.querySelectorAll('.mcc-kelp-left, .mcc-kelp-right-front, .mcc-kelp-right-mid');
+      
+      kelpContainers.forEach(function(container) {
+        const svg = container.querySelector('svg');
+        if (!svg) return;
+        
+        // Find all strand elements - animate only the parent groups
+        Object.keys(kelpAnimationConfig.strands).forEach(function(strandId) {
+          const strandEl = svg.querySelector('#' + strandId + ', [id="' + strandId + '"]');
+          if (strandEl) {
+            // Disable CSS animation on strand
+            strandEl.style.animation = 'none';
+            
+            // Animate only the parent strand group - children will move with it
+            animatedStrands.push({
+              element: strandEl,
+              config: kelpAnimationConfig.strands[strandId]
+            });
+          }
+        });
+      });
+      
+      if (animatedStrands.length > 0) {
+        console.log('Initialized sine wave animation for', animatedStrands.length, 'kelp strands');
+        startTime = performance.now();
+        animateKelp();
+      }
+    }, 1500); // Wait 1.5s for SVGs to load
+  }
+  
+  // Main animation loop using requestAnimationFrame
+  // Implements sine wave motion as specified in plan:
+  // x = amplitude * sin(time * frequency + phase)
+  // y = verticalOffset + verticalAmplitude * sin(time * verticalFrequency + phase)
+  // rotation = maxRotation * sin(time * rotationFrequency + phase)
+  function animateKelp() {
+    if (animatedStrands.length === 0) return;
+    
+    const currentTime = (performance.now() - startTime) / 1000; // Convert to seconds
+    
+    animatedStrands.forEach(function(strand) {
+      const config = strand.config;
+      const elapsed = currentTime + config.phase;
+      
+      // Calculate sine wave values per plan specification
+      // Horizontal: x = amplitude * sin(time * frequency + phase)
+      const horizontalOffset = config.horizontalAmplitude * Math.sin(elapsed * config.horizontalFreq * 2 * Math.PI);
+      
+      // Vertical: y = verticalOffset + verticalAmplitude * sin(time * verticalFrequency + phase)
+      // For kelp, we want upward movement (negative Y) when sine is positive
+      const verticalSine = Math.sin(elapsed * config.verticalFreq * 2 * Math.PI);
+      const verticalOffset = -Math.abs(config.verticalAmplitude * verticalSine);
+      
+      // Rotation: rotation = maxRotation * sin(time * rotationFrequency + phase)
+      const rotation = config.rotationAmplitude * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+      
+      // Skew: additional sine wave for bend effect
+      const skew = config.skewAmplitude * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+      
+      // Apply transform - different phases create wave propagation effect
+      strand.element.style.transform = 
+        'rotate(' + rotation + 'deg) ' +
+        'translateX(' + horizontalOffset + 'px) ' +
+        'translateY(' + verticalOffset + 'px) ' +
+        'skewY(' + skew + 'deg)';
+      strand.element.style.transformOrigin = 'bottom center';
+    });
+    
+    animationFrameId = requestAnimationFrame(animateKelp);
+  }
+  
+  // Stop animation (for cleanup)
+  function stopAnimation() {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSineWaveAnimation);
+  } else {
+    initSineWaveAnimation();
+  }
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAnimation);
+})();
+</script>
+
+<script>
 (function() {
   const video = document.querySelector('.mcc-footer-video-bg');
   if (!video) {
