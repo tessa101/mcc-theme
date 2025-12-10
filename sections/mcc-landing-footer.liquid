@@ -407,28 +407,34 @@ section.mcc-landing-footer::before,
   }
 
   /* Undulation animation for individual strands - creates wave-like motion with vertical bounce */
-  /* Organic, flowing motion that creates a true undulating wave effect */
+  /* Organic, flowing motion with asymmetrical keyframes for natural undulation */
   @keyframes kelpStrandUndulate {
-    0%, 100% { 
-      transform: rotate(-2deg) translateX(-2.5px) translateY(0px) skewY(0.4deg);
+    0% { 
+      transform: rotate(-1.8deg) translateX(-2.2px) translateY(0.5px) skewY(0.35deg);
     }
-    15% { 
-      transform: rotate(-0.5deg) translateX(-0.5px) translateY(-2px) skewY(0.1deg);
+    12% { 
+      transform: rotate(-0.3deg) translateX(-0.3px) translateY(-1.8px) skewY(0.08deg);
     }
-    30% { 
-      transform: rotate(1deg) translateX(1.5px) translateY(-4px) skewY(-0.2deg);
+    25% { 
+      transform: rotate(1.2deg) translateX(1.8px) translateY(-3.5px) skewY(-0.18deg);
     }
-    45% { 
-      transform: rotate(2.5deg) translateX(3.5px) translateY(-5.5px) skewY(-0.5deg);
+    38% { 
+      transform: rotate(2.8deg) translateX(3.8px) translateY(-5.2px) skewY(-0.48deg);
     }
-    60% { 
-      transform: rotate(3deg) translateX(4px) translateY(-6px) skewY(-0.6deg);
+    50% { 
+      transform: rotate(3.2deg) translateX(4.2px) translateY(-6.5px) skewY(-0.55deg);
+    }
+    62% { 
+      transform: rotate(2.2deg) translateX(2.8px) translateY(-4.8px) skewY(-0.35deg);
     }
     75% { 
-      transform: rotate(1.5deg) translateX(2px) translateY(-3px) skewY(-0.3deg);
+      transform: rotate(0.8deg) translateX(1.2px) translateY(-2.5px) skewY(-0.15deg);
     }
-    90% { 
-      transform: rotate(-0.5deg) translateX(-1px) translateY(-1px) skewY(0.1deg);
+    88% { 
+      transform: rotate(-0.8deg) translateX(-1.2px) translateY(-0.8px) skewY(0.12deg);
+    }
+    100% { 
+      transform: rotate(-1.8deg) translateX(-2.2px) translateY(0.5px) skewY(0.35deg);
     }
   }
 
@@ -449,8 +455,22 @@ section.mcc-landing-footer::before,
   .mcc-kelp-left svg [id="l-kelp"],
   .mcc-kelp-left svg #l-lettuce,
   .mcc-kelp-left svg [id="l-lettuce"] {
-    animation: kelpUndulate 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: kelpStrandUndulate 8s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
     transform-origin: bottom center;
+  }
+  
+  /* Left-side kelp - stagger delays for wave effect */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"] {
+    animation-delay: 0s;
+  }
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"] {
+    animation-delay: 1.2s;
+  }
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation-delay: 2.4s;
   }
 
   /* Right-side front kelp - TOP PARENT: no animation to prevent transform stacking */
@@ -482,20 +502,20 @@ section.mcc-landing-footer::before,
   /* Each strand has its own undulation with different phases to create wave propagation */
   .mcc-kelp-right-front svg #right-strand-1,
   .mcc-kelp-right-front svg [id="right-strand-1"] {
-    animation: kelpStrandUndulate 7s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+    animation: kelpStrandUndulate 8s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
     animation-delay: 0s;
     transform-origin: bottom center;
   }
   .mcc-kelp-right-front svg #right-strand-2,
   .mcc-kelp-right-front svg [id="right-strand-2"] {
-    animation: kelpStrandUndulate 7s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-    animation-delay: 1.2s; /* Wave phase offset for propagation */
+    animation: kelpStrandUndulate 8.5s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 1.5s; /* Wave phase offset for propagation */
     transform-origin: bottom center;
   }
   .mcc-kelp-right-front svg #right-strand-3,
   .mcc-kelp-right-front svg [id="right-strand-3"] {
-    animation: kelpStrandUndulate 7s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-    animation-delay: 2.4s; /* Wave phase offset for propagation */
+    animation: kelpStrandUndulate 8.2s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 3s; /* Wave phase offset for propagation */
     transform-origin: bottom center;
   }
   /* Disable animation on nested elements inside strands - they inherit strand motion */
@@ -519,14 +539,14 @@ section.mcc-landing-footer::before,
   /* Right-side mid kelp strands - children have independent undulation with wave propagation */
   .mcc-kelp-right-mid svg #right-mid-strand-1,
   .mcc-kelp-right-mid svg [id="right-mid-strand-1"] {
-    animation: kelpStrandUndulate 7.5s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+    animation: kelpStrandUndulate 8.5s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
     animation-delay: 0s;
     transform-origin: bottom center;
   }
   .mcc-kelp-right-mid svg #right-mid-strand-2,
   .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
-    animation: kelpStrandUndulate 7.5s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-    animation-delay: 1.4s; /* Wave phase offset */
+    animation: kelpStrandUndulate 9s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 1.8s; /* Wave phase offset */
     transform-origin: bottom center;
   }
   /* Disable animation on nested elements inside strands - they inherit strand motion */
