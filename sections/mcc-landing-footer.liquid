@@ -752,19 +752,22 @@ section.mcc-landing-footer::before,
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 0;
+  max-width: 1600px; /* Center content with max-width */
+  margin: 0 auto; /* Center the container */
+  padding: 0 3% 0 25%; /* Increased left padding to shift content further right */
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 32px;
+  gap: 24px; /* Reduced gap to bring sections closer */
   align-items: start;
   flex: 1 0 auto;
+  box-sizing: border-box;
 }
 
 .mcc-footer-left {
   margin-bottom: 0;
   justify-self: start;
   margin-top: 40px;
-  padding-left: 20px;
+  padding-left: 0; /* Removed fixed padding - responsive padding handled by wrapper */
 }
 
 .mcc-footer-logo-text,
@@ -844,7 +847,7 @@ section.mcc-landing-footer::before,
   align-items: start;
   justify-self: start;
   margin-top: 40px;
-  padding-left: 40px;
+  padding-left: 0; /* Removed fixed padding - responsive padding handled by wrapper */
 }
 
 .mcc-footer-nav-title {
@@ -963,20 +966,55 @@ section.mcc-landing-footer::before,
 }
 
 /* Responsive Design */
+/* Medium screens - adjust padding */
+@media (max-width: 1400px) {
+  .mcc-footer-wrapper {
+    padding: 0 3% 0 20%; /* Maintain left offset for centering */
+  }
+}
+
+@media (max-width: 1200px) {
+  .mcc-footer-wrapper {
+    padding: 0 2.5% 0 18%; /* Maintain left offset for centering */
+  }
+}
+
+@media (max-width: 1024px) {
+  .mcc-footer-wrapper {
+    padding: 0 2.5% 0 15%; /* Maintain left offset for centering */
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   section.mcc-landing-footer,
   .mcc-landing-footer {
     padding: 40px 15px 16px;
-    aspect-ratio: 16 / 9; /* Maintain 16:9 on mobile too */
-    height: calc(100vw * 9 / 16) !important; /* Explicit height for mobile */
-    max-height: calc(100vw * 9 / 16) !important;
+    min-height: 100vh; /* Fill viewport height to prevent gaps */
+    height: auto; /* Allow content to expand if needed */
     overflow: hidden !important; /* Force clipping on mobile */
+    position: relative; /* Ensure proper positioning context */
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Video should fill container without gaps on mobile */
+  .mcc-footer-video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important; /* Fill container, no gaps */
+    object-position: center;
+    min-height: 100%; /* Ensure it fills */
   }
 
   .mcc-footer-wrapper {
     grid-template-columns: 1fr;
     gap: 50px;
-    padding: 50px 0 0;
+    padding: 50px 15px 0; /* Match section padding */
+    max-width: 100%;
   }
 
   .mcc-footer-left {
