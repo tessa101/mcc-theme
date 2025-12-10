@@ -181,6 +181,16 @@
     <script src="{{ 'search-form.js' | asset_url }}" defer="defer"></script>
 
 
+    {%- comment -%} GSAP Animation Library - Testing in feature branch {%- endcomment -%}
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+    <script>
+      // Register ScrollTrigger plugin
+      if (typeof gsap !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+      }
+    </script>
+
     {%- if settings.animations_reveal_on_scroll -%}
       <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
