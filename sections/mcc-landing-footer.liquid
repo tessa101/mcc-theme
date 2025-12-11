@@ -1432,7 +1432,7 @@ section.mcc-landing-footer::before,
 </script>
 
 <script>
-/* GSAP Sine Wave Animation for Kelp Undulation - Replaces requestAnimationFrame approach */
+/* GSAP Sine Wave Animation with Perlin/Simplex Noise for Kelp Undulation */
 (function() {
   'use strict';
   
@@ -1443,6 +1443,67 @@ section.mcc-landing-footer::before,
   } else {
     console.log('✅ [GSAP METHOD] GSAP library loaded successfully, version:', gsap.version);
   }
+  
+  // Initialize Simplex Noise for organic randomness
+  let simplex = null;
+  let noiseEnabled = true; // Toggle for testing
+  let noiseIntensity = 0.6; // Increased from 0.3 for more visible effect (0.0 to 1.0)
+  
+  // Check for SimplexNoise (inline implementation)
+  if (typeof SimplexNoise !== 'undefined') {
+    try {
+      simplex = new SimplexNoise();
+      console.log('✅ [PERLIN NOISE] Simplex noise initialized for organic kelp movement');
+      console.log('   Noise intensity:', noiseIntensity, '(adjustable)');
+      console.log('   Noise enabled:', noiseEnabled);
+    } catch (e) {
+      console.error('❌ [PERLIN NOISE] Error initializing SimplexNoise:', e);
+      noiseEnabled = false;
+    }
+  } else {
+    console.warn('⚠️ [PERLIN NOISE] SimplexNoise not loaded - falling back to sine waves only');
+    noiseEnabled = false;
+  }
+  
+  // Expose to window for debugging (use getters/setters to access closure variables)
+  window.kelpNoiseDebug = {
+    get enabled() { return noiseEnabled; },
+    get intensity() { return noiseIntensity; },
+    setIntensity: function(val) {
+      noiseIntensity = Math.max(0, Math.min(1, val));
+      console.log('🔧 [PERLIN NOISE] Intensity set to:', noiseIntensity);
+      return noiseIntensity;
+    },
+    toggle: function() {
+      noiseEnabled = !noiseEnabled;
+      console.log('🔧 [PERLIN NOISE] Enabled:', noiseEnabled);
+      return noiseEnabled;
+    },
+    check: function() {
+      const status = {
+        loaded: typeof SimplexNoise !== 'undefined',
+        initialized: simplex !== null,
+        enabled: noiseEnabled,
+        intensity: noiseIntensity
+      };
+      console.log('%c📊 [PERLIN NOISE] Status Check:', 'color: #00ff00; font-size: 14px; font-weight: bold;');
+      console.log('   SimplexNoise loaded:', status.loaded);
+      console.log('   Simplex initialized:', status.initialized);
+      console.log('   Noise enabled:', status.enabled);
+      console.log('   Noise intensity:', status.intensity);
+      console.table(status); // Also show as table for better readability
+      console.log('   Use window.kelpNoiseDebug.setIntensity(0.8) to adjust');
+      return status;
+    }
+  };
+  
+  // Log that debug object is available (make it very visible)
+  console.log('%c🔧 [PERLIN NOISE] Debug controls available: window.kelpNoiseDebug', 'color: #00ff00; font-size: 14px; font-weight: bold;');
+  console.log('%c   Try: window.kelpNoiseDebug.check()', 'color: #00ff00; font-size: 12px;');
+  console.log('   Current intensity:', noiseIntensity, '| Enabled:', noiseEnabled);
+  
+  // Also set a global flag for easy checking
+  window.__kelpNoiseLoaded = true;
   
   // Configuration for sine wave animation (same as before)
   const kelpAnimationConfig = {
@@ -1648,23 +1709,43 @@ section.mcc-landing-footer::before,
           console.log('✅ [GSAP] Animating parent:', parentId, 'bbox:', bbox, 'transform-origin: 50% 100%');
           
           // Gentle side-to-side sway for parent - anchored at bottom
-          // Use onUpdate with sine wave for smooth motion
+          // Use onUpdate with sine wave + noise for smooth, organic motion
           const parentAnimation = gsap.to(parentEl, {
             duration: parentConfig.duration,
             repeat: -1,
             ease: 'none',
             onUpdate: function() {
               const elapsed = ((performance.now() / 1000) - startTime) + parentConfig.phase;
-              const rotation = parentConfig.rotation * Math.sin(elapsed * 0.1 * 2 * Math.PI);
-              const x = parentConfig.x * Math.sin(elapsed * 0.1 * 2 * Math.PI);
+              
+              // Base sine wave motion - REDUCED lateral movement, more vertical
+              // Less rotation and horizontal movement to reduce lateral sway
+              let rotation = parentConfig.rotation * 0.6 * Math.sin(elapsed * 0.1 * 2 * Math.PI);
+              let x = parentConfig.x * 0.5 * Math.sin(elapsed * 0.1 * 2 * Math.PI);
+              // Add vertical movement for better undulation (less lateral)
+              let y = -Math.abs(Math.sin(elapsed * 0.12 * 2 * Math.PI)) * 0.5; // Small upward movement
+              
+              // Add subtle noise for organic variation (if available)
+              if (simplex && noiseEnabled) {
+                const parentIndex = Object.keys(parentGroups).indexOf(parentId) || 0;
+                const noiseTime = elapsed * 0.06; // Slower noise for smoother parent movement
+                
+                const noiseRot = simplex.noise3D(parentIndex * 2, 0, noiseTime);
+                const noiseX = simplex.noise3D(parentIndex * 2, 1, noiseTime);
+                const noiseY = simplex.noise3D(parentIndex * 2, 2, noiseTime);
+                
+                // Apply noise with reduced intensity to keep movement subtle
+                rotation += noiseRot * parentConfig.rotation * noiseIntensity * 0.2;
+                x += noiseX * parentConfig.x * noiseIntensity * 0.2;
+                y += noiseY * noiseIntensity * 0.3;
+              }
               
               // Apply with bottom anchor - ensure transform-origin is set every frame
               gsap.set(parentEl, {
                 rotation: rotation,
                 x: x,
-                y: 0,
+                y: y, // Small vertical movement for undulation
                 force3D: true,
-                transformOrigin: '50% 100%'
+                transformOrigin: '50% 100%' // Anchor at bottom center
               });
               
               // Also verify transform-origin is set in style
@@ -1707,18 +1788,36 @@ section.mcc-landing-footer::before,
             seaEl.style.transformOrigin = '50% 100%';
             seaEl.style.setProperty('transform-origin', '50% 100%', 'important');
             
-            // Animate with sine wave
+            // Animate with sine wave + noise for organic movement
             gsap.to(seaEl, {
               duration: seaConfig.duration,
               repeat: -1,
               ease: 'none',
               onUpdate: function() {
                 const elapsed = ((performance.now() / 1000) - startTime) + seaConfig.phase;
-                const rotation = seaConfig.rotationAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
-                const x = seaConfig.horizontalAmplitude * 1.2 * Math.sin(elapsed * seaConfig.horizontalFreq * 2 * Math.PI);
-                // Full oscillation for visible wave propagation (both positive and negative)
-                const y = seaConfig.verticalAmplitude * 1.5 * Math.sin(elapsed * seaConfig.verticalFreq * 2 * Math.PI);
-                const skew = seaConfig.skewAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
+                
+                // Base sine wave motion
+                let rotation = seaConfig.rotationAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
+                let x = seaConfig.horizontalAmplitude * 1.2 * Math.sin(elapsed * seaConfig.horizontalFreq * 2 * Math.PI);
+                let y = seaConfig.verticalAmplitude * 1.5 * Math.sin(elapsed * seaConfig.verticalFreq * 2 * Math.PI);
+                let skew = seaConfig.skewAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
+                
+                // Add noise for organic variation (if available)
+                if (simplex && noiseEnabled) {
+                  const seaIndex = ['r-sea-glob', 'r-sea-sprig'].indexOf(seaId);
+                  const noiseTime = elapsed * 0.12; // Faster noise for more movement
+                  
+                  const noiseRot = simplex.noise3D(seaIndex * 3, 0, noiseTime);
+                  const noiseX = simplex.noise3D(seaIndex * 3, 1, noiseTime);
+                  const noiseY = simplex.noise3D(seaIndex * 3, 2, noiseTime);
+                  const noiseSk = simplex.noise3D(seaIndex * 3, 3, noiseTime);
+                  
+                  // Apply noise with adjustable intensity (increased for more visible effect)
+                  rotation += noiseRot * seaConfig.rotationAmplitude * 1.5 * noiseIntensity * 0.4;
+                  x += noiseX * seaConfig.horizontalAmplitude * 1.2 * noiseIntensity * 0.4;
+                  y += noiseY * seaConfig.verticalAmplitude * 1.5 * noiseIntensity * 0.4;
+                  skew += noiseSk * seaConfig.skewAmplitude * 1.5 * noiseIntensity * 0.4;
+                }
                 
                 gsap.set(seaEl, {
                   rotation: rotation,
@@ -1843,22 +1942,52 @@ section.mcc-landing-footer::before,
             onUpdate: function() {
               const elapsed = ((performance.now() / 1000) - startTime) + config.phase;
               
-              // Strand undulation: minimal independent motion (20% of original)
-              // Strands move primarily with parent, with subtle independent undulation
-              // This keeps strands visually connected while maintaining organic feel
-              const rotation = config.rotationAmplitude * 0.2 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
-              const skew = config.skewAmplitude * 0.2 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+              // Combine sine waves with Perlin/Simplex noise for organic movement
+              // REDUCED independent motion (5% instead of 20%) to keep strands with parent
+              const baseRotation = config.rotationAmplitude * 0.05 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+              const baseSkew = config.skewAmplitude * 0.05 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+              
+              // Add more vertical movement (less lateral) for better undulation
+              const verticalOffset = config.verticalAmplitude * 0.03 * Math.sin(elapsed * config.verticalFreq * 2 * Math.PI);
+              
+              // Add Perlin/Simplex noise for organic randomness (if available)
+              let noiseRotation = 0;
+              let noiseSkew = 0;
+              let noiseY = 0;
+              
+              if (simplex && noiseEnabled) {
+                // Use strand index and time to create unique noise per strand
+                const strandIndex = Object.keys(kelpAnimationConfig.strands).indexOf(strandId) || 0;
+                const noiseTime = elapsed * 0.12; // Slower noise for smoother variation
+                
+                // Get noise values (-1 to 1 range)
+                const noiseRot = simplex.noise3D(strandIndex * 0.5, 0, noiseTime);
+                const noiseSk = simplex.noise3D(strandIndex * 0.5, 1, noiseTime);
+                const noiseYVal = simplex.noise3D(strandIndex * 0.5, 2, noiseTime);
+                
+                // Apply noise with reduced intensity to prevent separation
+                noiseRotation = noiseRot * config.rotationAmplitude * noiseIntensity * 0.05;
+                noiseSkew = noiseSk * config.skewAmplitude * noiseIntensity * 0.05;
+                noiseY = noiseYVal * config.verticalAmplitude * noiseIntensity * 0.03;
+              }
+              
+              // Combine base sine wave with noise
+              const rotation = baseRotation + noiseRotation;
+              const skew = baseSkew + noiseSkew;
+              const y = verticalOffset + noiseY;
               
               // Apply transforms with bottom anchor - ensure transform-origin is set every frame
-              // x and y are set to 0 so strands move with parent (inherit parent's x/y transforms)
+              // x is 0 so strands move horizontally with parent
+              // y has small vertical offset for undulation
+              // Rotation and skew are minimal to prevent separation
               gsap.set(strandEl, {
                 rotation: rotation,
-                x: 0,
-                y: 0,
+                x: 0, // No independent horizontal movement - moves with parent
+                y: y, // Small vertical undulation
                 skewY: skew,
                 force3D: true,
                 immediateRender: true,
-                transformOrigin: '50% 100%'
+                transformOrigin: '50% 100%' // Anchor at bottom center
               });
               
               // Also verify transform-origin is set in style
