@@ -31,13 +31,10 @@
 <section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
   {%- if section.settings.use_video_background -%}
-    {%- if section.settings.video != blank -%}
-      {%- liquid
-        assign video_element = section.settings.video | video_tag: autoplay: true, loop: true, muted: true, preload: 'auto'
-        assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
-      -%}
-      {{ video_element }}
-    {%- endif -%}
+    {%- comment -%} Use upscaled video asset file directly {%- endcomment -%}
+    <video class="mcc-footer-video-bg" autoplay loop muted playsinline data-video-fallback="true" preload="auto">
+      <source src="{{ 'footer_bg_16.9.mp4' | asset_url }}" type="video/mp4">
+    </video>
   {%- endif -%}
   
   {%- comment -%} Kelp overlays (desktop only) - Project Spongebob {%- endcomment -%}
