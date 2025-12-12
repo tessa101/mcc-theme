@@ -38,18 +38,16 @@
   {%- endif -%}
   
   {%- comment -%} Kelp overlays (desktop only) - Project Spongebob {%- endcomment -%}
-  {%- if section.settings.use_video_background -%}
-    <div class="mcc-footer-kelp-container">
-      {%- comment -%} Right-side mid kelp (background layer) {%- endcomment -%}
-      <div class="mcc-kelp-right-mid" data-kelp-svg="{{ 'right-side-mid-kelp.svg' | asset_url }}"></div>
-      
-      {%- comment -%} Right-side front kelp (foreground layer) {%- endcomment -%}
-      <div class="mcc-kelp-right-front" data-kelp-svg="{{ 'right-side-front-kelp.svg' | asset_url }}"></div>
-      
-      {%- comment -%} Left-side kelp {%- endcomment -%}
-      <div class="mcc-kelp-left" data-kelp-svg="{{ 'left-side-kelp.svg' | asset_url }}"></div>
-    </div>
-  {%- endif -%}
+  <div class="mcc-footer-kelp-container">
+    {%- comment -%} Right-side mid kelp (background layer) {%- endcomment -%}
+    <div class="mcc-kelp-right-mid" data-kelp-svg="{{ 'right-side-mid-kelp.svg' | asset_url }}"></div>
+    
+    {%- comment -%} Right-side front kelp (foreground layer) {%- endcomment -%}
+    <div class="mcc-kelp-right-front" data-kelp-svg="{{ 'right-side-front-kelp.svg' | asset_url }}"></div>
+    
+    {%- comment -%} Left-side kelp {%- endcomment -%}
+    <div class="mcc-kelp-left" data-kelp-svg="{{ 'left-side-kelp.svg' | asset_url }}"></div>
+  </div>
   
   <div class="mcc-footer-wrapper" data-cascade>
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
