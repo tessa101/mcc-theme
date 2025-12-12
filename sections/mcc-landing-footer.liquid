@@ -1164,7 +1164,11 @@ section.mcc-landing-footer::before,
       
       fetch(svgUrlWithCache)
         .then(function(response) {
-          if (!response.ok) throw new Error('Failed to load SVG');
+          if (!response.ok) {
+            console.error('❌ [KELP] HTTP Error:', response.status, response.statusText, 'for URL:', svgUrlWithCache);
+            console.error('❌ [KELP] Full response URL:', response.url);
+            throw new Error('Failed to load SVG: ' + response.status + ' ' + response.statusText);
+          }
           return response.text();
         })
         .then(function(svgText) {
