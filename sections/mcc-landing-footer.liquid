@@ -288,7 +288,7 @@ section.mcc-landing-footer::before,
   bottom: 0;
   overflow: hidden !important; /* Clip kelp at footer boundaries - force */
   pointer-events: none;
-  z-index: -1; /* Above video, below content */
+  z-index: 0; /* Above video (z-index: -2) and background (z-index: -1), below content */
   display: none; /* Hidden by default, shown on desktop */
   /* Ensure container doesn't expand beyond footer */
   max-width: 100% !important;
@@ -1135,6 +1135,18 @@ section.mcc-landing-footer::before,
 (function() {
   function loadKelpSVGs() {
     const kelpContainers = document.querySelectorAll('[data-kelp-svg]');
+    const kelpContainer = document.querySelector('.mcc-footer-kelp-container');
+    
+    console.log('🌿 [KELP] Initializing kelp loader...');
+    console.log('🌿 [KELP] Found kelp container:', kelpContainer ? 'YES' : 'NO');
+    console.log('🌿 [KELP] Found', kelpContainers.length, 'kelp SVG containers');
+    
+    if (kelpContainer) {
+      const computedStyle = window.getComputedStyle(kelpContainer);
+      console.log('🌿 [KELP] Container display:', computedStyle.display);
+      console.log('🌿 [KELP] Container z-index:', computedStyle.zIndex);
+      console.log('🌿 [KELP] Container visibility:', computedStyle.visibility);
+    }
     
     kelpContainers.forEach(function(container) {
       const svgUrl = container.getAttribute('data-kelp-svg');
@@ -1148,7 +1160,7 @@ section.mcc-landing-footer::before,
       const cacheBuster = '?v=' + Date.now();
       const svgUrlWithCache = svgUrl + (svgUrl.includes('?') ? '&' : '?') + cacheBuster;
       
-      console.log('Fetching SVG with cache-bust:', svgUrlWithCache);
+      console.log('🌿 [KELP] Fetching SVG:', svgUrlWithCache);
       
       fetch(svgUrlWithCache)
         .then(function(response) {
@@ -1156,6 +1168,7 @@ section.mcc-landing-footer::before,
           return response.text();
         })
         .then(function(svgText) {
+          console.log('✅ [KELP] SVG loaded successfully:', svgUrl);
           // Log SVG structure to verify groups
           console.log('SVG loaded, first 500 chars:', svgText.substring(0, 500));
           // Check if groups exist anywhere in the SVG
@@ -1287,7 +1300,7 @@ section.mcc-landing-footer::before,
           applyKelpAnimations(container);
         })
         .catch(function(error) {
-          console.warn('Failed to load kelp SVG:', svgUrl, error);
+          console.error('❌ [KELP] Failed to load kelp SVG:', svgUrl, error);
         });
     });
   }
