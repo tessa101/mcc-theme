@@ -31,9 +31,16 @@
 <section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer" data-footer-overlays-enabled="{{ section.settings.enable_desktop_overlay_animation }}">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
   {%- if section.settings.use_video_background -%}
-    {%- comment -%} Use upscaled video asset file directly {%- endcomment -%}
     <video class="mcc-footer-video-bg" autoplay loop muted playsinline data-video-fallback="true" preload="auto">
-      <source src="{{ 'footer_bg_16.9.mp4' | asset_url }}" type="video/mp4">
+      {%- if section.settings.video != null -%}
+        {%- comment -%} Use video from section settings {%- endcomment -%}
+        {%- for source in section.settings.video.sources -%}
+          <source src="{{ source.url }}" type="{{ source.mime_type }}">
+        {%- endfor -%}
+      {%- else -%}
+        {%- comment -%} Fallback to hard-coded asset if no video setting {%- endcomment -%}
+        <source src="{{ 'footer_bg_16.9.mp4' | asset_url }}" type="video/mp4">
+      {%- endif -%}
     </video>
   {%- endif -%}
   
