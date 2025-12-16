@@ -83,19 +83,26 @@
 
 Hide kelp on mobile to keep it simple and performant.
 
-## Overlay Animation Toggle
+## Overlay Animation Method Selection
 
-**Setting:** `enable_desktop_overlay_animation` (checkbox in MCC Landing — Footer section settings)
+**Setting:** `overlay_animation_method` (select dropdown in MCC Landing — Footer section settings)
 
-**Purpose:** Master switch to disable all footer overlay animation layers (Rive, GSAP, Perlin noise) on desktop, allowing video-only footer display.
+**Purpose:** Choose which animation method to use for desktop overlay animations above the footer video, or disable overlays entirely.
+
+**Options:**
+- **Off (video only)**: No overlay animations - only video background is shown; no overlay markup or animation scripts are rendered/executed
+- **GSAP + Perlin Noise** (default): GSAP-based animation with Simplex/Perlin noise for organic kelp movement - uses SVG kelp files
+- **Rive**: Rive canvas-based animation - uses `.riv` animation file (`mcc_footer_crop.riv`)
 
 **Behavior:**
-- When **enabled** (default): All overlay animations render and execute (Rive canvas, GSAP animations, Perlin noise scripts)
-- When **disabled**: Only video background is shown; no overlay markup or animation scripts are rendered/executed
+- Only **one method can be active at a time** (mutually exclusive)
+- When **Off**: No overlay markup or scripts are rendered
+- When **GSAP + Perlin**: Only GSAP/Perlin scripts and SVG loading run; Rive canvas and scripts do not render
+- When **Rive**: Only Rive canvas and scripts run; GSAP/Perlin scripts do not render
 
-**Location:** Shopify customizer → MCC Landing — Footer section → "Enable desktop overlay animation" checkbox
+**Location:** Shopify customizer → MCC Landing — Footer section → "Desktop overlay animation method" dropdown
 
-**Note:** This setting is the single source of truth for enabling/disabling footer overlay animation layers. The video background setting (`use_video_background`) remains independent and controls whether video or image background is used.
+**Note:** This setting is the single source of truth for which overlay animation method is used. The video background setting (`use_video_background`) remains independent and controls whether video or image background is used.
 
 ## Implementation Time Estimate
 

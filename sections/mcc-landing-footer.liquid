@@ -28,7 +28,7 @@
   endif
 -%}
 
-<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer" data-footer-overlays-enabled="{{ section.settings.enable_desktop_overlay_animation }}">
+<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer" data-overlay-method="{{ section.settings.overlay_animation_method }}">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
   {%- if section.settings.use_video_background -%}
     <video class="mcc-footer-video-bg" autoplay loop muted playsinline data-video-fallback="true" preload="auto">
@@ -60,7 +60,7 @@
   {%- endcomment -%}
 
   {%- comment -%} Rive-based kelp footer animation {%- endcomment -%}
-  {%- if section.settings.enable_desktop_overlay_animation -%}
+  {%- if section.settings.overlay_animation_method == 'rive' -%}
   <div class="mcc-footer-kelp-rive">
     <canvas id="mcc-footer-kelp-canvas"></canvas>
   </div>
@@ -1147,7 +1147,7 @@ section.mcc-landing-footer::before,
 </style>
 
 {%- if section.settings.use_video_background -%}
-{%- if section.settings.enable_desktop_overlay_animation -%}
+{%- if section.settings.overlay_animation_method == 'gsap_perlin' -%}
 <script>
 /* ===== Project Spongebob - Load Kelp SVGs Inline ===== */
 (function() {
@@ -1465,7 +1465,7 @@ section.mcc-landing-footer::before,
 </script>
 {%- endif -%}
 
-{%- if section.settings.enable_desktop_overlay_animation -%}
+{%- if section.settings.overlay_animation_method == 'gsap_perlin' -%}
 <script>
 /* GSAP Sine Wave Animation with Perlin/Simplex Noise for Kelp Undulation */
 (function() {
@@ -2362,7 +2362,7 @@ section.mcc-landing-footer::before,
 </script>
 {%- endif -%}
 
-{%- if section.settings.enable_desktop_overlay_animation -%}
+{%- if section.settings.overlay_animation_method == 'rive' -%}
 {%- comment -%}
   Project Spongebob - Footer kelp Rive animation bootstrap
   Focus: Full width scaling (like video), bottom-anchored, height can clip
@@ -2695,11 +2695,25 @@ section.mcc-landing-footer::before,
       "info": "Enable to use video background, disable to use image background"
     },
     {
-      "type": "checkbox",
-      "id": "enable_desktop_overlay_animation",
-      "label": "Enable desktop overlay animation",
-      "default": true,
-      "info": "Controls all animation layers above the footer video on desktop (Rive, GSAP, Perlin noise). When disabled, only the video background is shown."
+      "type": "select",
+      "id": "overlay_animation_method",
+      "label": "Desktop overlay animation method",
+      "default": "gsap_perlin",
+      "options": [
+        {
+          "value": "off",
+          "label": "Off (video only)"
+        },
+        {
+          "value": "gsap_perlin",
+          "label": "GSAP + Perlin Noise"
+        },
+        {
+          "value": "rive",
+          "label": "Rive"
+        }
+      ],
+      "info": "Choose which animation method to use for desktop overlay animations above the footer video"
     },
     {
       "type": "video",
