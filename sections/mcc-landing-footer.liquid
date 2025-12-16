@@ -28,7 +28,7 @@
   endif
 -%}
 
-<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer">
+<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer" data-footer-overlays-enabled="{{ section.settings.enable_desktop_overlay_animation }}">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
   {%- if section.settings.use_video_background -%}
     {%- comment -%} Use upscaled video asset file directly {%- endcomment -%}
@@ -53,9 +53,11 @@
   {%- endcomment -%}
 
   {%- comment -%} Rive-based kelp footer animation {%- endcomment -%}
+  {%- if section.settings.enable_desktop_overlay_animation -%}
   <div class="mcc-footer-kelp-rive">
     <canvas id="mcc-footer-kelp-canvas"></canvas>
   </div>
+  {%- endif -%}
   
   <div class="mcc-footer-wrapper" data-cascade>
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
@@ -1138,6 +1140,7 @@ section.mcc-landing-footer::before,
 </style>
 
 {%- if section.settings.use_video_background -%}
+{%- if section.settings.enable_desktop_overlay_animation -%}
 <script>
 /* ===== Project Spongebob - Load Kelp SVGs Inline ===== */
 (function() {
@@ -1453,7 +1456,9 @@ section.mcc-landing-footer::before,
   setTimeout(loadKelpSVGs, 500);
 })();
 </script>
+{%- endif -%}
 
+{%- if section.settings.enable_desktop_overlay_animation -%}
 <script>
 /* GSAP Sine Wave Animation with Perlin/Simplex Noise for Kelp Undulation */
 (function() {
@@ -2065,11 +2070,12 @@ section.mcc-landing-footer::before,
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGSAPKelpAnimation);
-  } else {
-    initGSAPKelpAnimation();
-  }
-})();
+    } else {
+      initGSAPKelpAnimation();
+    }
+  })();
 </script>
+{%- endif -%}
 
 <script>
 (function() {
@@ -2349,6 +2355,7 @@ section.mcc-landing-footer::before,
 </script>
 {%- endif -%}
 
+{%- if section.settings.enable_desktop_overlay_animation -%}
 {%- comment -%}
   Project Spongebob - Footer kelp Rive animation bootstrap
   Focus: Full width scaling (like video), bottom-anchored, height can clip
@@ -2667,6 +2674,7 @@ section.mcc-landing-footer::before,
     }
   })();
 </script>
+{%- endif -%}
 
 {% schema %}
 {
@@ -2678,6 +2686,13 @@ section.mcc-landing-footer::before,
       "label": "Use video background",
       "default": true,
       "info": "Enable to use video background, disable to use image background"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_overlay_animation",
+      "label": "Enable desktop overlay animation",
+      "default": true,
+      "info": "Controls all animation layers above the footer video on desktop (Rive, GSAP, Perlin noise). When disabled, only the video background is shown."
     },
     {
       "type": "video",
