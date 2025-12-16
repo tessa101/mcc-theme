@@ -181,6 +181,101 @@
     <script src="{{ 'search-form.js' | asset_url }}" defer="defer"></script>
 
 
+    {%- comment -%} GSAP Animation Library - Testing in feature branch {%- endcomment -%}
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+    {%- comment -%} Rive Canvas runtime for footer kelp animation (Project Spongebob) {%- endcomment -%}
+    <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
+    {%- comment -%} Simplex Noise for organic kelp animation - Inline implementation {%- endcomment -%}
+    <script>
+    // Simple Perlin/Simplex Noise implementation for kelp animation
+    (function() {
+      'use strict';
+      
+      // Permutation table (256 values)
+      const p = [];
+      for (let i = 0; i < 256; i++) {
+        p[i] = Math.floor(Math.random() * 256);
+      }
+      
+      // Double the permutation table
+      const perm = [];
+      for (let i = 0; i < 512; i++) {
+        perm[i] = p[i & 255];
+      }
+      
+      // Fade function for smooth interpolation
+      function fade(t) {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+      }
+      
+      // Linear interpolation
+      function lerp(a, b, t) {
+        return a + t * (b - a);
+      }
+      
+      // Gradient function
+      function grad(hash, x, y, z) {
+        const h = hash & 15;
+        const u = h < 8 ? x : y;
+        const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+        return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+      }
+      
+      // 3D Perlin Noise
+      function noise3D(x, y, z) {
+        const X = Math.floor(x) & 255;
+        const Y = Math.floor(y) & 255;
+        const Z = Math.floor(z) & 255;
+        
+        x -= Math.floor(x);
+        y -= Math.floor(y);
+        z -= Math.floor(z);
+        
+        const u = fade(x);
+        const v = fade(y);
+        const w = fade(z);
+        
+        const A = perm[X] + Y;
+        const AA = perm[A] + Z;
+        const AB = perm[A + 1] + Z;
+        const B = perm[X + 1] + Y;
+        const BA = perm[B] + Z;
+        const BB = perm[B + 1] + Z;
+        
+        return lerp(
+          lerp(
+            lerp(grad(perm[AA], x, y, z), grad(perm[BA], x - 1, y, z), u),
+            lerp(grad(perm[AB], x, y - 1, z), grad(perm[BB], x - 1, y - 1, z), u),
+            v
+          ),
+          lerp(
+            lerp(grad(perm[AA + 1], x, y, z - 1), grad(perm[BA + 1], x - 1, y, z - 1), u),
+            lerp(grad(perm[AB + 1], x, y - 1, z - 1), grad(perm[BB + 1], x - 1, y - 1, z - 1), u),
+            v
+          ),
+          w
+        );
+      }
+      
+      // Create SimplexNoise class compatible with the code
+      window.SimplexNoise = function() {
+        this.noise3D = noise3D;
+        this.noise2D = function(x, y) {
+          return noise3D(x, y, 0);
+        };
+      };
+      
+      console.log('%c✅ [PERLIN NOISE] Inline Perlin Noise implementation loaded', 'color: #00ff00; font-weight: bold;');
+    })();
+    </script>
+    <script>
+      // Register ScrollTrigger plugin
+      if (typeof gsap !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+      }
+    </script>
+
     {%- if settings.animations_reveal_on_scroll -%}
       <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
@@ -729,6 +824,11 @@ html:not(.mcc-merch-mode) .template-product .product-container {
 /* Header margin-bottom (60px) now handles all spacing consistently */
 /* Section padding removal rules above prevent conflicts */
 
+/* Landing page body background - ensure it doesn't show white behind transparent header */
+body.is-landing-mcc {
+  background-color: #f7f7f7 !important;
+}
+
 {% endstyle %}
 
 
@@ -869,8 +969,13 @@ html:not(.mcc-merch-mode) .template-product .product-container {
   var invertOn = (hero.getAttribute('data-invert-header') === 'true');
 
   function apply(inView){
-    body.classList.toggle('mcc-landing-header--transparent', inView);
-    body.classList.toggle('mcc-landing-header--solid', !inView);
+    // Remove both classes first to prevent conflicts, then add the correct one
+    body.classList.remove('mcc-landing-header--transparent', 'mcc-landing-header--solid');
+    if (inView) {
+      body.classList.add('mcc-landing-header--transparent');
+    } else {
+      body.classList.add('mcc-landing-header--solid');
+    }
     body.classList.toggle('mcc-landing-header--invert', inView && invertOn);
   }
 

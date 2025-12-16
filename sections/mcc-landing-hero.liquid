@@ -30,6 +30,55 @@
 </section>
 
 <style>
+/* Hero section starts from top of viewport to sit behind header */
+.is-landing-mcc #MainContent {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+/* Remove all spacing from header group that might push content down */
+.is-landing-mcc .shopify-section-group-header-group {
+  margin-bottom: 0 !important;
+}
+.is-landing-mcc .section-header {
+  margin-bottom: 0 !important;
+}
+.is-landing-mcc .shopify-section:has(.mcc-hero) {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  position: relative !important;
+}
+.is-landing-mcc .shopify-section:has(.mcc-hero) .mcc-hero {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  position: relative !important;
+}
+/* Ensure hero image extends to top of viewport behind header */
+.is-landing-mcc .mcc-hero__img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+/* On mobile, ensure hero starts from very top (behind announcement bar) */
+@media screen and (max-width: 989px) {
+  .is-landing-mcc .shopify-section:has(.mcc-hero) {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  .is-landing-mcc .mcc-hero {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+/* Remove gap between hero and next section */
+.is-landing-mcc .shopify-section:has(.mcc-hero) + .shopify-section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
 .mcc-hero{ position:relative; height:var(--vh,88vh); min-height:560px; display:grid; place-items:center; overflow:hidden; }
 .mcc-hero__img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 /* 
@@ -85,8 +134,13 @@
   const invertOn = hero.dataset.invertHeader === 'true';
 
   const apply = (inView) => {
-    body.classList.toggle('mcc-landing-header--transparent', inView);
-    body.classList.toggle('mcc-landing-header--solid', !inView);
+    // Remove both classes first to prevent conflicts, then add the correct one
+    body.classList.remove('mcc-landing-header--transparent', 'mcc-landing-header--solid');
+    if (inView) {
+      body.classList.add('mcc-landing-header--transparent');
+    } else {
+      body.classList.add('mcc-landing-header--solid');
+    }
     body.classList.toggle('mcc-landing-header--invert', inView && invertOn);
   };
 
@@ -96,10 +150,10 @@
     apply(inView);
   };
 
-  // Run immediately, then on scroll/resize (belt & suspenders)
+  // Run immediately, then on scroll/resize
   reassess();
   window.addEventListener('scroll', reassess, { passive: true });
-  window.addEventListener('resize', reassess);  // ✅ fixed
+  window.addEventListener('resize', reassess);
 })();
 </script>
 

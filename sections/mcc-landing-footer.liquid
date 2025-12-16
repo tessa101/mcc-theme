@@ -28,22 +28,44 @@
   endif
 -%}
 
-<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer">
+<section class="mcc-landing-footer{% if section.settings.use_video_background %} mcc-footer-has-video{% endif %}" data-mcc-landing="footer" data-overlay-method="{{ section.settings.overlay_animation_method }}">
   {%- comment -%} Video background (if enabled) {%- endcomment -%}
   {%- if section.settings.use_video_background -%}
-    {%- if section.settings.video != blank -%}
-      {%- liquid
-        assign video_element = section.settings.video | video_tag: autoplay: true, loop: true, muted: true, preload: 'auto'
-        assign video_element = video_element | replace: '<video ', '<video class="mcc-footer-video-bg" playsinline data-video-fallback="true" '
-      -%}
-      {{ video_element }}
-    {%- else -%}
-      {%- comment -%} Hard-coded fallback: Use the same video as landing page {%- endcomment -%}
-      <video class="mcc-footer-video-bg" playsinline data-video-fallback="true" autoplay loop muted preload="auto">
-        <source src="{{ 'footer_bg_comp_test1.mp4' | asset_url }}" type="video/mp4">
-      </video>
-    {%- endif -%}
+    <video class="mcc-footer-video-bg" autoplay loop muted playsinline data-video-fallback="true" preload="auto">
+      {%- if section.settings.video != null -%}
+        {%- comment -%} Use video from section settings {%- endcomment -%}
+        {%- for source in section.settings.video.sources -%}
+          <source src="{{ source.url }}" type="{{ source.mime_type }}">
+        {%- endfor -%}
+      {%- else -%}
+        {%- comment -%} Fallback to hard-coded asset if no video setting {%- endcomment -%}
+        <source src="{{ 'footer_bg_16.9.mp4' | asset_url }}" type="video/mp4">
+      {%- endif -%}
+    </video>
   {%- endif -%}
+  
+  {%- comment -%} Kelp overlays (desktop only) - Project Spongebob {%- endcomment -%}
+  {%- comment -%} Legacy SVG kelp disabled - using Rive instead {%- endcomment -%}
+  {%- comment -%}
+  <div class="mcc-footer-kelp-container">
+    {%- comment -%} Right-side mid kelp (background layer) {%- endcomment -%}
+    <div class="mcc-kelp-right-mid" data-kelp-svg="{{ 'right-side-mid-kelp.svg' | asset_url }}"></div>
+    
+    {%- comment -%} Right-side front kelp (foreground layer) {%- endcomment -%}
+    <div class="mcc-kelp-right-front" data-kelp-svg="{{ 'right-side-front-kelp.svg' | asset_url }}"></div>
+    
+    {%- comment -%} Left-side kelp {%- endcomment -%}
+    <div class="mcc-kelp-left" data-kelp-svg="{{ 'left-side-kelp.svg' | asset_url }}"></div>
+  </div>
+  {%- endcomment -%}
+
+  {%- comment -%} Rive-based kelp footer animation {%- endcomment -%}
+  {%- if section.settings.overlay_animation_method == 'rive' -%}
+  <div class="mcc-footer-kelp-rive">
+    <canvas id="mcc-footer-kelp-canvas"></canvas>
+  </div>
+  {%- endif -%}
+  
   <div class="mcc-footer-wrapper" data-cascade>
     {%- comment -%} Left: Logo text and social icons {%- endcomment -%}
     <div class="mcc-footer-left">
@@ -165,6 +187,19 @@
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
+  overflow: hidden !important; /* Ensure parent sections clip content */
+  /* Prevent parent from expanding */
+  max-height: 100% !important;
+  height: auto !important;
+}
+
+/* Ensure parent section doesn't expand beyond footer */
+.shopify-section:has(.mcc-landing-footer),
+[id*="shopify-section"]:has(.mcc-landing-footer) {
+  overflow: hidden !important;
+  /* Match footer height to prevent expansion */
+  height: fit-content !important;
+  max-height: fit-content !important;
 }
 
 /* Override .gradient class on parent section */
@@ -189,12 +224,22 @@ section.mcc-landing-footer,
 section.mcc-landing-footer.gradient,
 .mcc-landing-footer.gradient {
   position: relative;
-  padding: 60px 50px 40px;
+  padding: 60px 50px 16px;
   color: #fff !important;
-  overflow: hidden;
+  overflow: hidden !important; /* Clip kelp at footer boundaries - force clipping */
   background-color: transparent !important;
-  min-height: 200px;
-  display: block !important;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Maintain 16:9 aspect ratio */
+  min-height: 200px; /* Fallback for older browsers */
+  /* Explicitly set height based on aspect ratio to prevent expansion */
+  height: calc(100vw * 9 / 16); /* Height = width * 9/16 for 16:9 */
+  max-height: calc(100vw * 9 / 16); /* Prevent expansion beyond 16:9 */
+  display: flex !important;
+  flex-direction: column !important;
+  /* Ensure footer doesn't expand beyond aspect ratio */
+  box-sizing: border-box;
+  /* Force clipping at all screen sizes */
+  contain: layout style paint;
 }
 
 /* Video background */
@@ -206,7 +251,7 @@ section.mcc-landing-footer.gradient,
   height: 100%;
   object-fit: cover;
   object-position: center;
-  z-index: -1;
+  z-index: -2; /* Behind kelp layers */
   pointer-events: none;
   display: block;
   opacity: 1;
@@ -251,20 +296,490 @@ section.mcc-landing-footer::before,
   display: none !important;
 }
 
+/* Kelp container - Project Spongebob */
+.mcc-footer-kelp-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden !important; /* Clip kelp at footer boundaries - force */
+  pointer-events: none;
+  z-index: 0; /* Above video (z-index: -2) and background (z-index: -1), below content */
+  display: none; /* Hidden by default, shown on desktop */
+  /* Ensure container doesn't expand beyond footer */
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Force clipping */
+  contain: layout style paint;
+}
+
+/* Show kelp on desktop only (≥769px) */
+@media (min-width: 769px) {
+  .mcc-footer-kelp-container {
+    display: block;
+  }
+}
+
+/* Left-side kelp */
+.mcc-kelp-left {
+  position: absolute;
+  bottom: 0; /* Anchor to footer bottom */
+  left: 0;
+  margin-left: -133px; /* Extends 133px left of footer */
+  height: 100%; /* Take full height of footer */
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-width: calc(100% + 133px); /* Allow extension left, but clip */
+  display: flex;
+  align-items: flex-end; /* Align SVG to bottom */
+}
+
+.mcc-kelp-left svg {
+  position: relative;
+  width: auto;
+  height: auto;
+  max-width: calc(100% + 133px); /* Allow extension left, but clip at container */
+  max-height: 100%; /* Clip at footer bottom */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  box-sizing: border-box;
+  transform-origin: bottom center;
+  margin-top: auto; /* Push to bottom in flex container */
+  /* Negative bottom margin to shift SVG down and align kelp bottom with container bottom */
+  margin-bottom: 0; /* Will be set via JavaScript */
+}
+
+/* Right-side mid kelp (background layer) */
+.mcc-kelp-right-mid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: -336px; /* Extends 336px above footer */
+  height: auto;
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-height: calc(100% + 336px); /* Allow extension above, but clip */
+}
+
+.mcc-kelp-right-mid svg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100% + 336px); /* Allow extension above, but clip at container */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  /* Ensure SVG doesn't cause container expansion */
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Right-side front kelp (foreground layer) */
+.mcc-kelp-right-front {
+  position: absolute;
+  bottom: 0; /* Anchor to footer bottom */
+  right: 0;
+  margin-right: -183px; /* Extends 183px right of footer */
+  height: 100%; /* Take full height of footer */
+  width: auto;
+  overflow: hidden; /* Clip at container */
+  max-width: calc(100% + 183px); /* Allow extension right, but clip */
+  display: flex;
+  align-items: flex-end; /* Align SVG to bottom */
+}
+
+.mcc-kelp-right-front svg {
+  position: relative;
+  width: auto;
+  height: auto;
+  max-width: calc(100% + 183px); /* Allow extension right, but clip at container */
+  max-height: 100%; /* Clip at footer bottom */
+  display: block;
+  overflow: visible; /* Allow SVG content, but container clips */
+  box-sizing: border-box;
+  transform-origin: bottom center;
+  margin-top: auto; /* Push to bottom in flex container */
+  /* Negative bottom margin to shift SVG down and align kelp bottom with container bottom */
+  margin-bottom: 0; /* Will be set via JavaScript */
+}
+
+/* Kelp wave animation - Project Spongebob */
+/* Individual strand animation for natural undulating wave effect */
+@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
+  /* Base sway animation - subtle parent motion */
+  @keyframes kelpBaseSway {
+    0%, 100% { 
+      transform: rotate(-1deg) translateX(-1px) translateY(0px) skewY(0.2deg);
+    }
+    50% { 
+      transform: rotate(1deg) translateX(1px) translateY(-1px) skewY(-0.2deg);
+    }
+  }
+
+  /* Undulation animation for individual strands - creates wave-like motion with vertical bounce */
+  /* Organic, flowing motion with asymmetrical keyframes for natural undulation */
+  @keyframes kelpStrandUndulate {
+    0% { 
+      transform: rotate(-1.8deg) translateX(-2.2px) translateY(0.5px) skewY(0.35deg);
+    }
+    12% { 
+      transform: rotate(-0.3deg) translateX(-0.3px) translateY(-1.8px) skewY(0.08deg);
+    }
+    25% { 
+      transform: rotate(1.2deg) translateX(1.8px) translateY(-3.5px) skewY(-0.18deg);
+    }
+    38% { 
+      transform: rotate(2.8deg) translateX(3.8px) translateY(-5.2px) skewY(-0.48deg);
+    }
+    50% { 
+      transform: rotate(3.2deg) translateX(4.2px) translateY(-6.5px) skewY(-0.55deg);
+    }
+    62% { 
+      transform: rotate(2.2deg) translateX(2.8px) translateY(-4.8px) skewY(-0.35deg);
+    }
+    75% { 
+      transform: rotate(0.8deg) translateX(1.2px) translateY(-2.5px) skewY(-0.15deg);
+    }
+    88% { 
+      transform: rotate(-0.8deg) translateX(-1.2px) translateY(-0.8px) skewY(0.12deg);
+    }
+    100% { 
+      transform: rotate(-1.8deg) translateX(-2.2px) translateY(0.5px) skewY(0.35deg);
+    }
+  }
+
+  /* Target individual strand groups within each kelp SVG */
+  /* Use both ID and class selectors for flexibility */
+  
+  /* Left-side kelp - PARENT GROUP: moves all strands together */
+  .mcc-kelp-left svg #left-side-kelp,
+  .mcc-kelp-left svg [id="left-side-kelp"] {
+    animation: kelpUndulate 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Left-side kelp - CHILD STRANDS: independent motion relative to parent */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"],
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"],
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation: kelpStrandUndulate 8s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    transform-origin: bottom center;
+  }
+  
+  /* Left-side kelp - stagger delays for wave effect */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"] {
+    animation-delay: 0s;
+  }
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"] {
+    animation-delay: 1.2s;
+  }
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation-delay: 2.4s;
+  }
+
+  /* Right-side front kelp - TOP PARENT: no animation to prevent transform stacking */
+  /* Animation removed - only r-front-kelp animates to move strands together */
+  .mcc-kelp-right-front svg #right-side-front-kelp,
+  .mcc-kelp-right-front svg [id="right-side-front-kelp"] {
+    /* No animation - prevents transform stacking with r-front-kelp */
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp - INTERMEDIATE PARENT: no animation */
+  /* Strands provide all the motion to create wave propagation effect */
+  .mcc-kelp-right-front svg #r-front-kelp,
+  .mcc-kelp-right-front svg [id="r-front-kelp"] {
+    /* No animation - let strands create the wave undulation */
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp - DIRECT CHILDREN: independent motion relative to top parent */
+  .mcc-kelp-right-front svg #r-sea-sprig,
+  .mcc-kelp-right-front svg [id="r-sea-sprig"],
+  .mcc-kelp-right-front svg #r-sea-glob,
+  .mcc-kelp-right-front svg [id="r-sea-glob"] {
+    animation: kelpUndulate 8.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+  }
+
+  /* Right-side front kelp - INDIVIDUAL STRANDS: children of r-front-kelp */
+  /* Each strand has its own undulation with different phases to create wave propagation */
+  .mcc-kelp-right-front svg #right-strand-1,
+  .mcc-kelp-right-front svg [id="right-strand-1"] {
+    animation: kelpStrandUndulate 8s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 0s;
+    transform-origin: bottom center;
+  }
+  .mcc-kelp-right-front svg #right-strand-2,
+  .mcc-kelp-right-front svg [id="right-strand-2"] {
+    animation: kelpStrandUndulate 8.5s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 1.5s; /* Wave phase offset for propagation */
+    transform-origin: bottom center;
+  }
+  .mcc-kelp-right-front svg #right-strand-3,
+  .mcc-kelp-right-front svg [id="right-strand-3"] {
+    animation: kelpStrandUndulate 8.2s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 3s; /* Wave phase offset for propagation */
+    transform-origin: bottom center;
+  }
+  /* Disable animation on nested elements inside strands - they inherit strand motion */
+  .mcc-kelp-right-front svg #right-strand-1 *,
+  .mcc-kelp-right-front svg [id="right-strand-1"] *,
+  .mcc-kelp-right-front svg #right-strand-2 *,
+  .mcc-kelp-right-front svg [id="right-strand-2"] *,
+  .mcc-kelp-right-front svg #right-strand-3 *,
+  .mcc-kelp-right-front svg [id="right-strand-3"] * {
+    animation: none !important;
+  }
+
+  /* Right-side mid kelp - PARENT: no animation */
+  /* Strands provide all the motion to create wave propagation effect */
+  .mcc-kelp-right-mid svg #right-side-mid-kelp,
+  .mcc-kelp-right-mid svg [id="right-side-mid-kelp"] {
+    /* No animation - let strands create the wave undulation */
+    transform-origin: bottom center; /* Changed from top center - kelp should sway from base */
+  }
+
+  /* Right-side mid kelp strands - children have independent undulation with wave propagation */
+  .mcc-kelp-right-mid svg #right-mid-strand-1,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] {
+    animation: kelpStrandUndulate 8.5s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 0s;
+    transform-origin: bottom center;
+  }
+  .mcc-kelp-right-mid svg #right-mid-strand-2,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] {
+    animation: kelpStrandUndulate 9s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+    animation-delay: 1.8s; /* Wave phase offset */
+    transform-origin: bottom center;
+  }
+  /* Disable animation on nested elements inside strands - they inherit strand motion */
+  .mcc-kelp-right-mid svg #right-mid-strand-1 *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] *,
+  .mcc-kelp-right-mid svg #right-mid-strand-2 *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] * {
+    animation: none !important;
+  }
+
+  /* Different animation delays for natural variation - Left side */
+  /* Parent group - base motion for all strands */
+  .mcc-kelp-left svg #left-side-kelp,
+  .mcc-kelp-left svg [id="left-side-kelp"] {
+    animation-delay: 0s;
+    animation-duration: 8s;
+  }
+  /* Child strands - independent variation on top of parent motion */
+  .mcc-kelp-left svg #l-sprig,
+  .mcc-kelp-left svg [id="l-sprig"] {
+    animation-delay: 0s;
+    animation-duration: 8s;
+  }
+  .mcc-kelp-left svg #l-kelp,
+  .mcc-kelp-left svg [id="l-kelp"] {
+    animation-delay: 0.8s;
+    animation-duration: 8.3s;
+  }
+  .mcc-kelp-left svg #l-lettuce,
+  .mcc-kelp-left svg [id="l-lettuce"] {
+    animation-delay: 1.6s;
+    animation-duration: 8.1s;
+  }
+
+  /* Different animation delays - Right front */
+  /* Top parent - no animation delays (no animation) */
+  /* Intermediate parent - motion for strand group */
+  .mcc-kelp-right-front svg #r-front-kelp,
+  .mcc-kelp-right-front svg [id="r-front-kelp"] {
+    animation-delay: 0s;
+    animation-duration: 8.2s;
+  }
+  /* Direct children - independent variation */
+  .mcc-kelp-right-front svg #r-sea-sprig,
+  .mcc-kelp-right-front svg [id="r-sea-sprig"] {
+    animation-delay: 0.5s;
+    animation-duration: 8.2s;
+  }
+  .mcc-kelp-right-front svg #r-sea-glob,
+  .mcc-kelp-right-front svg [id="r-sea-glob"] {
+    animation-delay: 2s;
+    animation-duration: 8.3s;
+  }
+  /* Individual strands - children of r-front-kelp */
+  /* No animation delays/durations - these inherit parent motion */
+  
+  /* Different animation delays - Right mid parent */
+  .mcc-kelp-right-mid svg #right-side-mid-kelp,
+  .mcc-kelp-right-mid svg [id="right-side-mid-kelp"] {
+    animation-delay: 0s;
+    animation-duration: 8.5s;
+  }
+  /* Right mid strands - no animation delays/durations - inherit parent motion */
+
+  /* Fallback: animate any remaining groups that don't match specific IDs */
+  /* This comes last so specific rules above take precedence */
+  .mcc-kelp-left svg g[id]:not([id^="l-"]),
+  .mcc-kelp-right-front svg g[id]:not([id^="r-"]):not([id^="right-strand"]),
+  .mcc-kelp-right-mid svg g[id]:not([id^="right-mid-strand"]) {
+    animation: kelpUndulate 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+  }
+
+  /* TEMPORARY FALLBACK: Animate all paths directly when no group IDs are present */
+  /* Lower specificity - will be overridden by ID-based selectors above once SVG files are updated */
+  /* Note: svg > path only matches direct children, not paths inside groups */
+  .mcc-kelp-left svg > path,
+  .mcc-kelp-right-front svg > path,
+  .mcc-kelp-right-mid svg > path {
+    animation: kelpUndulate 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom center;
+    will-change: transform;
+  }
+  
+  /* Explicitly exclude ALL elements that are descendants of strand groups from any animation */
+  .mcc-kelp-right-front svg [id^="right-strand"] *,
+  .mcc-kelp-right-front svg [id="right-strand-1"] *,
+  .mcc-kelp-right-front svg [id="right-strand-2"] *,
+  .mcc-kelp-right-front svg [id="right-strand-3"] *,
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"] *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-1"] *,
+  .mcc-kelp-right-mid svg [id="right-mid-strand-2"] * {
+    /* Only disable animation - all nested elements will inherit parent group transforms naturally */
+    animation: none !important;
+  }
+
+  /* Add variation to path animations - stagger delays for natural movement */
+  /* Left kelp: 4 paths with different timing */
+  .mcc-kelp-left svg > path:nth-of-type(1) {
+    animation-delay: 0s;
+    animation-duration: 8s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(2) {
+    animation-delay: 0.8s;
+    animation-duration: 8.3s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(3) {
+    animation-delay: 1.6s;
+    animation-duration: 8.1s;
+  }
+  .mcc-kelp-left svg > path:nth-of-type(4) {
+    animation-delay: 2.4s;
+    animation-duration: 8.2s;
+  }
+
+  /* Right-front kelp: alternate timing for 66 paths */
+  .mcc-kelp-right-front svg > path:nth-of-type(odd) {
+    animation-delay: 0.2s;
+    animation-duration: 5.2s;
+  }
+  .mcc-kelp-right-front svg > path:nth-of-type(even) {
+    animation-delay: 0.6s;
+    animation-duration: 5.4s;
+  }
+
+  /* Right-mid kelp: top-anchored, alternate timing for 12 paths */
+  .mcc-kelp-right-mid svg > path:nth-of-type(odd) {
+    animation-delay: 0.3s;
+    animation-duration: 5.5s;
+    transform-origin: top center;
+  }
+  .mcc-kelp-right-mid svg > path:nth-of-type(even) {
+    animation-delay: 0.7s;
+    animation-duration: 5.7s;
+    transform-origin: top center;
+  }
+
+  /* Performance optimization */
+  .mcc-kelp-left svg [id^="l-"],
+  .mcc-kelp-right-front svg [id^="r-"],
+  .mcc-kelp-right-front svg [id^="right-strand"],
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"],
+  .mcc-kelp-left svg g[id],
+  .mcc-kelp-right-front svg g[id],
+  .mcc-kelp-right-mid svg g[id] {
+    will-change: transform;
+  }
+}
+
+/* Disable animation for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .mcc-kelp-left svg [id^="l-"],
+  .mcc-kelp-right-front svg [id^="r-"],
+  .mcc-kelp-right-front svg [id^="right-strand"],
+  .mcc-kelp-right-mid svg [id^="right-mid-strand"],
+  .mcc-kelp-left svg g[id],
+  .mcc-kelp-right-front svg g[id],
+  .mcc-kelp-right-mid svg g[id] {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* GSAP Override - Disable CSS animations when GSAP is controlling */
+/* This MUST have higher specificity than the animation rules */
+.mcc-kelp-left svg .gsap-animated,
+.mcc-kelp-right-front svg .gsap-animated,
+.mcc-kelp-right-mid svg .gsap-animated,
+.mcc-kelp-left svg #left-side-kelp.gsap-animated,
+.mcc-kelp-left svg [id="left-side-kelp"].gsap-animated,
+.mcc-kelp-right-front svg #r-front-kelp.gsap-animated,
+.mcc-kelp-right-front svg [id="r-front-kelp"].gsap-animated,
+.mcc-kelp-right-front svg #r-sea-glob.gsap-animated,
+.mcc-kelp-right-front svg [id="r-sea-glob"].gsap-animated,
+.mcc-kelp-right-front svg #r-sea-sprig.gsap-animated,
+.mcc-kelp-right-front svg [id="r-sea-sprig"].gsap-animated,
+.mcc-kelp-right-mid svg #right-side-mid-kelp.gsap-animated,
+.mcc-kelp-right-mid svg [id="right-side-mid-kelp"].gsap-animated,
+.mcc-kelp-left svg #l-sprig.gsap-animated,
+.mcc-kelp-left svg [id="l-sprig"].gsap-animated,
+.mcc-kelp-left svg #l-kelp.gsap-animated,
+.mcc-kelp-left svg [id="l-kelp"].gsap-animated,
+.mcc-kelp-left svg #l-lettuce.gsap-animated,
+.mcc-kelp-left svg [id="l-lettuce"].gsap-animated,
+.mcc-kelp-right-front svg #right-strand-1.gsap-animated,
+.mcc-kelp-right-front svg [id="right-strand-1"].gsap-animated,
+.mcc-kelp-right-front svg #right-strand-2.gsap-animated,
+.mcc-kelp-right-front svg [id="right-strand-2"].gsap-animated,
+.mcc-kelp-right-front svg #right-strand-3.gsap-animated,
+.mcc-kelp-right-front svg [id="right-strand-3"].gsap-animated,
+.mcc-kelp-right-mid svg #right-mid-strand-1.gsap-animated,
+.mcc-kelp-right-mid svg [id="right-mid-strand-1"].gsap-animated,
+.mcc-kelp-right-mid svg #right-mid-strand-2.gsap-animated,
+.mcc-kelp-right-mid svg [id="right-mid-strand-2"].gsap-animated {
+  animation: none !important;
+  animation-name: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-play-state: paused !important;
+}
+
 .mcc-footer-wrapper {
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 0;
+  max-width: 1600px; /* Center content with max-width */
+  margin: 0 auto; /* Center the container */
+  padding: 0 3% 0 25%; /* Increased left padding to shift content further right */
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 32px;
+  gap: 24px; /* Reduced gap to bring sections closer */
   align-items: start;
+  flex: 1 0 auto;
+  box-sizing: border-box;
 }
 
 .mcc-footer-left {
   margin-bottom: 0;
   justify-self: start;
+  margin-top: 40px;
+  padding-left: 0; /* Removed fixed padding - responsive padding handled by wrapper */
 }
 
 .mcc-footer-logo-text,
@@ -342,14 +857,16 @@ section.mcc-landing-footer::before,
   grid-template-columns: repeat(3, 1fr);
   gap: 32px;
   align-items: start;
-  justify-self: end;
+  justify-self: start;
+  margin-top: 40px;
+  padding-left: 0; /* Removed fixed padding - responsive padding handled by wrapper */
 }
 
 .mcc-footer-nav-title {
   font-family: 'Passion One', var(--font-sans) !important;
   font-size: 32px !important;
   font-weight: 400 !important;
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   margin: 0 0 16px !important;
   text-transform: none !important;
   line-height: 1.2 !important;
@@ -366,7 +883,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-nav-list a {
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   text-decoration: none !important;
   font-family: 'SuisseIntl', var(--font-sans) !important;
   font-size: 18px !important;
@@ -381,7 +898,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-text-only {
-  color: #0B5262 !important;
+  color: #82D0E2 !important;
   font-family: 'SuisseIntl', var(--font-sans) !important;
   font-size: 18px !important;
   font-weight: 400 !important;
@@ -392,30 +909,36 @@ section.mcc-landing-footer::before,
 
 .mcc-footer-bottom-wrapper {
   grid-column: 1 / -1;
-  margin-top: 60px;
-  padding-top: 40px;
+  margin-top: auto;
+  padding-top: 0;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 1;
+  width: 100%;
 }
 
 .mcc-footer-bottom {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 24px;
   width: 100%;
 }
 
 .mcc-footer-legal {
-  grid-column: 1;
-  justify-self: start;
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 0;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .mcc-footer-copyright {
-  color: #093944 !important;
+  color: #076F83 !important;
   font-size: 12px !important;
   margin: 0 !important;
   opacity: 1 !important;
@@ -423,7 +946,7 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-legal a {
-  color: #093944 !important;
+  color: #076F83 !important;
   font-size: 12px !important;
   text-decoration: none !important;
   transition: opacity 0.2s;
@@ -436,18 +959,17 @@ section.mcc-landing-footer::before,
 }
 
 .mcc-footer-policy-sep {
-  color: #093944 !important;
+  color: #076F83 !important;
   opacity: 1 !important;
   display: inline;
   margin: 0 4px;
 }
 
 .mcc-footer-logo {
-  grid-column: 2;
-  justify-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  order: -1;
 }
 
 .mcc-footer-logo-img {
@@ -456,24 +978,67 @@ section.mcc-landing-footer::before,
 }
 
 /* Responsive Design */
+/* Medium screens - adjust padding */
+@media (max-width: 1400px) {
+  .mcc-footer-wrapper {
+    padding: 0 3% 0 20%; /* Maintain left offset for centering */
+  }
+}
+
+@media (max-width: 1200px) {
+  .mcc-footer-wrapper {
+    padding: 0 2.5% 0 18%; /* Maintain left offset for centering */
+  }
+}
+
+@media (max-width: 1024px) {
+  .mcc-footer-wrapper {
+    padding: 0 2.5% 0 15%; /* Maintain left offset for centering */
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   section.mcc-landing-footer,
   .mcc-landing-footer {
-    padding: 40px 15px 32px;
+    padding: 40px 15px 16px;
+    min-height: 100vh; /* Fill viewport height to prevent gaps */
+    height: auto; /* Allow content to expand if needed */
+    overflow: hidden !important; /* Force clipping on mobile */
+    position: relative; /* Ensure proper positioning context */
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Video should fill container without gaps on mobile */
+  .mcc-footer-video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important; /* Fill container, no gaps */
+    object-position: center;
+    min-height: 100%; /* Ensure it fills */
   }
 
   .mcc-footer-wrapper {
     grid-template-columns: 1fr;
     gap: 50px;
-    padding: 50px 0 0;
+    padding: 50px 15px 0; /* Match section padding */
+    max-width: 100%;
   }
 
   .mcc-footer-left {
     justify-self: stretch;
+    margin-top: 20px;
+    padding-left: 0;
   }
 
   .mcc-footer-nav {
     justify-self: stretch;
+    margin-top: 20px;
+    padding-left: 0;
   }
 
   .mcc-footer-logo-text {
@@ -501,13 +1066,13 @@ section.mcc-landing-footer::before,
   .mcc-footer-nav-title {
     font-size: 24px !important;
     line-height: 1.2 !important;
-    color: #093944 !important;
+    color: #82D0E2 !important;
   }
 
   .mcc-footer-nav-list a,
   .mcc-footer-text-only {
     font-size: 16px !important;
-    color: #093944 !important;
+    color: #82D0E2 !important;
     letter-spacing: 0.2px;
   }
 
@@ -523,23 +1088,26 @@ section.mcc-landing-footer::before,
   .mcc-footer-legal {
     grid-column: 1;
     justify-self: center;
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    white-space: normal;
+    justify-content: center;
+    gap: 0;
+    white-space: nowrap;
+    flex-wrap: wrap;
   }
 
   .mcc-footer-copyright {
-    display: block;
+    display: inline;
   }
 
   .mcc-footer-legal a {
-    display: block;
+    display: inline;
   }
 
   .mcc-footer-policy-sep {
-    display: none;
+    display: inline;
+    margin: 0 4px;
   }
 
   .mcc-footer-logo {
@@ -550,6 +1118,14 @@ section.mcc-landing-footer::before,
 }
 
 @media (min-width: 769px) and (max-width: 989px) {
+  section.mcc-landing-footer,
+  .mcc-landing-footer {
+    padding: 60px 50px 16px;
+    height: calc(100vw * 9 / 16) !important; /* Explicit height for tablet */
+    max-height: calc(100vw * 9 / 16) !important;
+    overflow: hidden !important; /* Force clipping on tablet */
+  }
+
   .mcc-footer-logo-text {
     font-size: 72px;
     line-height: 64px;
@@ -558,10 +1134,956 @@ section.mcc-landing-footer::before,
   .mcc-footer-nav {
     gap: 32px;
   }
+
+  .mcc-footer-legal {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    flex-wrap: wrap;
+  }
 }
 </style>
 
 {%- if section.settings.use_video_background -%}
+{%- if section.settings.overlay_animation_method == 'gsap_perlin' -%}
+<script>
+/* ===== Project Spongebob - Load Kelp SVGs Inline ===== */
+(function() {
+  function loadKelpSVGs() {
+    const kelpContainers = document.querySelectorAll('[data-kelp-svg]');
+    const kelpContainer = document.querySelector('.mcc-footer-kelp-container');
+    
+    console.log('🌿 [KELP] Initializing kelp loader...');
+    console.log('🌿 [KELP] Found kelp container:', kelpContainer ? 'YES' : 'NO');
+    console.log('🌿 [KELP] Found', kelpContainers.length, 'kelp SVG containers');
+    
+    if (kelpContainer) {
+      const computedStyle = window.getComputedStyle(kelpContainer);
+      console.log('🌿 [KELP] Container display:', computedStyle.display);
+      console.log('🌿 [KELP] Container z-index:', computedStyle.zIndex);
+      console.log('🌿 [KELP] Container visibility:', computedStyle.visibility);
+    }
+    
+    kelpContainers.forEach(function(container) {
+      const svgUrl = container.getAttribute('data-kelp-svg');
+      if (!svgUrl || container.querySelector('svg')) {
+        // Already loaded, ensure animation is applied
+        applyKelpAnimations(container);
+        return;
+      }
+      
+      // Add cache-busting parameter to force reload of updated SVG files
+      const cacheBuster = '?v=' + Date.now();
+      const svgUrlWithCache = svgUrl + (svgUrl.includes('?') ? '&' : '?') + cacheBuster;
+      
+      console.log('🌿 [KELP] Fetching SVG:', svgUrlWithCache);
+      
+      fetch(svgUrlWithCache)
+        .then(function(response) {
+          if (!response.ok) {
+            console.error('❌ [KELP] HTTP Error:', response.status, response.statusText, 'for URL:', svgUrlWithCache);
+            console.error('❌ [KELP] Full response URL:', response.url);
+            throw new Error('Failed to load SVG: ' + response.status + ' ' + response.statusText);
+          }
+          return response.text();
+        })
+        .then(function(svgText) {
+          console.log('✅ [KELP] SVG loaded successfully:', svgUrl);
+          // Log SVG structure to verify groups
+          console.log('SVG loaded, first 500 chars:', svgText.substring(0, 500));
+          // Check if groups exist anywhere in the SVG
+          const hasGroups = svgText.includes('<g id=') || svgText.includes('<g id="') || svgText.includes("id='");
+          console.log('SVG contains group elements with IDs:', hasGroups);
+          if (hasGroups) {
+            // Find all group IDs in the text
+            const groupIdMatches = svgText.match(/<g\s+id=["']([^"']+)["']/g);
+            if (groupIdMatches) {
+              console.log('Found group IDs in SVG text:', groupIdMatches);
+            }
+          }
+          
+          container.innerHTML = svgText;
+          // Ensure SVG is constrained and doesn't cause expansion
+          const svg = container.querySelector('svg');
+          if (svg) {
+            // Constrain SVG to container size
+            svg.style.width = 'auto';
+            svg.style.height = 'auto';
+            svg.style.maxWidth = '100%';
+            svg.style.maxHeight = '100%';
+            svg.style.display = 'block';
+            svg.style.overflow = 'visible'; // Allow content, but container clips
+            svg.style.boxSizing = 'border-box';
+            
+            // For bottom-anchored kelp, calculate negative bottom margin to align bottom content
+            if (container.classList.contains('mcc-kelp-left') || 
+                container.classList.contains('mcc-kelp-right-front')) {
+              // Wait for SVG to render, then measure
+              setTimeout(function() {
+                // Get SVG viewBox to understand coordinate system
+                const viewBox = svg.viewBox.baseVal;
+                const viewBoxHeight = viewBox.height;
+                
+                // Get actual rendered dimensions
+                const renderedHeight = svg.offsetHeight || svg.clientHeight;
+                const containerHeight = container.offsetHeight;
+                
+                // If kelp content is at top of viewBox, we need to shift SVG DOWN
+                // Use negative margin-bottom to push it down and align kelp bottom with container bottom
+                if (renderedHeight > containerHeight && viewBoxHeight > 0) {
+                  // Shift DOWN by the excess height
+                  const excessHeight = renderedHeight - containerHeight;
+                  svg.style.marginBottom = '-' + excessHeight + 'px';
+                  console.log('Setting negative margin-bottom:', -excessHeight, 'px for', container.className, 
+                              '(viewBox height:', viewBoxHeight, ', rendered:', renderedHeight, ', container:', containerHeight + ')');
+                } else if (renderedHeight <= containerHeight && viewBoxHeight > 0) {
+                  // SVG fits in container, but kelp might still be at top of viewBox
+                  // Estimate empty space at bottom of viewBox (assuming kelp occupies most of it)
+                  // For left kelp: extends 66px below footer
+                  // For right-front kelp: extends 134px below footer
+                  let extensionPixels = 0;
+                  if (container.classList.contains('mcc-kelp-left')) {
+                    extensionPixels = 66; // From spec sheet
+                  } else if (container.classList.contains('mcc-kelp-right-front')) {
+                    extensionPixels = 134; // From spec sheet
+                  }
+                  
+                  if (extensionPixels > 0) {
+                    // Convert extension to negative margin to shift SVG down
+                    svg.style.marginBottom = '-' + extensionPixels + 'px';
+                    console.log('Setting negative margin-bottom:', -extensionPixels, 'px (from spec) for', container.className);
+                  } else {
+                    // Fallback: estimate based on viewBox
+                    const estimatedKelpHeight = viewBoxHeight * 0.8;
+                    const emptySpace = viewBoxHeight - estimatedKelpHeight;
+                    if (emptySpace > 0) {
+                      const pixelRatio = renderedHeight / viewBoxHeight;
+                      const shiftPixels = emptySpace * pixelRatio;
+                      svg.style.marginBottom = '-' + shiftPixels + 'px';
+                      console.log('Setting negative margin-bottom:', -shiftPixels, 'px (estimated) for', container.className);
+                    }
+                  }
+                }
+              }, 100); // Small delay to ensure SVG is rendered
+            }
+            
+            // Debug: Log found strand groups - check for IDs on any element type
+            // Try multiple selectors to find groups
+            const allElementsWithIds = svg.querySelectorAll('[id]');
+            const groupsWithIds = svg.querySelectorAll('g[id]');
+            const directChildrenWithIds = Array.from(svg.children).filter(function(el) { return el.id; });
+            
+            console.log('Kelp SVG loaded:', container.className);
+            console.log('  - Total elements with IDs:', allElementsWithIds.length);
+            console.log('  - Groups with IDs:', groupsWithIds.length);
+            console.log('  - Direct children with IDs:', directChildrenWithIds.length);
+            
+            if (allElementsWithIds.length === 0) {
+              // If no IDs found, log the SVG structure for debugging
+              console.warn('No IDs found in SVG. SVG structure:', {
+                tagName: svg.tagName,
+                id: svg.id,
+                children: svg.children.length,
+                firstChild: svg.firstElementChild ? svg.firstElementChild.tagName : 'none'
+              });
+              // Try to find any groups or paths
+              const allGroups = svg.querySelectorAll('g');
+              const allPaths = svg.querySelectorAll('path');
+              console.log('  - Found', allGroups.length, 'groups and', allPaths.length, 'paths');
+              
+              // Log first few paths to see their structure
+              if (allPaths.length > 0) {
+                console.log('  - First path attributes:', Array.from(allPaths[0].attributes).map(function(attr) {
+                  return attr.name + '=' + attr.value;
+                }).join(', '));
+                if (allPaths.length > 1) {
+                  console.log('  - Second path attributes:', Array.from(allPaths[1].attributes).map(function(attr) {
+                    return attr.name + '=' + attr.value;
+                  }).join(', '));
+                }
+              }
+              
+              if (allGroups.length > 0) {
+                console.log('  - First group attributes:', Array.from(allGroups[0].attributes).map(function(attr) {
+                  return attr.name + '=' + attr.value;
+                }).join(', '));
+              }
+              
+              console.warn('⚠️ SVG files need to have IDs on groups for animations to work. Current SVG has no IDs.');
+            } else {
+              allElementsWithIds.forEach(function(element) {
+                console.log('  - Element:', element.tagName, 'ID:', element.id);
+              });
+            }
+          }
+          // Apply animations after SVG is loaded
+          applyKelpAnimations(container);
+        })
+        .catch(function(error) {
+          console.error('❌ [KELP] Failed to load kelp SVG:', svgUrl, error);
+        });
+    });
+  }
+  
+  // Function to ensure animations are applied to loaded SVG elements
+  function applyKelpAnimations(container) {
+    // Force reflow to ensure CSS animations apply
+    void container.offsetWidth;
+    
+    // Verify animations are applied
+    const svg = container.querySelector('svg');
+    if (svg) {
+      const animatedElements = svg.querySelectorAll('[id]');
+      let animatedCount = 0;
+      let strandGroups = [];
+      let parentGroups = [];
+      
+      animatedElements.forEach(function(el) {
+        const computedStyle = window.getComputedStyle(el);
+        const animationName = computedStyle.animationName;
+        const transform = computedStyle.transform;
+        const id = el.id;
+        
+        // Check for strand groups (should have animation: none)
+        if (id && (id.indexOf('right-strand') !== -1 || id.indexOf('right-mid-strand') !== -1)) {
+          strandGroups.push({
+            id: id,
+            hasAnimation: animationName && animationName !== 'none',
+            transform: transform !== 'none' ? 'has transform' : 'none'
+          });
+        }
+        
+        // Check for parent groups (should have animation)
+        if (id && (id === 'r-front-kelp' || id === 'right-side-mid-kelp')) {
+          parentGroups.push({
+            id: id,
+            hasAnimation: animationName && animationName !== 'none',
+            animationName: animationName
+          });
+        }
+        
+        if (animationName && animationName !== 'none') {
+          animatedCount++;
+        }
+      });
+      
+      console.log('Animation check for', container.className + ':', animatedCount, 'of', animatedElements.length, 'elements have animations applied');
+      
+      // Log ALL elements with IDs to see what we're working with
+      console.log('=== ALL ELEMENTS WITH IDs ===');
+      animatedElements.forEach(function(el) {
+        console.log('  -', el.tagName, 'ID:', el.id || '(no id)');
+      });
+      
+      // Check for parent groups - be more flexible in detection
+      const rFrontKelp = svg.querySelector('#r-front-kelp, [id="r-front-kelp"]');
+      const rightSideMidKelp = svg.querySelector('#right-side-mid-kelp, [id="right-side-mid-kelp"]');
+      
+      // Log parent animation status with detailed info
+      console.log('=== PARENT GROUPS ===');
+      if (rFrontKelp) {
+        const computedStyle = window.getComputedStyle(rFrontKelp);
+        const animationName = computedStyle.animationName;
+        const hasAnimation = animationName && animationName !== 'none';
+        if (hasAnimation) {
+          console.log('✓ r-front-kelp - HAS animation:', animationName);
+        } else {
+          console.error('✗ r-front-kelp - MISSING animation! This is why strands move independently.');
+          console.log('  Computed animation-name:', animationName);
+          console.log('  Computed transform:', computedStyle.transform);
+        }
+      } else {
+        console.error('✗ r-front-kelp - NOT FOUND in SVG!');
+      }
+      
+      if (rightSideMidKelp) {
+        const computedStyle = window.getComputedStyle(rightSideMidKelp);
+        const animationName = computedStyle.animationName;
+        const hasAnimation = animationName && animationName !== 'none';
+        if (hasAnimation) {
+          console.log('✓ right-side-mid-kelp - HAS animation:', animationName);
+        } else {
+          console.error('✗ right-side-mid-kelp - MISSING animation!');
+          console.log('  Computed animation-name:', animationName);
+        }
+      } else {
+        console.warn('⚠️ right-side-mid-kelp - NOT FOUND in SVG (this is OK if checking right-front)');
+      }
+      
+      // Log strand groups status - check if they have their own undulation animations
+      if (strandGroups.length > 0) {
+        console.log('=== STRAND GROUPS (should have kelpStrandUndulate animation) ===');
+        strandGroups.forEach(function(s) {
+          const strandEl = svg.querySelector('#' + s.id + ', [id="' + s.id + '"]');
+          if (strandEl) {
+            const computedStyle = window.getComputedStyle(strandEl);
+            const animationName = computedStyle.animationName;
+            const transform = computedStyle.transform;
+            const animationDuration = computedStyle.animationDuration;
+            const animationDelay = computedStyle.animationDelay;
+            if (animationName && animationName !== 'none') {
+              if (animationName === 'kelpStrandUndulate') {
+                console.log('✓', s.id, '- HAS strand undulation animation:', animationName, 'duration:', animationDuration, 'delay:', animationDelay);
+              } else {
+                console.warn('⚠️', s.id, '- has different animation:', animationName);
+              }
+            } else {
+              console.error('✗', s.id, '- MISSING strand undulation animation! This is why there\'s no visible undulation.');
+            }
+            // Check transform
+            if (transform && transform !== 'none') {
+              console.log('  → Transform:', transform.substring(0, 60) + '...');
+            }
+          }
+        });
+      }
+      
+      // Log which specific elements have animations (for debugging)
+      console.log('=== ALL ELEMENTS WITH ANIMATIONS ===');
+      animatedElements.forEach(function(el) {
+        const computedStyle = window.getComputedStyle(el);
+        const animationName = computedStyle.animationName;
+        if (animationName && animationName !== 'none') {
+          console.log('  -', el.tagName, el.id || '(no id)', '- animation:', animationName);
+        }
+      });
+    }
+  }
+  
+  // Load SVGs when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadKelpSVGs);
+  } else {
+    loadKelpSVGs();
+  }
+  
+  // Also try loading after a short delay to ensure everything is ready
+  setTimeout(loadKelpSVGs, 500);
+})();
+</script>
+{%- endif -%}
+
+{%- if section.settings.overlay_animation_method == 'gsap_perlin' -%}
+<script>
+/* GSAP Sine Wave Animation with Perlin/Simplex Noise for Kelp Undulation */
+(function() {
+  'use strict';
+  
+  // Wait for GSAP to load
+  if (typeof gsap === 'undefined') {
+    console.error('❌ [GSAP METHOD] GSAP not loaded! Kelp animations will not work. Check if GSAP scripts are loading.');
+    return;
+  } else {
+    console.log('✅ [GSAP METHOD] GSAP library loaded successfully, version:', gsap.version);
+  }
+  
+  // Initialize Simplex Noise for organic randomness
+  let simplex = null;
+  let noiseEnabled = true; // Toggle for testing
+  let noiseIntensity = 0.6; // Increased from 0.3 for more visible effect (0.0 to 1.0)
+  
+  // Check for SimplexNoise (inline implementation)
+  if (typeof SimplexNoise !== 'undefined') {
+    try {
+      simplex = new SimplexNoise();
+      console.log('✅ [PERLIN NOISE] Simplex noise initialized for organic kelp movement');
+      console.log('   Noise intensity:', noiseIntensity, '(adjustable)');
+      console.log('   Noise enabled:', noiseEnabled);
+    } catch (e) {
+      console.error('❌ [PERLIN NOISE] Error initializing SimplexNoise:', e);
+      noiseEnabled = false;
+    }
+  } else {
+    console.warn('⚠️ [PERLIN NOISE] SimplexNoise not loaded - falling back to sine waves only');
+    noiseEnabled = false;
+  }
+  
+  // Expose to window for debugging (use getters/setters to access closure variables)
+  window.kelpNoiseDebug = {
+    get enabled() { return noiseEnabled; },
+    get intensity() { return noiseIntensity; },
+    setIntensity: function(val) {
+      noiseIntensity = Math.max(0, Math.min(1, val));
+      console.log('🔧 [PERLIN NOISE] Intensity set to:', noiseIntensity);
+      return noiseIntensity;
+    },
+    toggle: function() {
+      noiseEnabled = !noiseEnabled;
+      console.log('🔧 [PERLIN NOISE] Enabled:', noiseEnabled);
+      return noiseEnabled;
+    },
+    check: function() {
+      const status = {
+        loaded: typeof SimplexNoise !== 'undefined',
+        initialized: simplex !== null,
+        enabled: noiseEnabled,
+        intensity: noiseIntensity
+      };
+      console.log('%c📊 [PERLIN NOISE] Status Check:', 'color: #00ff00; font-size: 14px; font-weight: bold;');
+      console.log('   SimplexNoise loaded:', status.loaded);
+      console.log('   Simplex initialized:', status.initialized);
+      console.log('   Noise enabled:', status.enabled);
+      console.log('   Noise intensity:', status.intensity);
+      console.table(status); // Also show as table for better readability
+      console.log('   Use window.kelpNoiseDebug.setIntensity(0.8) to adjust');
+      return status;
+    }
+  };
+  
+  // Log that debug object is available (make it very visible)
+  console.log('%c🔧 [PERLIN NOISE] Debug controls available: window.kelpNoiseDebug', 'color: #00ff00; font-size: 14px; font-weight: bold;');
+  console.log('%c   Try: window.kelpNoiseDebug.check()', 'color: #00ff00; font-size: 12px;');
+  console.log('   Current intensity:', noiseIntensity, '| Enabled:', noiseEnabled);
+  
+  // Also set a global flag for easy checking
+  window.__kelpNoiseLoaded = true;
+  
+  // Configuration for sine wave animation (same as before)
+  const kelpAnimationConfig = {
+    // Strand IDs and their animation parameters
+    strands: {
+      // Right-side front kelp strands
+      'right-strand-1': {
+        horizontalAmplitude: 4.2,      // Max horizontal movement (px)
+        verticalAmplitude: 6.5,        // Max vertical movement (px)
+        rotationAmplitude: 3.2,         // Max rotation (degrees)
+        skewAmplitude: 0.55,            // Max skew (degrees)
+        horizontalFreq: 0.125,          // Horizontal wave frequency (cycles per second)
+        verticalFreq: 0.15,             // Vertical wave frequency (slightly different for organic feel)
+        rotationFreq: 0.125,            // Rotation frequency
+        phase: 0,                       // Phase offset (0 = start at 0)
+        duration: 8                     // Animation duration (seconds)
+      },
+      'right-strand-2': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 1.5,                     // 1.5s delay = wave propagation
+        duration: 8.5
+      },
+      'right-strand-3': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 3,                       // 3s delay = wave propagation
+        duration: 8.2
+      },
+      // Right-side mid kelp strands
+      'right-mid-strand-1': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 0,
+        duration: 8.5
+      },
+      'right-mid-strand-2': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 1.8,
+        duration: 9
+      },
+      // Left-side kelp strands
+      'l-sprig': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 0,
+        duration: 8
+      },
+      'l-kelp': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 1.2,
+        duration: 8
+      },
+      'l-lettuce': {
+        horizontalAmplitude: 4.2,
+        verticalAmplitude: 6.5,
+        rotationAmplitude: 3.2,
+        skewAmplitude: 0.55,
+        horizontalFreq: 0.125,
+        verticalFreq: 0.15,
+        rotationFreq: 0.125,
+        phase: 2.4,
+        duration: 8
+      },
+      // Right-side front kelp - sea elements
+      'r-sea-glob': {
+        horizontalAmplitude: 3.0,
+        verticalAmplitude: 4.5,
+        rotationAmplitude: 2.5,
+        skewAmplitude: 0.4,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 2.0,
+        duration: 8.3
+      },
+      'r-sea-sprig': {
+        horizontalAmplitude: 3.0,
+        verticalAmplitude: 4.5,
+        rotationAmplitude: 2.5,
+        skewAmplitude: 0.4,
+        horizontalFreq: 0.12,
+        verticalFreq: 0.14,
+        rotationFreq: 0.12,
+        phase: 0.5,
+        duration: 8.2
+      }
+    }
+  };
+  
+  // Function to initialize GSAP kelp animation with two-layer approach:
+  // 1. Parent groups: gentle side-to-side sway
+  // 2. Individual strands: bottom-to-top wave undulation
+  function initGSAPKelpAnimation() {
+    // Wait for SVGs to load
+    setTimeout(function() {
+      const kelpContainers = document.querySelectorAll('.mcc-kelp-left, .mcc-kelp-right-front, .mcc-kelp-right-mid');
+      let animatedCount = 0;
+      const startTime = performance.now() / 1000; // Global start time
+      
+      // Parent group configurations for gentle side-to-side sway
+      // These move the entire kelp group as a whole
+      const parentGroups = {
+        'left-side-kelp': { rotation: 1.2, x: 1.5, duration: 12, phase: 0 },
+        'r-front-kelp': { rotation: 1.0, x: 1.2, duration: 11, phase: 0.5 },
+        'right-side-mid-kelp': { rotation: 0.8, x: 1.0, duration: 13, phase: 1 }
+      };
+      
+      kelpContainers.forEach(function(container) {
+        const svg = container.querySelector('svg');
+        if (!svg) return;
+        
+        // Determine which container we're in to only search for relevant strands
+        const containerClass = container.className;
+        const isLeftContainer = containerClass.includes('mcc-kelp-left');
+        const isRightFrontContainer = containerClass.includes('mcc-kelp-right-front');
+        const isRightMidContainer = containerClass.includes('mcc-kelp-right-mid');
+        
+        // STEP 1: Animate parent groups with gentle side-to-side sway
+        Object.keys(parentGroups).forEach(function(parentId) {
+          let parentEl = svg.querySelector('#' + parentId);
+          if (!parentEl) {
+            parentEl = svg.querySelector('[id="' + parentId + '"]');
+          }
+          if (!parentEl) {
+            // Only warn if this parent should be in this container
+            const shouldBeInLeft = parentId === 'left-side-kelp' && isLeftContainer;
+            const shouldBeInRightFront = parentId === 'r-front-kelp' && isRightFrontContainer;
+            const shouldBeInRightMid = parentId === 'right-side-mid-kelp' && isRightMidContainer;
+            if (shouldBeInLeft || shouldBeInRightFront || shouldBeInRightMid) {
+              console.warn('⚠️ [GSAP] Parent group not found:', parentId, 'in', containerClass);
+            }
+            return;
+          }
+          
+          const parentConfig = parentGroups[parentId];
+          
+          // AGGRESSIVELY disable CSS animation - CSS has high specificity
+          parentEl.style.animation = 'none !important';
+          parentEl.style.setProperty('animation', 'none', 'important');
+          parentEl.style.setProperty('animation-name', 'none', 'important');
+          parentEl.style.setProperty('animation-duration', '0s', 'important');
+          parentEl.style.setProperty('animation-delay', '0s', 'important');
+          parentEl.classList.add('gsap-animated'); // Add class for CSS override
+          
+          // Get bounding box to calculate bottom anchor point
+          const bbox = parentEl.getBBox ? parentEl.getBBox() : { width: 0, height: 0, x: 0, y: 0 };
+          
+          // Clear any existing transforms first
+          parentEl.removeAttribute('transform');
+          parentEl.style.transform = 'none';
+          parentEl.style.setProperty('transform', 'none', 'important');
+          gsap.set(parentEl, { 
+            clearProps: 'all',
+            x: 0,
+            y: 0,
+            rotation: 0
+          });
+          
+          // Set transform origin to bottom center using CSS (works better for SVG)
+          // Use both style and attribute to ensure it works
+          parentEl.style.transformOrigin = '50% 100%'; // center horizontally, bottom vertically
+          parentEl.style.setProperty('transform-origin', '50% 100%', 'important');
+          // Also set as SVG attribute for compatibility
+          if (parentEl.setAttribute) {
+            const centerX = bbox.x + (bbox.width / 2);
+            const bottomY = bbox.y + bbox.height;
+            parentEl.setAttribute('transform-origin', centerX + ' ' + bottomY);
+          }
+          
+          console.log('✅ [GSAP] Animating parent:', parentId, 'bbox:', bbox, 'transform-origin: 50% 100%');
+          
+          // Gentle side-to-side sway for parent - anchored at bottom
+          // Use onUpdate with sine wave + noise for smooth, organic motion
+          const parentAnimation = gsap.to(parentEl, {
+            duration: parentConfig.duration,
+            repeat: -1,
+            ease: 'none',
+            onUpdate: function() {
+              const elapsed = ((performance.now() / 1000) - startTime) + parentConfig.phase;
+              
+              // Base sine wave motion - REDUCED lateral movement, more vertical
+              // Less rotation and horizontal movement to reduce lateral sway
+              let rotation = parentConfig.rotation * 0.6 * Math.sin(elapsed * 0.1 * 2 * Math.PI);
+              let x = parentConfig.x * 0.5 * Math.sin(elapsed * 0.1 * 2 * Math.PI);
+              // Add vertical movement for better undulation (less lateral)
+              let y = -Math.abs(Math.sin(elapsed * 0.12 * 2 * Math.PI)) * 0.5; // Small upward movement
+              
+              // Add subtle noise for organic variation (if available)
+              if (simplex && noiseEnabled) {
+                const parentIndex = Object.keys(parentGroups).indexOf(parentId) || 0;
+                const noiseTime = elapsed * 0.06; // Slower noise for smoother parent movement
+                
+                const noiseRot = simplex.noise3D(parentIndex * 2, 0, noiseTime);
+                const noiseX = simplex.noise3D(parentIndex * 2, 1, noiseTime);
+                const noiseY = simplex.noise3D(parentIndex * 2, 2, noiseTime);
+                
+                // Apply noise with reduced intensity to keep movement subtle
+                rotation += noiseRot * parentConfig.rotation * noiseIntensity * 0.2;
+                x += noiseX * parentConfig.x * noiseIntensity * 0.2;
+                y += noiseY * noiseIntensity * 0.3;
+              }
+              
+              // Apply with bottom anchor - ensure transform-origin is set every frame
+              gsap.set(parentEl, {
+                rotation: rotation,
+                x: x,
+                y: y, // Small vertical movement for undulation
+                force3D: true,
+                transformOrigin: '50% 100%' // Anchor at bottom center
+              });
+              
+              // Also verify transform-origin is set in style
+              if (parentEl.style.transformOrigin !== '50% 100%') {
+                parentEl.style.setProperty('transform-origin', '50% 100%', 'important');
+              }
+            }
+          });
+          
+          // Verify parent animation was created
+          console.log('✅ [GSAP] Parent animation created for', parentId, '- active:', parentAnimation.isActive());
+        });
+        
+        // STEP 2: Animate r-sea-glob and r-sea-sprig (if in right-front container)
+        if (isRightFrontContainer) {
+          ['r-sea-glob', 'r-sea-sprig'].forEach(function(seaId) {
+            let seaEl = svg.querySelector('#' + seaId);
+            if (!seaEl) {
+              seaEl = svg.querySelector('[id="' + seaId + '"]');
+            }
+            if (!seaEl) {
+              console.warn('⚠️ [GSAP] Sea element not found:', seaId, 'in right-front container');
+              return;
+            }
+            console.log('✅ [GSAP] Found sea element:', seaId);
+            
+            const seaConfig = kelpAnimationConfig.strands[seaId];
+            if (!seaConfig) return;
+            
+            // Disable CSS animation
+            seaEl.style.animation = 'none !important';
+            seaEl.style.setProperty('animation', 'none', 'important');
+            seaEl.style.setProperty('animation-name', 'none', 'important');
+            seaEl.classList.add('gsap-animated');
+            
+            // Clear transforms
+            seaEl.removeAttribute('transform');
+            seaEl.style.transform = 'none';
+            gsap.set(seaEl, { clearProps: 'all', x: 0, y: 0, rotation: 0, skewY: 0 });
+            seaEl.style.transformOrigin = '50% 100%';
+            seaEl.style.setProperty('transform-origin', '50% 100%', 'important');
+            
+            // Animate with sine wave + noise for organic movement
+            gsap.to(seaEl, {
+              duration: seaConfig.duration,
+              repeat: -1,
+              ease: 'none',
+              onUpdate: function() {
+                const elapsed = ((performance.now() / 1000) - startTime) + seaConfig.phase;
+                
+                // Base sine wave motion
+                let rotation = seaConfig.rotationAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
+                let x = seaConfig.horizontalAmplitude * 1.2 * Math.sin(elapsed * seaConfig.horizontalFreq * 2 * Math.PI);
+                let y = seaConfig.verticalAmplitude * 1.5 * Math.sin(elapsed * seaConfig.verticalFreq * 2 * Math.PI);
+                let skew = seaConfig.skewAmplitude * 1.5 * Math.sin(elapsed * seaConfig.rotationFreq * 2 * Math.PI);
+                
+                // Add noise for organic variation (if available)
+                if (simplex && noiseEnabled) {
+                  const seaIndex = ['r-sea-glob', 'r-sea-sprig'].indexOf(seaId);
+                  const noiseTime = elapsed * 0.12; // Faster noise for more movement
+                  
+                  const noiseRot = simplex.noise3D(seaIndex * 3, 0, noiseTime);
+                  const noiseX = simplex.noise3D(seaIndex * 3, 1, noiseTime);
+                  const noiseY = simplex.noise3D(seaIndex * 3, 2, noiseTime);
+                  const noiseSk = simplex.noise3D(seaIndex * 3, 3, noiseTime);
+                  
+                  // Apply noise with adjustable intensity (increased for more visible effect)
+                  rotation += noiseRot * seaConfig.rotationAmplitude * 1.5 * noiseIntensity * 0.4;
+                  x += noiseX * seaConfig.horizontalAmplitude * 1.2 * noiseIntensity * 0.4;
+                  y += noiseY * seaConfig.verticalAmplitude * 1.5 * noiseIntensity * 0.4;
+                  skew += noiseSk * seaConfig.skewAmplitude * 1.5 * noiseIntensity * 0.4;
+                }
+                
+                gsap.set(seaEl, {
+                  rotation: rotation,
+                  x: x,
+                  y: y,
+                  skewY: skew,
+                  force3D: true,
+                  transformOrigin: '50% 100%'
+                });
+              }
+            });
+            
+            animatedCount++;
+            console.log('✅ [GSAP] Animating sea element:', seaId);
+          });
+        }
+        
+        // STEP 3: Animate individual strands with bottom-to-top wave undulation
+        // Only search for strands that belong in this container
+        Object.keys(kelpAnimationConfig.strands).forEach(function(strandId) {
+          // Determine if this strand belongs in this container
+          const isLeftStrand = strandId.startsWith('l-');
+          const isRightFrontStrand = strandId.startsWith('right-strand-');
+          const isRightMidStrand = strandId.startsWith('right-mid-strand-');
+          
+          const isSeaElement = strandId.startsWith('r-sea-');
+          
+          const shouldBeInThisContainer = 
+            (isLeftStrand && isLeftContainer) ||
+            (isRightFrontStrand && isRightFrontContainer) ||
+            (isRightMidStrand && isRightMidContainer) ||
+            (isSeaElement && isRightFrontContainer); // r-sea-glob and r-sea-sprig in right-front
+          
+          // Skip if this strand doesn't belong in this container
+          if (!shouldBeInThisContainer) {
+            return; // Silently skip - not an error
+          }
+          
+          // Try multiple selector strategies to find the strand
+          let strandEl = svg.querySelector('#' + strandId);
+          if (!strandEl) {
+            strandEl = svg.querySelector('[id="' + strandId + '"]');
+          }
+          if (!strandEl) {
+            // Try case-insensitive search
+            const allElements = svg.querySelectorAll('[id]');
+            allElements.forEach(function(el) {
+              if (el.id && el.id.toLowerCase() === strandId.toLowerCase()) {
+                strandEl = el;
+              }
+            });
+          }
+          
+          if (!strandEl) {
+            console.warn('⚠️ [GSAP] Strand not found:', strandId, 'in container:', containerClass);
+            return;
+          }
+          
+          const config = kelpAnimationConfig.strands[strandId];
+          
+          // AGGRESSIVELY disable CSS animation - CSS has high specificity
+          // Add class FIRST before any GSAP operations
+          strandEl.classList.add('gsap-animated'); // Add class for CSS override
+          strandEl.style.animation = 'none !important';
+          strandEl.style.setProperty('animation', 'none', 'important');
+          strandEl.style.setProperty('animation-name', 'none', 'important');
+          strandEl.style.setProperty('animation-duration', '0s', 'important');
+          strandEl.style.setProperty('animation-delay', '0s', 'important');
+          strandEl.style.setProperty('animation-play-state', 'paused', 'important');
+          strandEl.style.setProperty('will-change', 'transform', 'important');
+          
+          // Force CSS animation to stop immediately using getComputedStyle check
+          const computedStyle = window.getComputedStyle(strandEl);
+          if (computedStyle.animationName && computedStyle.animationName !== 'none') {
+            strandEl.style.setProperty('animation-play-state', 'paused', 'important');
+            strandEl.style.setProperty('animation', 'none', 'important');
+            console.log('⚠️ [GSAP] Forced CSS animation stop for', strandId, '- was:', computedStyle.animationName);
+          }
+          
+          // Get bounding box for reference
+          const strandBbox = strandEl.getBBox ? strandEl.getBBox() : { width: 0, height: 0, x: 0, y: 0 };
+          
+          // Clear any existing transforms first
+          strandEl.removeAttribute('transform');
+          strandEl.style.transform = 'none';
+          strandEl.style.setProperty('transform', 'none', 'important');
+          gsap.set(strandEl, { 
+            clearProps: 'all',
+            x: 0,
+            y: 0,
+            rotation: 0,
+            skewY: 0
+          });
+          
+          // Set transform origin to bottom center using CSS (works better for SVG)
+          strandEl.style.transformOrigin = '50% 100%'; // center horizontally, bottom vertically
+          strandEl.style.setProperty('transform-origin', '50% 100%', 'important');
+          // Also set as SVG attribute for compatibility
+          if (strandEl.setAttribute) {
+            const strandCenterX = strandBbox.x + (strandBbox.width / 2);
+            const strandBottomY = strandBbox.y + strandBbox.height;
+            strandEl.setAttribute('transform-origin', strandCenterX + ' ' + strandBottomY);
+          }
+          
+          // Also disable animations on children
+          const children = strandEl.querySelectorAll('*');
+          children.forEach(function(child) {
+            child.style.animation = 'none';
+            child.style.setProperty('animation', 'none', 'important');
+            child.style.setProperty('animation-name', 'none', 'important');
+          });
+          
+          console.log('✅ [GSAP] Animating strand:', strandId, 'bbox:', strandBbox, 'transform-origin: 50% 100%');
+          
+          // Animate the strand itself with smooth sine wave undulation
+          // The phase offset creates wave propagation between different strands
+          // Use onUpdate with sine wave calculations for smooth, organic motion
+          const strandAnimation = gsap.to(strandEl, {
+            duration: config.duration,
+            repeat: -1,
+            ease: 'none',
+            onUpdate: function() {
+              const elapsed = ((performance.now() / 1000) - startTime) + config.phase;
+              
+              // Combine sine waves with Perlin/Simplex noise for organic movement
+              // REDUCED independent motion (5% instead of 20%) to keep strands with parent
+              const baseRotation = config.rotationAmplitude * 0.05 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+              const baseSkew = config.skewAmplitude * 0.05 * Math.sin(elapsed * config.rotationFreq * 2 * Math.PI);
+              
+              // Add more vertical movement (less lateral) for better undulation
+              const verticalOffset = config.verticalAmplitude * 0.03 * Math.sin(elapsed * config.verticalFreq * 2 * Math.PI);
+              
+              // Add Perlin/Simplex noise for organic randomness (if available)
+              let noiseRotation = 0;
+              let noiseSkew = 0;
+              let noiseY = 0;
+              
+              if (simplex && noiseEnabled) {
+                // Use strand index and time to create unique noise per strand
+                const strandIndex = Object.keys(kelpAnimationConfig.strands).indexOf(strandId) || 0;
+                const noiseTime = elapsed * 0.12; // Slower noise for smoother variation
+                
+                // Get noise values (-1 to 1 range)
+                const noiseRot = simplex.noise3D(strandIndex * 0.5, 0, noiseTime);
+                const noiseSk = simplex.noise3D(strandIndex * 0.5, 1, noiseTime);
+                const noiseYVal = simplex.noise3D(strandIndex * 0.5, 2, noiseTime);
+                
+                // Apply noise with reduced intensity to prevent separation
+                noiseRotation = noiseRot * config.rotationAmplitude * noiseIntensity * 0.05;
+                noiseSkew = noiseSk * config.skewAmplitude * noiseIntensity * 0.05;
+                noiseY = noiseYVal * config.verticalAmplitude * noiseIntensity * 0.03;
+              }
+              
+              // Combine base sine wave with noise
+              const rotation = baseRotation + noiseRotation;
+              const skew = baseSkew + noiseSkew;
+              const y = verticalOffset + noiseY;
+              
+              // Apply transforms with bottom anchor - ensure transform-origin is set every frame
+              // x is 0 so strands move horizontally with parent
+              // y has small vertical offset for undulation
+              // Rotation and skew are minimal to prevent separation
+              gsap.set(strandEl, {
+                rotation: rotation,
+                x: 0, // No independent horizontal movement - moves with parent
+                y: y, // Small vertical undulation
+                skewY: skew,
+                force3D: true,
+                immediateRender: true,
+                transformOrigin: '50% 100%' // Anchor at bottom center
+              });
+              
+              // Also verify transform-origin is set in style
+              if (strandEl.style.transformOrigin !== '50% 100%') {
+                strandEl.style.setProperty('transform-origin', '50% 100%', 'important');
+              }
+            }
+          });
+          
+          // Verify animation was created
+          if (strandAnimation) {
+            console.log('   ✓ Animation created for', strandId, '- duration:', config.duration, 'phase:', config.phase);
+            animatedCount++;
+          }
+        });
+      });
+      
+      if (animatedCount > 0) {
+        console.log('✅ [GSAP METHOD] Initialized two-layer animation:');
+        console.log('   - Parent groups: gentle side-to-side sway');
+        console.log('   - Individual strands: bottom-to-top wave undulation');
+        console.log('   - Animated', animatedCount, 'kelp strands');
+        console.log('✅ [GSAP METHOD] GSAP version:', typeof gsap !== 'undefined' ? gsap.version : 'not loaded');
+        
+        // Debug: List all elements with IDs in the SVG
+        kelpContainers.forEach(function(container) {
+          const svg = container.querySelector('svg');
+          if (svg) {
+            const allIds = Array.from(svg.querySelectorAll('[id]')).map(function(el) {
+              return el.id;
+            });
+            console.log('   📋 Available IDs in', container.className + ':', allIds);
+          }
+        });
+      } else {
+        console.warn('⚠️ [GSAP METHOD] No kelp strands found to animate');
+        // Debug: Show what IDs are actually available
+        kelpContainers.forEach(function(container) {
+          const svg = container.querySelector('svg');
+          if (svg) {
+            const allIds = Array.from(svg.querySelectorAll('[id]')).map(function(el) {
+              return el.id;
+            });
+            console.log('   📋 Available IDs in', container.className + ':', allIds);
+            console.log('   🔍 Looking for:', Object.keys(kelpAnimationConfig.strands));
+          }
+        });
+      }
+    }, 1500); // Wait 1.5s for SVGs to load
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGSAPKelpAnimation);
+    } else {
+      initGSAPKelpAnimation();
+    }
+  })();
+</script>
+{%- endif -%}
+
 <script>
 (function() {
   const video = document.querySelector('.mcc-footer-video-bg');
@@ -578,6 +2100,23 @@ section.mcc-landing-footer::before,
   // Get video source URL for logging (Shopify video_tag generates the source)
   const videoSrc = video.currentSrc || video.querySelector('source')?.src || video.src || 'unknown';
   console.log('Footer video source URL:', videoSrc);
+  
+  // Footer now uses CSS aspect-ratio: 16/9, so we don't need to calculate height
+  // This function is kept for compatibility but no longer sets height
+  function calculateFooterHeight() {
+    // Footer height is now controlled by CSS aspect-ratio: 16/9
+    // Video will use object-fit: cover to fill the 16:9 container
+    console.log('Footer using 16:9 aspect ratio (CSS controlled)');
+  }
+  
+  // Function to handle window resize
+  let resizeTimeout;
+  function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      calculateFooterHeight();
+    }, 250);
+  }
   
   // Function to show fallback image (hide video)
   function showFallback(reason) {
@@ -752,11 +2291,25 @@ section.mcc-landing-footer::before,
     hideFallback(); // Hide the fallback image
   });
   
+  // Handle video metadata loaded
+  video.addEventListener('loadedmetadata', function() {
+    console.log('Footer video metadata loaded');
+    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+    console.log('Footer using 16:9 aspect ratio (CSS controlled)');
+  });
+  
+  // Footer height is now CSS-controlled (16:9 aspect ratio)
+  // No need for resize listener for height calculation
+  // Video will automatically fit the 16:9 container with object-fit: cover
+  
   // Try to play immediately if video is already loaded
   if (video.readyState >= 2) {
     console.log('Footer video already loaded, attempting to play');
     forcePlay();
   }
+  
+  // Background image case is handled by letting the section grow naturally with content
+  // The ::before pseudo-element uses background-size: cover which will scale appropriately
   
   // Improved fallback: check video state more frequently
   let checkCount = 0;
@@ -809,6 +2362,327 @@ section.mcc-landing-footer::before,
 </script>
 {%- endif -%}
 
+{%- if section.settings.overlay_animation_method == 'rive' -%}
+{%- comment -%}
+  Project Spongebob - Footer kelp Rive animation bootstrap
+  Focus: Full width scaling (like video), bottom-anchored, height can clip
+{%- endcomment -%}
+{%- comment -%} Global noise configuration - defined outside script for immediate availability {%- endcomment -%}
+<script>
+  // Define config immediately (before IIFE) so it's always available
+  if (typeof window.mccRiveNoiseConfig === 'undefined') {
+    window.mccRiveNoiseConfig = {
+      timeSpeed: 0.01,        // How fast noise changes (0.005-0.02 for smooth)
+      speedRange: 0.2,        // Speed variation range (0.1-0.3)
+      speedNoiseSpeed: 0.5,   // Speed noise time multiplier
+      intensityRange: 0.1,    // Intensity variation range (0.05-0.2)
+      intensityNoiseSpeed: 0.3, // Intensity noise time multiplier
+      phaseRange: 25,         // Phase variation range (10-50)
+      phaseNoiseSpeed: 0.2,   // Phase noise time multiplier
+      lerpFactor: 0.05        // Smoothing amount (0.02-0.1, lower = smoother)
+    };
+  }
+  console.log('[MCC Rive] Noise config initialized:', window.mccRiveNoiseConfig);
+  console.log('[MCC Rive] Access via: window.mccRiveNoiseConfig');
+  console.log('[MCC Rive] Current lerpFactor:', window.mccRiveNoiseConfig.lerpFactor);
+  console.log('[MCC Rive] Example: window.mccRiveNoiseConfig.lerpFactor = 0.08');
+</script>
+<script>
+  (function () {
+    console.log('[MCC Rive] Footer script block loaded');
+    
+    function initMccFooterRive() {
+      console.log('[MCC Rive] initMccFooterRive called, rive type:', typeof rive);
+      if (typeof rive === 'undefined') return;
+
+      var canvas = document.getElementById('mcc-footer-kelp-canvas');
+      if (!canvas) return;
+
+      var footerSection = canvas.closest('.mcc-landing-footer') || document.querySelector('.mcc-landing-footer');
+      var riveInstance = null;
+      
+      // Function to set up noise-driven controls for Rive animation
+      // Since Rive bindings aren't accessible for mesh animations, we use canvas-level smoothing
+      function setupRiveNoiseControls() {
+        // Canvas smoothing doesn't need riveInstance - it works directly on the canvas element
+        // Always use canvas-level smoothing (works without Rive file modifications)
+        setupCanvasSmoothing();
+      }
+      
+      // Function to set up canvas-level smoothing with Perlin noise
+      // This works without Rive bindings - applies CSS filters and transforms
+      function setupCanvasSmoothing() {
+        if (!canvas) {
+          console.warn('[MCC Rive] Canvas not found - smoothing disabled');
+          return;
+        }
+        
+        // Check if SimplexNoise is available (from theme.liquid)
+        if (typeof SimplexNoise === 'undefined') {
+          console.warn('[MCC Rive] SimplexNoise not available - smoothing disabled');
+          return;
+        }
+        
+        // Initialize SimplexNoise
+        var simplex = new SimplexNoise();
+        var noiseTime = 0;
+        
+        // Use global noise config (already defined above)
+        var noiseConfig = window.mccRiveNoiseConfig;
+        
+        // Smooth interpolation values for CSS filters and transforms
+        var targetBlur = 0.0;
+        var currentBlur = 0.0;
+        var targetBrightness = 1.0;
+        var currentBrightness = 1.0;
+        var targetScale = 1.0;
+        var currentScale = 1.0;
+        
+        // Lerp function for smooth interpolation
+        function lerp(start, end, factor) {
+          return start + (end - start) * factor;
+        }
+        
+        // Debug mode: log values periodically (can be enabled via window.mccRiveDebug = true)
+        var debugMode = window.mccRiveDebug || false;
+        var debugCounter = 0;
+        var testMultiplier = 1.0; // Can be set via window.mccRiveSmoothing.testMode()
+        
+        // Store reference for debugging
+        window.mccRiveSmoothing = {
+          getCurrentValues: function() {
+            return {
+              blur: currentBlur.toFixed(3) + 'px',
+              brightness: currentBrightness.toFixed(3),
+              scale: currentScale.toFixed(6),
+              noiseTime: noiseTime.toFixed(2)
+            };
+          },
+          enableDebug: function() {
+            window.mccRiveDebug = true;
+            debugMode = true;
+            console.log('[MCC Rive] Debug mode enabled - values will log every 60 frames');
+          },
+          disableDebug: function() {
+            window.mccRiveDebug = false;
+            debugMode = false;
+            console.log('[MCC Rive] Debug mode disabled');
+          },
+          testMode: function(multiplier) {
+            // Temporarily amplify effects for testing (default 10x)
+            testMultiplier = multiplier || 10;
+            console.log('[MCC Rive] Test mode enabled - effects amplified ' + testMultiplier + 'x');
+            console.log('[MCC Rive] Blur range: 0-' + (0.5 * testMultiplier) + 'px');
+            console.log('[MCC Rive] Brightness range: ' + (1.0 - 0.02 * testMultiplier) + '-' + (1.0 + 0.02 * testMultiplier));
+            console.log('[MCC Rive] Scale range: ' + (1.0 - 0.001 * testMultiplier) + '-' + (1.0 + 0.001 * testMultiplier));
+          },
+          resetTestMode: function() {
+            testMultiplier = 1.0;
+            console.log('[MCC Rive] Test mode disabled - back to normal values');
+          }
+        };
+        
+        // Update CSS filters and transforms with noise on each frame
+        function updateCanvasSmoothing() {
+          if (!canvas) return;
+          
+          // Increment noise time (slow progression for smooth variation)
+          noiseTime += noiseConfig.timeSpeed;
+          
+          // Calculate target values from noise
+          // Blur: 0-0.5px range for subtle motion blur effect
+          var blurNoise = simplex.noise3D(0, 0, noiseTime * 0.4);
+          targetBlur = 0.25 + (blurNoise * 0.25); // Range: 0 to 0.5px
+          targetBlur *= testMultiplier; // Apply test multiplier
+          
+          // Brightness: 0.98-1.02 range for subtle "breathing" effect
+          var brightnessNoise = simplex.noise3D(1, 0, noiseTime * 0.3);
+          targetBrightness = 1.0 + (brightnessNoise * 0.02 * testMultiplier); // Range: 0.98 to 1.02
+          
+          // Scale: 0.999-1.001 range for very subtle organic movement
+          var scaleNoise = simplex.noise3D(2, 0, noiseTime * 0.2);
+          targetScale = 1.0 + (scaleNoise * 0.001 * testMultiplier); // Range: 0.999 to 1.001
+          
+          // Smooth interpolation (lerp) to prevent sudden jumps
+          currentBlur = lerp(currentBlur, targetBlur, noiseConfig.lerpFactor);
+          currentBrightness = lerp(currentBrightness, targetBrightness, noiseConfig.lerpFactor);
+          currentScale = lerp(currentScale, targetScale, noiseConfig.lerpFactor);
+          
+          // Apply to canvas via CSS
+          try {
+            // Build filter string
+            var filterString = 'blur(' + currentBlur.toFixed(3) + 'px) brightness(' + currentBrightness.toFixed(3) + ')';
+            canvas.style.filter = filterString;
+            
+            // Apply subtle scale transform
+            canvas.style.transform = 'scale(' + currentScale.toFixed(6) + ') translateZ(0)';
+          } catch (e) {
+            console.warn('[MCC Rive] Error updating canvas smoothing:', e);
+            return; // Stop updating if there's an error
+          }
+          
+          // Debug logging (every 60 frames = ~1 second at 60fps)
+          if (debugMode) {
+            debugCounter++;
+            if (debugCounter >= 60) {
+              console.log('[MCC Rive] Current smoothing values:', window.mccRiveSmoothing.getCurrentValues());
+              debugCounter = 0;
+            }
+          }
+          
+          requestAnimationFrame(updateCanvasSmoothing);
+        }
+        
+        // Start updating canvas smoothing
+        console.log('[MCC Rive] Starting canvas-level smoothing with Perlin noise');
+        console.log('[MCC Rive] Applying: blur (motion smoothing), brightness (breathing), scale (organic movement)');
+        console.log('[MCC Rive] Verification methods:');
+        console.log('  1. Check console for "[MCC Rive] Starting canvas-level smoothing"');
+        console.log('  2. Inspect #mcc-footer-kelp-canvas in DevTools - watch filter/transform values change');
+        console.log('  3. Enable debug: window.mccRiveSmoothing.enableDebug()');
+        console.log('  4. Test mode (amplify 10x): window.mccRiveSmoothing.testMode(10)');
+        console.log('  5. Get current values: window.mccRiveSmoothing.getCurrentValues()');
+        updateCanvasSmoothing();
+      }
+
+      function sizeCanvas() {
+        // Only size on desktop (≥769px)
+        if (window.innerWidth < 769) {
+          canvas.style.display = 'none';
+          return;
+        }
+        canvas.style.display = 'block';
+
+        var container = canvas.parentElement;
+        var containerRect = container.getBoundingClientRect();
+        var footerRect = footerSection ? footerSection.getBoundingClientRect() : { height: 720, width: window.innerWidth };
+        var dpr = window.devicePixelRatio || 1;
+        
+        // Container breaks out of footer padding to fill full viewport width
+        // Use viewport width directly to ensure full width (not container width which may vary)
+        var width = window.innerWidth; // Full viewport width
+        
+        // CRITICAL: Make canvas taller than footer to ensure Rive scales to fill WIDTH (not height)
+        // If canvas height = footer height and artboard is taller, Fit.cover will fill height first (making it narrower)
+        // Solution: Make canvas taller so Fit.cover fills width first, then footer clips the top
+        var footerHeight = footerRect.height || 720;
+        // Use 150% of footer height to ensure width priority (artboard can extend above, footer clips it)
+        var height = footerHeight * 1.5;
+        
+        console.log('[MCC Rive] Resizing canvas (prioritize width):', {
+          viewportWidth: window.innerWidth,
+          containerWidth: containerRect.width,
+          footerWidth: footerRect.width,
+          footerHeight: footerHeight,
+          calculatedWidth: width,
+          calculatedHeight: height,
+          heightMultiplier: 1.5,
+          dpr: dpr,
+          canvasInternalWidth: Math.round(width * dpr),
+          canvasInternalHeight: Math.round(height * dpr)
+        });
+        
+        // high-DPI canvas for crisp rendering
+        // Set internal resolution (what Rive uses for rendering)
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        // Set CSS size to fill container (100% width/height)
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        
+        // Container height is now handled by CSS (150% of footer)
+        // This avoids timing issues and flashing - browser handles recalculation automatically
+        // Only ensure bottom anchor is maintained
+        if (container) {
+          // Remove any inline height that might conflict with CSS percentage
+          container.style.removeProperty('height');
+          // Ensure bottom anchor is maintained
+          container.style.setProperty('bottom', '0', 'important');
+        }
+      }
+
+      // Debounced resize handler - only update canvas, let CSS handle container height
+      // This prevents flashing and weird scaling issues
+      var resizeTimeout;
+      var lastFooterHeight = 0;
+      function handleResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+          // Only recalculate if footer height actually changed
+          var currentFooterHeight = footerSection ? footerSection.getBoundingClientRect().height : 0;
+          if (Math.abs(currentFooterHeight - lastFooterHeight) > 1) {
+            lastFooterHeight = currentFooterHeight;
+            // Use requestAnimationFrame to ensure smooth updates
+            requestAnimationFrame(function() {
+              sizeCanvas();
+              // If Rive instance exists, trigger resize
+              if (riveInstance && riveInstance.resize && typeof riveInstance.resize === 'function') {
+                try {
+                  riveInstance.resize();
+                } catch (e) {
+                  console.warn('[MCC Rive] Could not resize Rive instance:', e);
+                }
+              }
+            });
+          }
+        }, 100); // Longer debounce to prevent flashing
+      }
+
+      // Size canvas first
+      sizeCanvas();
+      
+      // Create Rive instance after canvas is sized
+      requestAnimationFrame(function() {
+        sizeCanvas(); // Ensure dimensions are set
+        
+        requestAnimationFrame(function() {
+          try {
+            console.log('[MCC Rive] Creating Rive instance for footer');
+            riveInstance = new rive.Rive({
+              src: '{{ "mcc_footer_crop.riv" | asset_url }}',
+              canvas: canvas,
+              autoplay: true,
+              layout: new rive.Layout({
+                fit: rive.Fit.cover,
+                alignment: rive.Alignment.bottomCenter
+              })
+            });
+            console.log('[MCC Rive] Rive instance created');
+            
+            // Resize after load to ensure proper scaling
+            riveInstance.on('rive:loaded', function() {
+              setTimeout(sizeCanvas, 50);
+              
+              // Check for available inputs and set up noise-driven controls
+              setupRiveNoiseControls();
+            });
+            
+            setTimeout(sizeCanvas, 300);
+          } catch (e) {
+            console.error('[MCC Rive] Failed to initialize footer kelp animation', e);
+          }
+        });
+      });
+
+      // Use window resize handler - debounced to prevent flashing
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+          lastFooterHeight = 0; // Force recalculation on orientation change
+          sizeCanvas();
+        }, 200);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMccFooterRive);
+    } else {
+      initMccFooterRive();
+    }
+  })();
+</script>
+{%- endif -%}
+
 {% schema %}
 {
   "name": "MCC Landing — Footer",
@@ -819,6 +2693,27 @@ section.mcc-landing-footer::before,
       "label": "Use video background",
       "default": true,
       "info": "Enable to use video background, disable to use image background"
+    },
+    {
+      "type": "select",
+      "id": "overlay_animation_method",
+      "label": "Desktop overlay animation method",
+      "default": "gsap_perlin",
+      "options": [
+        {
+          "value": "off",
+          "label": "Off (video only)"
+        },
+        {
+          "value": "gsap_perlin",
+          "label": "GSAP + Perlin Noise"
+        },
+        {
+          "value": "rive",
+          "label": "Rive"
+        }
+      ],
+      "info": "Choose which animation method to use for desktop overlay animations above the footer video"
     },
     {
       "type": "video",
