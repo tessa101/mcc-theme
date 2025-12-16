@@ -3804,15 +3804,31 @@ details-disclosure > details {
 /* === MCC Landing — header behavior (scoped) === */
 
 /* MCC Landing only */
-.is-landing-mcc .header-wrapper{
+.is-landing-mcc .header-wrapper,
+.is-landing-mcc .header-wrapper.gradient,
+.is-landing-mcc .header-wrapper.color-scheme-1,
+.is-landing-mcc .header-wrapper.color-scheme-2 {
   position: fixed !important;
   margin-top: 38px !important;        /* neutralize your 38px offset only on landing */
   z-index: 1000 !important;
+  background: transparent !important;
+  background-color: transparent !important; /* Start transparent by default, solid state will override */
+  background-image: none !important; /* Override gradient background */
+}
+
+/* Remove section-header margin-bottom on landing pages so hero can start at top */
+.is-landing-mcc .section-header {
+  margin-bottom: 0 !important;
 }
 
 /* Transparent while hero is in view */
-.is-landing-mcc.mcc-landing-header--transparent .header-wrapper{
+.is-landing-mcc.mcc-landing-header--transparent .header-wrapper,
+.is-landing-mcc.mcc-landing-header--transparent .header-wrapper.gradient,
+.is-landing-mcc.mcc-landing-header--transparent .header-wrapper.color-scheme-1,
+.is-landing-mcc.mcc-landing-header--transparent .header-wrapper.color-scheme-2 {
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important; /* Override gradient background */
   border: 0 !important;
   box-shadow: none !important;
 }
@@ -3821,8 +3837,12 @@ details-disclosure > details {
 }
 
 /* Solid after hero (and everywhere else) */
-.is-landing-mcc.mcc-landing-header--solid .header-wrapper{
+.is-landing-mcc.mcc-landing-header--solid .header-wrapper,
+.is-landing-mcc.mcc-landing-header--solid .header-wrapper.gradient,
+.is-landing-mcc.mcc-landing-header--solid .header-wrapper.color-scheme-1,
+.is-landing-mcc.mcc-landing-header--solid .header-wrapper.color-scheme-2 {
   background: rgb(var(--color-background)) !important;
+  background-image: var(--gradient-background) !important; /* Restore gradient when solid */
   transition: background .28s ease;
 }
 
@@ -3863,6 +3883,12 @@ details-disclosure > details {
 
 html, body { font-family: var(--font-sans); }
 *, *::before, *::after { font-family: inherit; }
+
+/* Landing page body background override - prevent white background showing through transparent header */
+body.is-landing-mcc.gradient {
+  background-color: #f7f7f7 !important;
+  background-image: none !important;
+}
 
 
 .scroll-trigger.scroll-trigger--offscreen { opacity:0; transform: translateY(40px); }

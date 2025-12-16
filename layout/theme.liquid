@@ -824,6 +824,11 @@ html:not(.mcc-merch-mode) .template-product .product-container {
 /* Header margin-bottom (60px) now handles all spacing consistently */
 /* Section padding removal rules above prevent conflicts */
 
+/* Landing page body background - ensure it doesn't show white behind transparent header */
+body.is-landing-mcc {
+  background-color: #f7f7f7 !important;
+}
+
 {% endstyle %}
 
 
@@ -964,8 +969,13 @@ html:not(.mcc-merch-mode) .template-product .product-container {
   var invertOn = (hero.getAttribute('data-invert-header') === 'true');
 
   function apply(inView){
-    body.classList.toggle('mcc-landing-header--transparent', inView);
-    body.classList.toggle('mcc-landing-header--solid', !inView);
+    // Remove both classes first to prevent conflicts, then add the correct one
+    body.classList.remove('mcc-landing-header--transparent', 'mcc-landing-header--solid');
+    if (inView) {
+      body.classList.add('mcc-landing-header--transparent');
+    } else {
+      body.classList.add('mcc-landing-header--solid');
+    }
     body.classList.toggle('mcc-landing-header--invert', inView && invertOn);
   }
 
