@@ -1118,3 +1118,64 @@ window.MCC = window.MCCProduct;
   }
 })();
 
+/* ===== MCC — Coming Soon Store Links (Open in New Tab) ===== */
+(function() {
+  'use strict';
+  
+  // Use event delegation to catch all clicks on store links
+  // This works even if links are added dynamically
+  document.addEventListener('click', function(e) {
+    // Check if the clicked element or its parent is a store link
+    const link = e.target.closest('.coming-soon-stores .ml-link[href]');
+    
+    if (link) {
+      const href = link.getAttribute('href');
+      
+      // Only handle if it's a valid link
+      if (href && href !== '#' && href !== '') {
+        // Only intercept regular clicks (not Ctrl/Cmd/Shift+click which user might want for new tab)
+        if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+          // Prevent default navigation
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          // Force open in new tab
+          window.open(href, '_blank', 'noopener,noreferrer');
+          
+          return false;
+        }
+      }
+    }
+  }, true); // Use capture phase to catch events early
+  
+  // Also ensure all existing and future links have target="_blank"
+  function ensureTargetBlank() {
+    const storeLinks = document.querySelectorAll('.coming-soon-stores .ml-link[href]');
+    storeLinks.forEach(function(link) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    });
+  }
+  
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureTargetBlank);
+  } else {
+    ensureTargetBlank();
+  }
+  
+  // Re-initialize when Shopify sections are loaded (for theme editor)
+  document.addEventListener('shopify:section:load', ensureTargetBlank);
+  
+  // Watch for dynamically added links
+  const observer = new MutationObserver(function() {
+    ensureTargetBlank();
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+})();
+

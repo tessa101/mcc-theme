@@ -2609,8 +2609,11 @@ border-radius: 0px !important;
 }
 
 /* Available Stores Block - Compact Version */
+.block-available-stores,
 .coming-soon-stores {
   margin: 8px 0;
+  overflow: visible; /* Ensure all rows are visible */
+  min-height: auto; /* Allow container to expand naturally */
 }
 .coming-soon-stores .kv-label {
   display: block;
@@ -2637,18 +2640,23 @@ border-radius: 0px !important;
 
   display: grid;
   grid-template-columns: repeat(var(--cols-eff), minmax(0, 1fr));
+  grid-auto-rows: auto; /* Allow rows to be created automatically */
   gap: var(--gap-y) var(--gap-x);
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
   align-items: center;
   justify-items: center;
+  overflow: visible; /* Ensure all rows are visible */
+  min-height: auto; /* Allow grid to expand naturally */
 }
 
 .coming-soon-stores .ml-item {
   width: 100%;
   display: grid;
   place-items: center;
+  min-height: 0; /* Allow items to shrink if needed */
+  overflow: visible; /* Ensure items are fully visible */
 }
 
 .coming-soon-stores .ml-link {

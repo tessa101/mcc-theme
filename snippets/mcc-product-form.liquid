@@ -103,17 +103,32 @@ MCC Product Form Snippet (Dawn-compatible)
                   <div class="kv-label">{{ stores_title }}</div>
                 {%- endif -%}
                 {%- if has_stores -%}
+                  {%- comment -%} Automatic column calculation: 3 stores = 3 cols, 4 stores = 2 cols, >4 stores = 3 cols, 1-2 stores = stores_count {%- endcomment -%}
+                  {%- if stores_count == 3 -%}
+                    {%- assign cols_eff = 3 -%}
+                    {%- assign cols_eff_m = 3 -%}
+                  {%- elsif stores_count == 4 -%}
+                    {%- assign cols_eff = 2 -%}
+                    {%- assign cols_eff_m = 2 -%}
+                  {%- elsif stores_count > 4 -%}
+                    {%- assign cols_eff = 3 -%}
+                    {%- assign cols_eff_m = 3 -%}
+                  {%- else -%}
+                    {%- comment -%} 1-2 stores: use stores_count {%- endcomment -%}
+                    {%- assign cols_eff = stores_count -%}
+                    {%- assign cols_eff_m = stores_count -%}
+                  {%- endif -%}
                   <ul class="ml-grid"
                     style="
-                      --cols: {{ block.settings.cols | default: 3 }};
-                      --cols-m: {{ block.settings.cols_mobile | default: 2 }};
+                      --cols: {{ cols_eff }};
+                      --cols-m: {{ cols_eff_m }};
                       --logo-w: {{ block.settings.logo_max_size | default: 100 }}px;
                       --logo-h: {{ block.settings.logo_max_size | default: 100 }}px;
                       --logo-w-m: {{ block.settings.logo_max_size_mobile | default: 80 }}px;
                       --logo-h-m: {{ block.settings.logo_max_size_mobile | default: 80 }}px;
                       --count: {{ stores_count }};
-                      --cols-eff: {{ stores_count | at_most: block.settings.cols | default: 3 }};
-                      --cols-eff-m: {{ stores_count | at_most: block.settings.cols_mobile | default: 2 }};
+                      --cols-eff: {{ cols_eff }};
+                      --cols-eff-m: {{ cols_eff_m }};
                     ">
                     {%- comment -%} Render stores from metafield list {%- endcomment -%}
                     {%- for store in stores_from_metafield -%}
@@ -138,6 +153,7 @@ MCC Product Form Snippet (Dawn-compatible)
                       
                       <li class="ml-item">
                         {%- if store_link != blank -%}
+                          {%- comment -%} Open store links in new tab on desktop and mobile {%- endcomment -%}
                           <a href="{{ store_link }}" class="ml-link" target="_blank" rel="noopener noreferrer">
                         {%- else -%}
                           <div class="ml-link">
