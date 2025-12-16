@@ -14,6 +14,43 @@ img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; text-decoration: none; }
 .stack > * + * { margin-top: 12px; }
 
+/* -------------------------------------
+   Project Spongebob - Footer Rive Kelp
+   ------------------------------------- */
+
+.mcc-footer-kelp-rive {
+  position: absolute;
+  bottom: 0;            /* Anchor to footer bottom - extra height extends upward (top clips) */
+  left: -50px;          /* Break out of footer's left padding (50px) */
+  right: -50px;         /* Break out of footer's right padding (50px) */
+  width: auto;          /* Width determined by left/right positioning */
+  height: 150%;         /* 150% of footer height - let CSS handle recalculation automatically */
+  z-index: -1;          /* above video (-2), behind content (default 0) */
+  pointer-events: none; /* footer links stay clickable */
+  display: none;        /* hidden by default, shown on desktop */
+  overflow: hidden;     /* clip overflow */
+}
+
+/* Show Rive animation on desktop only (≥769px) */
+@media (min-width: 769px) {
+  .mcc-footer-kelp-rive {
+    display: block;
+  }
+}
+
+#mcc-footer-kelp-canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  /* Canvas-level smoothing with Perlin noise */
+  filter: blur(0px) brightness(1);
+  transition: filter 0.15s ease-out; /* Smooth filter transitions */
+  transform: scale(1) translateZ(0); /* Enable hardware acceleration */
+  will-change: filter, transform; /* Optimize for animation */
+}
+
 /* Product titles (700 everywhere, incl. Dawn) */
 .product-title,
 .product__title {

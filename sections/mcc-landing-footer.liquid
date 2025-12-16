@@ -38,6 +38,8 @@
   {%- endif -%}
   
   {%- comment -%} Kelp overlays (desktop only) - Project Spongebob {%- endcomment -%}
+  {%- comment -%} Legacy SVG kelp disabled - using Rive instead {%- endcomment -%}
+  {%- comment -%}
   <div class="mcc-footer-kelp-container">
     {%- comment -%} Right-side mid kelp (background layer) {%- endcomment -%}
     <div class="mcc-kelp-right-mid" data-kelp-svg="{{ 'right-side-mid-kelp.svg' | asset_url }}"></div>
@@ -47,6 +49,12 @@
     
     {%- comment -%} Left-side kelp {%- endcomment -%}
     <div class="mcc-kelp-left" data-kelp-svg="{{ 'left-side-kelp.svg' | asset_url }}"></div>
+  </div>
+  {%- endcomment -%}
+
+  {%- comment -%} Rive-based kelp footer animation {%- endcomment -%}
+  <div class="mcc-footer-kelp-rive">
+    <canvas id="mcc-footer-kelp-canvas"></canvas>
   </div>
   
   <div class="mcc-footer-wrapper" data-cascade>
@@ -2340,6 +2348,325 @@ section.mcc-landing-footer::before,
 })();
 </script>
 {%- endif -%}
+
+{%- comment -%}
+  Project Spongebob - Footer kelp Rive animation bootstrap
+  Focus: Full width scaling (like video), bottom-anchored, height can clip
+{%- endcomment -%}
+{%- comment -%} Global noise configuration - defined outside script for immediate availability {%- endcomment -%}
+<script>
+  // Define config immediately (before IIFE) so it's always available
+  if (typeof window.mccRiveNoiseConfig === 'undefined') {
+    window.mccRiveNoiseConfig = {
+      timeSpeed: 0.01,        // How fast noise changes (0.005-0.02 for smooth)
+      speedRange: 0.2,        // Speed variation range (0.1-0.3)
+      speedNoiseSpeed: 0.5,   // Speed noise time multiplier
+      intensityRange: 0.1,    // Intensity variation range (0.05-0.2)
+      intensityNoiseSpeed: 0.3, // Intensity noise time multiplier
+      phaseRange: 25,         // Phase variation range (10-50)
+      phaseNoiseSpeed: 0.2,   // Phase noise time multiplier
+      lerpFactor: 0.05        // Smoothing amount (0.02-0.1, lower = smoother)
+    };
+  }
+  console.log('[MCC Rive] Noise config initialized:', window.mccRiveNoiseConfig);
+  console.log('[MCC Rive] Access via: window.mccRiveNoiseConfig');
+  console.log('[MCC Rive] Current lerpFactor:', window.mccRiveNoiseConfig.lerpFactor);
+  console.log('[MCC Rive] Example: window.mccRiveNoiseConfig.lerpFactor = 0.08');
+</script>
+<script>
+  (function () {
+    console.log('[MCC Rive] Footer script block loaded');
+    
+    function initMccFooterRive() {
+      console.log('[MCC Rive] initMccFooterRive called, rive type:', typeof rive);
+      if (typeof rive === 'undefined') return;
+
+      var canvas = document.getElementById('mcc-footer-kelp-canvas');
+      if (!canvas) return;
+
+      var footerSection = canvas.closest('.mcc-landing-footer') || document.querySelector('.mcc-landing-footer');
+      var riveInstance = null;
+      
+      // Function to set up noise-driven controls for Rive animation
+      // Since Rive bindings aren't accessible for mesh animations, we use canvas-level smoothing
+      function setupRiveNoiseControls() {
+        // Canvas smoothing doesn't need riveInstance - it works directly on the canvas element
+        // Always use canvas-level smoothing (works without Rive file modifications)
+        setupCanvasSmoothing();
+      }
+      
+      // Function to set up canvas-level smoothing with Perlin noise
+      // This works without Rive bindings - applies CSS filters and transforms
+      function setupCanvasSmoothing() {
+        if (!canvas) {
+          console.warn('[MCC Rive] Canvas not found - smoothing disabled');
+          return;
+        }
+        
+        // Check if SimplexNoise is available (from theme.liquid)
+        if (typeof SimplexNoise === 'undefined') {
+          console.warn('[MCC Rive] SimplexNoise not available - smoothing disabled');
+          return;
+        }
+        
+        // Initialize SimplexNoise
+        var simplex = new SimplexNoise();
+        var noiseTime = 0;
+        
+        // Use global noise config (already defined above)
+        var noiseConfig = window.mccRiveNoiseConfig;
+        
+        // Smooth interpolation values for CSS filters and transforms
+        var targetBlur = 0.0;
+        var currentBlur = 0.0;
+        var targetBrightness = 1.0;
+        var currentBrightness = 1.0;
+        var targetScale = 1.0;
+        var currentScale = 1.0;
+        
+        // Lerp function for smooth interpolation
+        function lerp(start, end, factor) {
+          return start + (end - start) * factor;
+        }
+        
+        // Debug mode: log values periodically (can be enabled via window.mccRiveDebug = true)
+        var debugMode = window.mccRiveDebug || false;
+        var debugCounter = 0;
+        var testMultiplier = 1.0; // Can be set via window.mccRiveSmoothing.testMode()
+        
+        // Store reference for debugging
+        window.mccRiveSmoothing = {
+          getCurrentValues: function() {
+            return {
+              blur: currentBlur.toFixed(3) + 'px',
+              brightness: currentBrightness.toFixed(3),
+              scale: currentScale.toFixed(6),
+              noiseTime: noiseTime.toFixed(2)
+            };
+          },
+          enableDebug: function() {
+            window.mccRiveDebug = true;
+            debugMode = true;
+            console.log('[MCC Rive] Debug mode enabled - values will log every 60 frames');
+          },
+          disableDebug: function() {
+            window.mccRiveDebug = false;
+            debugMode = false;
+            console.log('[MCC Rive] Debug mode disabled');
+          },
+          testMode: function(multiplier) {
+            // Temporarily amplify effects for testing (default 10x)
+            testMultiplier = multiplier || 10;
+            console.log('[MCC Rive] Test mode enabled - effects amplified ' + testMultiplier + 'x');
+            console.log('[MCC Rive] Blur range: 0-' + (0.5 * testMultiplier) + 'px');
+            console.log('[MCC Rive] Brightness range: ' + (1.0 - 0.02 * testMultiplier) + '-' + (1.0 + 0.02 * testMultiplier));
+            console.log('[MCC Rive] Scale range: ' + (1.0 - 0.001 * testMultiplier) + '-' + (1.0 + 0.001 * testMultiplier));
+          },
+          resetTestMode: function() {
+            testMultiplier = 1.0;
+            console.log('[MCC Rive] Test mode disabled - back to normal values');
+          }
+        };
+        
+        // Update CSS filters and transforms with noise on each frame
+        function updateCanvasSmoothing() {
+          if (!canvas) return;
+          
+          // Increment noise time (slow progression for smooth variation)
+          noiseTime += noiseConfig.timeSpeed;
+          
+          // Calculate target values from noise
+          // Blur: 0-0.5px range for subtle motion blur effect
+          var blurNoise = simplex.noise3D(0, 0, noiseTime * 0.4);
+          targetBlur = 0.25 + (blurNoise * 0.25); // Range: 0 to 0.5px
+          targetBlur *= testMultiplier; // Apply test multiplier
+          
+          // Brightness: 0.98-1.02 range for subtle "breathing" effect
+          var brightnessNoise = simplex.noise3D(1, 0, noiseTime * 0.3);
+          targetBrightness = 1.0 + (brightnessNoise * 0.02 * testMultiplier); // Range: 0.98 to 1.02
+          
+          // Scale: 0.999-1.001 range for very subtle organic movement
+          var scaleNoise = simplex.noise3D(2, 0, noiseTime * 0.2);
+          targetScale = 1.0 + (scaleNoise * 0.001 * testMultiplier); // Range: 0.999 to 1.001
+          
+          // Smooth interpolation (lerp) to prevent sudden jumps
+          currentBlur = lerp(currentBlur, targetBlur, noiseConfig.lerpFactor);
+          currentBrightness = lerp(currentBrightness, targetBrightness, noiseConfig.lerpFactor);
+          currentScale = lerp(currentScale, targetScale, noiseConfig.lerpFactor);
+          
+          // Apply to canvas via CSS
+          try {
+            // Build filter string
+            var filterString = 'blur(' + currentBlur.toFixed(3) + 'px) brightness(' + currentBrightness.toFixed(3) + ')';
+            canvas.style.filter = filterString;
+            
+            // Apply subtle scale transform
+            canvas.style.transform = 'scale(' + currentScale.toFixed(6) + ') translateZ(0)';
+          } catch (e) {
+            console.warn('[MCC Rive] Error updating canvas smoothing:', e);
+            return; // Stop updating if there's an error
+          }
+          
+          // Debug logging (every 60 frames = ~1 second at 60fps)
+          if (debugMode) {
+            debugCounter++;
+            if (debugCounter >= 60) {
+              console.log('[MCC Rive] Current smoothing values:', window.mccRiveSmoothing.getCurrentValues());
+              debugCounter = 0;
+            }
+          }
+          
+          requestAnimationFrame(updateCanvasSmoothing);
+        }
+        
+        // Start updating canvas smoothing
+        console.log('[MCC Rive] Starting canvas-level smoothing with Perlin noise');
+        console.log('[MCC Rive] Applying: blur (motion smoothing), brightness (breathing), scale (organic movement)');
+        console.log('[MCC Rive] Verification methods:');
+        console.log('  1. Check console for "[MCC Rive] Starting canvas-level smoothing"');
+        console.log('  2. Inspect #mcc-footer-kelp-canvas in DevTools - watch filter/transform values change');
+        console.log('  3. Enable debug: window.mccRiveSmoothing.enableDebug()');
+        console.log('  4. Test mode (amplify 10x): window.mccRiveSmoothing.testMode(10)');
+        console.log('  5. Get current values: window.mccRiveSmoothing.getCurrentValues()');
+        updateCanvasSmoothing();
+      }
+
+      function sizeCanvas() {
+        // Only size on desktop (≥769px)
+        if (window.innerWidth < 769) {
+          canvas.style.display = 'none';
+          return;
+        }
+        canvas.style.display = 'block';
+
+        var container = canvas.parentElement;
+        var containerRect = container.getBoundingClientRect();
+        var footerRect = footerSection ? footerSection.getBoundingClientRect() : { height: 720, width: window.innerWidth };
+        var dpr = window.devicePixelRatio || 1;
+        
+        // Container breaks out of footer padding to fill full viewport width
+        // Use viewport width directly to ensure full width (not container width which may vary)
+        var width = window.innerWidth; // Full viewport width
+        
+        // CRITICAL: Make canvas taller than footer to ensure Rive scales to fill WIDTH (not height)
+        // If canvas height = footer height and artboard is taller, Fit.cover will fill height first (making it narrower)
+        // Solution: Make canvas taller so Fit.cover fills width first, then footer clips the top
+        var footerHeight = footerRect.height || 720;
+        // Use 150% of footer height to ensure width priority (artboard can extend above, footer clips it)
+        var height = footerHeight * 1.5;
+        
+        console.log('[MCC Rive] Resizing canvas (prioritize width):', {
+          viewportWidth: window.innerWidth,
+          containerWidth: containerRect.width,
+          footerWidth: footerRect.width,
+          footerHeight: footerHeight,
+          calculatedWidth: width,
+          calculatedHeight: height,
+          heightMultiplier: 1.5,
+          dpr: dpr,
+          canvasInternalWidth: Math.round(width * dpr),
+          canvasInternalHeight: Math.round(height * dpr)
+        });
+        
+        // high-DPI canvas for crisp rendering
+        // Set internal resolution (what Rive uses for rendering)
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        // Set CSS size to fill container (100% width/height)
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        
+        // Container height is now handled by CSS (150% of footer)
+        // This avoids timing issues and flashing - browser handles recalculation automatically
+        // Only ensure bottom anchor is maintained
+        if (container) {
+          // Remove any inline height that might conflict with CSS percentage
+          container.style.removeProperty('height');
+          // Ensure bottom anchor is maintained
+          container.style.setProperty('bottom', '0', 'important');
+        }
+      }
+
+      // Debounced resize handler - only update canvas, let CSS handle container height
+      // This prevents flashing and weird scaling issues
+      var resizeTimeout;
+      var lastFooterHeight = 0;
+      function handleResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+          // Only recalculate if footer height actually changed
+          var currentFooterHeight = footerSection ? footerSection.getBoundingClientRect().height : 0;
+          if (Math.abs(currentFooterHeight - lastFooterHeight) > 1) {
+            lastFooterHeight = currentFooterHeight;
+            // Use requestAnimationFrame to ensure smooth updates
+            requestAnimationFrame(function() {
+              sizeCanvas();
+              // If Rive instance exists, trigger resize
+              if (riveInstance && riveInstance.resize && typeof riveInstance.resize === 'function') {
+                try {
+                  riveInstance.resize();
+                } catch (e) {
+                  console.warn('[MCC Rive] Could not resize Rive instance:', e);
+                }
+              }
+            });
+          }
+        }, 100); // Longer debounce to prevent flashing
+      }
+
+      // Size canvas first
+      sizeCanvas();
+      
+      // Create Rive instance after canvas is sized
+      requestAnimationFrame(function() {
+        sizeCanvas(); // Ensure dimensions are set
+        
+        requestAnimationFrame(function() {
+          try {
+            console.log('[MCC Rive] Creating Rive instance for footer');
+            riveInstance = new rive.Rive({
+              src: '{{ "mcc_footer_crop.riv" | asset_url }}',
+              canvas: canvas,
+              autoplay: true,
+              layout: new rive.Layout({
+                fit: rive.Fit.cover,
+                alignment: rive.Alignment.bottomCenter
+              })
+            });
+            console.log('[MCC Rive] Rive instance created');
+            
+            // Resize after load to ensure proper scaling
+            riveInstance.on('rive:loaded', function() {
+              setTimeout(sizeCanvas, 50);
+              
+              // Check for available inputs and set up noise-driven controls
+              setupRiveNoiseControls();
+            });
+            
+            setTimeout(sizeCanvas, 300);
+          } catch (e) {
+            console.error('[MCC Rive] Failed to initialize footer kelp animation', e);
+          }
+        });
+      });
+
+      // Use window resize handler - debounced to prevent flashing
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+          lastFooterHeight = 0; // Force recalculation on orientation change
+          sizeCanvas();
+        }, 200);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMccFooterRive);
+    } else {
+      initMccFooterRive();
+    }
+  })();
+</script>
 
 {% schema %}
 {
