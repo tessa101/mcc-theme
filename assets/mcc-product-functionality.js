@@ -963,9 +963,9 @@ window.MCC = window.MCCProduct;
           // This keeps the sidebar at its natural height but moves it up so bottom aligns with target
           const adjustedTop = targetBottom - sidebarHeight;
           
-          // Allow sidebar to go behind header if needed (when pushed up)
-          // Remove the minTop constraint to allow pushing above header when needed
-          const finalTop = adjustedTop;
+          // Ensure sidebar maintains minimum top spacing (header + 20px) unless absolutely necessary to push higher
+          // Only allow going above stickyTop if the sidebar would otherwise extend past the viewport
+          const finalTop = Math.max(adjustedTop, stickyTop);
           
           // DEBUG: Log footer constraint block
           if (window.DEBUG_STICKY_SIDEBAR) {
@@ -987,9 +987,16 @@ window.MCC = window.MCCProduct;
           }
           
           sidebarContent.style.position = 'fixed';
-          sidebarContent.style.top = `${finalTop}px`;
+          sidebarContent.style.setProperty('top', `${finalTop}px`, 'important');
           sidebarContent.style.left = `${leftPosition}px`;
-          sidebarContent.style.width = `${sidebarRect.width}px`;
+          // Don't set fixed width - let CSS handle responsive sizing
+          // Calculate width from sidebar column to maintain responsive behavior
+          const sidebarColumn = sidebarContent.closest('.product-sidebar');
+          if (sidebarColumn) {
+            sidebarContent.style.width = `${sidebarColumn.getBoundingClientRect().width}px`;
+          } else {
+            sidebarContent.style.width = ''; // Let CSS handle it
+          }
           sidebarContent.style.maxHeight = 'none'; // Maintain natural height
           sidebarContent.style.overflowY = 'visible'; // No scrollbar needed
           sidebarContent.style.removeProperty('bottom');
@@ -1020,13 +1027,20 @@ window.MCC = window.MCCProduct;
             // Push sidebar up instead of constraining height
             const targetBottom = maxBottom;
             const adjustedTop = targetBottom - sidebarHeight;
-            // Allow it to go above stickyTop if needed (header can scroll over it)
-            const finalTop = adjustedTop; // Remove the minTop constraint to allow pushing above header
+            // Ensure sidebar maintains minimum top spacing (header + 20px) unless absolutely necessary
+            const finalTop = Math.max(adjustedTop, stickyTop);
             
             sidebarContent.style.position = 'fixed';
-            sidebarContent.style.top = `${finalTop}px`;
+            sidebarContent.style.setProperty('top', `${finalTop}px`, 'important');
             sidebarContent.style.left = `${leftPosition}px`;
-            sidebarContent.style.width = `${sidebarRect.width}px`;
+            // Don't set fixed width - let CSS handle responsive sizing
+            // Calculate width from sidebar column to maintain responsive behavior
+            const sidebarColumn = sidebarContent.closest('.product-sidebar');
+            if (sidebarColumn) {
+              sidebarContent.style.width = `${sidebarColumn.getBoundingClientRect().width}px`;
+            } else {
+              sidebarContent.style.width = ''; // Let CSS handle it
+            }
             sidebarContent.style.maxHeight = 'none'; // Maintain natural height
             sidebarContent.style.overflowY = 'visible'; // No scrollbar needed
             sidebarContent.style.removeProperty('bottom');
@@ -1040,30 +1054,39 @@ window.MCC = window.MCCProduct;
           } else {
             // No push needed - sidebar fits within viewport
             sidebarContent.style.position = 'fixed';
-            sidebarContent.style.top = `${stickyTop}px`;
+            sidebarContent.style.setProperty('top', `${stickyTop}px`, 'important');
             sidebarContent.style.left = `${leftPosition}px`;
-            sidebarContent.style.width = `${sidebarRect.width}px`;
+            // Don't set fixed width - let CSS handle responsive sizing
+            // Calculate width from sidebar column to maintain responsive behavior
+            const sidebarColumn = sidebarContent.closest('.product-sidebar');
+            if (sidebarColumn) {
+              sidebarContent.style.width = `${sidebarColumn.getBoundingClientRect().width}px`;
+            } else {
+              sidebarContent.style.width = ''; // Let CSS handle it
+            }
             sidebarContent.style.maxHeight = 'none';
             sidebarContent.style.overflowY = 'visible';
             sidebarContent.style.removeProperty('bottom');
           }
         } else {
           // Step 4: Normal sticky behavior - container is in view, use native sticky
-          // Don't apply inline styles - let CSS handle it to prevent slide-down on load
-          // Only remove inline styles if they were previously set (for fixed positioning cases)
+          // Set top value explicitly to ensure correct spacing (header + 20px)
+          // This ensures the gap is maintained even if CSS calc doesn't recalculate
           const currentPosition = getComputedStyle(sidebarContent).position;
           if (currentPosition === 'fixed') {
             // Previously was fixed, now switch back to sticky - remove inline styles
             sidebarContent.style.position = '';
-            sidebarContent.style.top = '';
             sidebarContent.style.left = '';
             sidebarContent.style.width = '';
             sidebarContent.style.removeProperty('bottom');
             sidebarContent.style.maxHeight = '';
             sidebarContent.style.overflowY = '';
+            // Set top value explicitly to ensure correct spacing
+            sidebarContent.style.setProperty('top', `${stickyTop}px`, 'important');
+          } else {
+            // Already sticky - ensure top value is set correctly
+            sidebarContent.style.setProperty('top', `${stickyTop}px`, 'important');
           }
-          // If already sticky via CSS, don't touch it - CSS will handle positioning
-          // This prevents the slide-down animation by not overriding CSS with inline styles
         }
         
         // Mark as initialized after first run

@@ -32,12 +32,25 @@
     const h = hdr ? Math.round(hdr.getBoundingClientRect().height) : 0;
     if (h > 0) {
       document.documentElement.style.setProperty('--mcc-header-h', h + 'px');
+      // Set sidebar top position immediately to ensure correct spacing (header + 20px)
+      // This ensures the top value is correct even if CSS calc doesn't recalculate
+      // Set it unconditionally - JavaScript will maintain it when switching between fixed/sticky
+      const sidebarContent = document.querySelector('.sidebar-content');
+      if (sidebarContent) {
+        const stickyTop = h + 20;
+        // Always set the top value with !important to ensure it's correct
+        // This will be maintained by JavaScript when switching between fixed/sticky modes
+        sidebarContent.style.setProperty('top', stickyTop + 'px', 'important');
+      }
       // Show sidebar once we have the correct header height
       // Use requestAnimationFrame to ensure CSS variable is applied before showing
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
           const sidebarContent = document.querySelector('.sidebar-content');
           if (sidebarContent) {
+            // Re-set top value right before showing to ensure it's correct
+            const stickyTop = h + 20;
+            sidebarContent.style.setProperty('top', stickyTop + 'px', 'important');
             sidebarContent.classList.add('mcc-sidebar-ready');
           }
         });
