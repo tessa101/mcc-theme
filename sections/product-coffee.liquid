@@ -178,7 +178,8 @@ Product Coffee PDP — uses mcc-* snippets, adds coffee-* accordion behavior
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.body.classList.add('layout-coffee');
+    // layout-coffee class is now added in theme.liquid for cold brew and coffee products
+    // No need to add it here - it's already in the HTML
 
     const elevateCartDrawer = () => {
       const drawerSection = document.querySelector('.shopify-section-cart-drawer');
@@ -274,6 +275,40 @@ header.header,
     transform: none !important;
     visibility: visible !important;
     transition: none !important;
+  }
+}
+
+/* Mobile fallback: Show hero image immediately, then animate if needed */
+@media (max-width: 768px) {
+  /* Override inline styles immediately on mobile - works even without layout-coffee class */
+  .product-hero-mobile[data-hero-mobile] {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+  
+  /* If JS adds is-inview class, let it handle the animation */
+  .product-hero-mobile[data-hero-mobile].is-inview {
+    /* JS will handle animation, but ensure it's visible */
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  /* Ensure product container and main content are visible */
+  .mcc-product .product-container,
+  .mcc-product .product-main,
+  .mcc-product .product-sidebar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+@keyframes force-show-hero-mobile {
+  to {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
   }
 }
 </style>
@@ -418,6 +453,34 @@ header.header,
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+  }
+}
+
+/* Mobile fallback: Show first block immediately to prevent blank page */
+@media (max-width: 768px) {
+  /* First block visible immediately - override any inline styles */
+  .product-sections .coffee-accordion:first-child {
+    opacity: 1 !important;
+    transform: none !important;
+    transition-delay: 0s !important;
+  }
+  
+  /* Show remaining blocks after short delay if JS hasn't initialized them */
+  .product-sections .coffee-accordion:not(:first-child):not(.is-inview) {
+    animation: force-show-mobile 0.1s 0.5s forwards !important;
+  }
+  
+  /* Ensure product-sections container is visible */
+  .product-sections {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
+@keyframes force-show-mobile {
+  to {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 </style>

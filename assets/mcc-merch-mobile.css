@@ -8,19 +8,19 @@
 /* ===== Footer hiding (early, before gallery animation) ===== */
 /* Hide footer outside drawer immediately on merch mobile pages */
 @media (max-width: 749px) {
-  body.template-product #shopify-section-footer-group,
-  body.template-product [id*="footer-group"],
-  body.template-product #shopify-section-footer,
-  body.template-product [id^="shopify-section-footer"],
-  body.template-product [id*="shopify-section-footer"]:not(#product_merch_mobile *),
-  body.template-product [id*="__footer"]:not(#product_merch_mobile *),
-  body.template-product footer:not(#product_merch_mobile footer),
-  body.template-product [role="contentinfo"]:not(#product_merch_mobile [role="contentinfo"]),
-  body.template-product .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer),
-  body.template-product section.mcc-landing-footer:not(#product_merch_mobile section.mcc-landing-footer),
-  body.template-product [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]),
-  body.template-product [id*="shopify-section"]:has(.mcc-landing-footer):not(#product_merch_mobile *),
-  body.template-product .shopify-section:has(.mcc-landing-footer):not(#product_merch_mobile *) {
+  body.template-product.layout-merch #shopify-section-footer-group,
+  body.template-product.layout-merch [id*="footer-group"],
+  body.template-product.layout-merch #shopify-section-footer,
+  body.template-product.layout-merch [id^="shopify-section-footer"],
+  body.template-product.layout-merch [id*="shopify-section-footer"]:not(#product_merch_mobile *),
+  body.template-product.layout-merch [id*="__footer"]:not(#product_merch_mobile *),
+  body.template-product.layout-merch footer:not(#product_merch_mobile footer),
+  body.template-product.layout-merch [role="contentinfo"]:not(#product_merch_mobile [role="contentinfo"]),
+  body.template-product.layout-merch .mcc-landing-footer:not(#product_merch_mobile .mcc-landing-footer),
+  body.template-product.layout-merch section.mcc-landing-footer:not(#product_merch_mobile section.mcc-landing-footer),
+  body.template-product.layout-merch [data-mcc-landing="footer"]:not(#product_merch_mobile [data-mcc-landing="footer"]),
+  body.template-product.layout-merch [id*="shopify-section"]:has(.mcc-landing-footer):not(#product_merch_mobile *),
+  body.template-product.layout-merch .shopify-section:has(.mcc-landing-footer):not(#product_merch_mobile *) {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

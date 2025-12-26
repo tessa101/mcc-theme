@@ -861,10 +861,18 @@ body.is-landing-mcc {
 {%- if template.name == 'product' and template.suffix == 'merch' -%}
   {%- assign is_merch_product = true -%}
 {%- elsif template == 'product.merch' -%}
-  {%- assign is_merch_product = true -%}
+{%- assign is_merch_product = true -%}
 {%- endif -%}
 
-<body class="gradient layout-{{ template.suffix | default: 'default' }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}{% if is_landing_mcc %} is-landing-mcc{% endif %}">
+{%- comment -%} Detect coffee/cold brew products to apply layout-coffee class (cold brew uses same layout as coffee) {%- endcomment -%}
+{%- assign layout_class = template.suffix | default: 'default' -%}
+{%- if template.name == 'product' -%}
+  {%- if template.suffix == 'cold-brew' or template.suffix == 'coffee' -%}
+    {%- assign layout_class = 'coffee' -%}
+  {%- endif -%}
+{%- endif -%}
+
+<body class="gradient layout-{{ layout_class }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}{% if is_landing_mcc %} is-landing-mcc{% endif %}">
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
     </a>
