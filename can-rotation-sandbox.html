@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Can Rotation - Sandbox</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      overflow-x: hidden;
+    }
+
+    /* Spacer content to enable scrolling */
+    .spacer {
+      height: 200vh;
+      background: linear-gradient(to bottom, #e0e0e0, #f5f5f5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #666;
+    }
+
+    /* Hero Section */
+    .mcc-hero {
+      position: relative;
+      height: 88vh;
+      min-height: 560px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* 3D Can Container - creates the perspective for cylinder projection */
+    .can-3d-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Perspective creates the 3D cylinder effect - images project onto cylinder surface */
+      perspective: 600px;
+      perspective-origin: center center;
+      transform-style: preserve-3d;
+    }
+
+    .can-3d-wrapper {
+      position: relative;
+      width: 300px;
+      height: 600px;
+      transform-style: preserve-3d;
+      /* No transition - direct transform for smooth rotation */
+      will-change: transform;
+      /* Center the rotation axis - this is the Y-axis the can spins around */
+      transform-origin: 50% 50%;
+    }
+
+    /* Individual can view images projected onto cylinder surface */
+    .can-view {
+      position: absolute;
+      width: 300px;
+      height: 600px;
+      object-fit: cover;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      pointer-events: none;
+      /* Project images onto cylinder - they will appear curved/distorted by perspective */
+      transform-style: preserve-3d;
+    }
+
+    .can-placeholder {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Project images onto 3D cylinder surface */
+    /* translateZ creates the cylinder radius - images are projected onto this surface */
+    /* The perspective will make them appear curved/distorted to match cylinder */
+    .can-view[data-view="0"] {
+      transform: rotateY(0deg) translateZ(150px);
+      /* Front face of cylinder */
+    }
+    .can-view[data-view="1"] {
+      transform: rotateY(90deg) translateZ(150px);
+      /* Right side of cylinder */
+    }
+    .can-view[data-view="2"] {
+      transform: rotateY(180deg) translateZ(150px);
+      /* Back face of cylinder */
+    }
+    .can-view[data-view="3"] {
+      transform: rotateY(270deg) translateZ(150px);
+      /* Left side of cylinder */
+    }
+
+    /* Hero Overlay */
+    .mcc-hero__overlay {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      color: #fff;
+      padding: clamp(24px, 4vw, 48px);
+      pointer-events: none;
+    }
+
+    .mcc-hero__title {
+      font-family: 'Passion One', Arial, sans-serif;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      color: #fff;
+      margin: 8px 0;
+      font-size: clamp(56px, 8vw, 80px);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .mcc-hero__sub {
+      font-size: clamp(16px, 2.2vw, 20px);
+      opacity: 0.9;
+      margin: 8px 0 20px;
+    }
+
+    .mcc-hero__cta {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      text-decoration: none;
+      font-weight: 600;
+      pointer-events: auto;
+      transition: transform 0.2s ease;
+    }
+
+    .mcc-hero__cta:hover {
+      transform: scale(1.05);
+    }
+
+    /* Debug info */
+    .debug-info {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 1000;
+      min-width: 200px;
+    }
+
+    .debug-info h3 {
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .debug-info p {
+      margin: 5px 0;
+    }
+
+    /* Instructions */
+    .instructions {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      max-width: 300px;
+      z-index: 1000;
+    }
+
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .instructions ul {
+      margin-left: 20px;
+      color: #666;
+    }
+
+    .instructions li {
+      margin: 5px 0;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      .can-3d-wrapper {
+        transition: none;
+      }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .can-3d-wrapper {
+        width: 200px;
+        height: 400px;
+      }
+
+      .can-view {
+        width: 200px;
+        height: 400px;
+      }
+
+      .can-view[data-view="0"],
+      .can-view[data-view="1"],
+      .can-view[data-view="2"],
+      .can-view[data-view="3"] {
+        transform: rotateY(0deg) translateZ(100px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Spacer content for scrolling -->
+  <div class="spacer">
+    <div>Scroll down to see the hero section</div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="mcc-hero" id="hero-section">
+    <!-- 3D Can Container -->
+    <div class="can-3d-container">
+      <div class="can-3d-wrapper" id="can-wrapper">
+        <!-- Can view images - positioned around cylinder -->
+        <!-- Using 4 views for smooth 3D rotation (duplicating front/back to create full rotation) -->
+        <!-- Front View (0deg) -->
+        <img src="assets/can-front.png" 
+             alt="Can Front View" 
+             class="can-view" 
+             data-view="0"
+             onerror="this.style.display='none'; console.log('Front image not found at assets/can-front.png')">
+        <!-- Front View again (90deg) -->
+        <img src="assets/can-front.png" 
+             alt="Can Front View" 
+             class="can-view" 
+             data-view="1"
+             onerror="this.style.display='none'; console.log('Front image not found at assets/can-front.png')">
+        <!-- Back View (180deg) -->
+        <img src="assets/can-back.png" 
+             alt="Can Back View" 
+             class="can-view" 
+             data-view="2"
+             onerror="this.style.display='none'; console.log('Back image not found at assets/can-back.png')">
+        <!-- Back View again (270deg) -->
+        <img src="assets/can-back.png" 
+             alt="Can Back View" 
+             class="can-view" 
+             data-view="3"
+             onerror="this.style.display='none'; console.log('Back image not found at assets/can-back.png')">
+      </div>
+    </div>
+
+    <!-- Hero Overlay -->
+    <div class="mcc-hero__overlay">
+      <h1 class="mcc-hero__title">COLD BREW.</h1>
+      <p class="mcc-hero__sub">Experience the rotation</p>
+      <a href="#" class="mcc-hero__cta">Buy now</a>
+    </div>
+  </section>
+
+  <!-- More spacer for scrolling -->
+  <div class="spacer">
+    <div>Keep scrolling to test the effect</div>
+  </div>
+
+  <!-- Debug Info -->
+  <div class="debug-info" id="debug-info">
+    <h3>Rotation Debug</h3>
+    <p>Scroll Progress: <span id="scroll-progress">0</span>%</p>
+    <p>Rotation: <span id="rotation-angle">0</span>°</p>
+    <p>Mouse X: <span id="mouse-x">-</span></p>
+    <p>Hover Active: <span id="hover-active">No</span></p>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions">
+    <h3>How to Test</h3>
+    <ul>
+      <li>Scroll up/down to rotate via scroll</li>
+      <li>Move mouse over hero to rotate via hover</li>
+      <li>Place your can-front.jpg and can-back.jpg images in the same folder as this HTML file</li>
+      <li>Or update the src paths in the HTML to point to your image locations</li>
+    </ul>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // Check for reduced motion preference
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      
+      if (prefersReducedMotion) {
+        console.log('Reduced motion detected - rotation disabled');
+        return;
+      }
+
+      const heroSection = document.getElementById('hero-section');
+      const canWrapper = document.getElementById('can-wrapper');
+      const debugInfo = document.getElementById('debug-info');
+      
+      if (!heroSection || !canWrapper) return;
+
+      let scrollRotation = 0;
+      let hoverRotation = 0;
+      let isHovering = false;
+      let currentRotation = 0;
+
+      // Get hero section dimensions and position
+      function getHeroBounds() {
+        const rect = heroSection.getBoundingClientRect();
+        return {
+          top: rect.top + window.scrollY,
+          bottom: rect.bottom + window.scrollY,
+          height: rect.height,
+          width: rect.width
+        };
+      }
+
+      // Calculate scroll-based rotation (0-360 degrees)
+      function calculateScrollRotation() {
+        const heroBounds = getHeroBounds();
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate when hero enters viewport
+        const heroStart = heroBounds.top;
+        const heroEnd = heroBounds.bottom;
+        const scrollRange = heroEnd - heroStart - viewportHeight;
+        
+        if (scrollRange <= 0) return 0;
+        
+        // Calculate progress through hero section (0 to 1)
+        const scrollProgress = Math.max(0, Math.min(1, (scrollY - heroStart + viewportHeight) / scrollRange));
+        
+        // Map to 0-360 degrees
+        return scrollProgress * 360;
+      }
+
+      // Calculate hover-based rotation
+      function calculateHoverRotation(event) {
+        const rect = heroSection.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const heroWidth = rect.width;
+        
+        // Map mouse X position to 0-360 degrees
+        return (mouseX / heroWidth) * 360;
+      }
+
+      // Apply rotation to can wrapper
+      function applyRotation() {
+        // Combine scroll and hover rotations
+        // When hovering, give more weight to hover; otherwise use scroll
+        if (isHovering) {
+          // Blend: 70% hover, 30% scroll for smooth transition
+          currentRotation = hoverRotation * 0.7 + scrollRotation * 0.3;
+        } else {
+          // Use scroll rotation, but smoothly transition from hover
+          currentRotation = scrollRotation;
+        }
+        
+        // Apply 3D rotation - this rotates the entire 3D cylinder
+        canWrapper.style.transform = `rotateY(${currentRotation}deg)`;
+        
+        // Update debug info
+        if (debugInfo) {
+          const scrollProgress = (scrollRotation / 360 * 100).toFixed(1);
+          document.getElementById('scroll-progress').textContent = scrollProgress;
+          document.getElementById('rotation-angle').textContent = Math.round(currentRotation);
+          document.getElementById('hover-active').textContent = isHovering ? 'Yes' : 'No';
+        }
+      }
+
+      // Throttle function for performance
+      function throttle(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Scroll event handler
+      const handleScroll = throttle(() => {
+        scrollRotation = calculateScrollRotation();
+        applyRotation();
+      }, 16); // ~60fps
+
+      // Mouse move event handler (only when hovering)
+      const handleMouseMove = throttle((event) => {
+        if (isHovering) {
+          hoverRotation = calculateHoverRotation(event);
+          applyRotation();
+          
+          if (debugInfo) {
+            const rect = heroSection.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            document.getElementById('mouse-x').textContent = Math.round(mouseX);
+          }
+        }
+      }, 16); // ~60fps
+
+      // Mouse enter handler
+      heroSection.addEventListener('mouseenter', () => {
+        isHovering = true;
+      });
+
+      // Mouse leave handler
+      heroSection.addEventListener('mouseleave', () => {
+        isHovering = false;
+        // Smoothly return to scroll-based rotation
+        applyRotation();
+      });
+
+      // Mouse move handler
+      heroSection.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+      // Scroll handler
+      window.addEventListener('scroll', handleScroll, { passive: true });
+
+      // Initial calculation
+      handleScroll();
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        scrollRotation = calculateScrollRotation();
+        applyRotation();
+      }, { passive: true });
+
+      console.log('3D Can Rotation initialized');
+    })();
+  </script>
+</body>
+</html>
+

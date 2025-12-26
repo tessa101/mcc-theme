@@ -103,16 +103,16 @@ MCC Product Form Snippet (Dawn-compatible)
                   <div class="kv-label">{{ stores_title }}</div>
                 {%- endif -%}
                 {%- if has_stores -%}
-                  {%- comment -%} Automatic column calculation: 3 stores = 3 cols, 4 stores = 2 cols, >4 stores = 3 cols, 1-2 stores = stores_count {%- endcomment -%}
+                  {%- comment -%} Automatic column calculation: 3 stores = 3 cols, 4 stores = 4 cols (1 row), >5 stores = 3 cols (multiple rows), 1-2 stores = stores_count {%- endcomment -%}
                   {%- if stores_count == 3 -%}
                     {%- assign cols_eff = 3 -%}
                     {%- assign cols_eff_m = 3 -%}
                   {%- elsif stores_count == 4 -%}
-                    {%- assign cols_eff = 2 -%}
+                    {%- assign cols_eff = 4 -%}
                     {%- assign cols_eff_m = 2 -%}
                   {%- elsif stores_count > 4 -%}
                     {%- assign cols_eff = 3 -%}
-                    {%- assign cols_eff_m = 3 -%}
+                    {%- assign cols_eff_m = 2 -%}
                   {%- else -%}
                     {%- comment -%} 1-2 stores: use stores_count {%- endcomment -%}
                     {%- assign cols_eff = stores_count -%}

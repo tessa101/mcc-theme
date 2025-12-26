@@ -1,0 +1,59 @@
+# Store Information Template
+
+Copy this file to `STORE_INFO.md` and fill in your store details.
+This file should NOT be committed to git (it's in .gitignore).
+
+## Store Details
+
+**Store URL**: 
+**Store Name**: 
+**Store Owner Email**: 
+
+## Theme IDs
+
+**Feature/Development Theme ID**: 
+**Feature Theme Name**: 
+
+**Staging Theme ID** (optional): 
+**Staging Theme Name**: 
+
+**Production Theme ID**: 
+**Production Theme Name**: 
+
+## Shopify CLI Status
+
+**Authenticated**: Yes/No
+**Last Auth Date**: 
+**CLI Version**: 
+
+## Store-Specific Configuration
+
+### Required Apps Installed
+- [ ] Judge.me Reviews
+- [ ] Instafeed
+- [ ] Recharge Subscriptions
+- [ ] Klaviyo Reviews
+- [ ] Klaviyo Email Marketing
+- [ ] Simple Bundles Kits
+- [ ] Wishlist Hero
+
+### Custom Pages Created
+- [ ] Wholesale page
+- [ ] Partnerships page
+- [ ] Contact page
+
+### Collections Created
+- [ ] All products collection
+- [ ] Beans collection
+
+### Critical Assets Uploaded
+- [ ] Logo (HearLogoSmall-03.png)
+- [ ] Hero images
+- [ ] Partner logos
+- [ ] Footer background video
+- [ ] Rive animation files (mcc_footer_crop.riv)
+
+## Notes
+
+Add any store-specific notes, customizations, or important information here.
+

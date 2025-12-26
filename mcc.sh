@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
 # Malibu Coffee Company — Shopify helpers
 
-# 👉 Set these to your theme IDs:
-FEATURE_ID="147203096731"      # your working sandbox (hot reload)
-# STAGING_ID="149960327323"      # your staging/QA theme (commented out - causing errors)
+# Load theme IDs from .env file if it exists
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Fallback to hardcoded values if .env doesn't exist (for backward compatibility)
+# These are the original theme IDs - update .env file for new stores
+FEATURE_ID="${FEATURE_ID:-147203096731}"      # your working sandbox (hot reload)
+# STAGING_ID="${STAGING_ID:-149960327323}"      # your staging/QA theme (commented out - causing errors)
+
+# Validate that FEATURE_ID is set
+if [ -z "$FEATURE_ID" ]; then
+  echo "Error: FEATURE_ID is not set. Please create a .env file or set it in the script."
+  echo "See .env.example for reference."
+  exit 1
+fi
 
 set -e
 
