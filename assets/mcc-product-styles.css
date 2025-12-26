@@ -36,6 +36,7 @@
   .product-main {
     padding-top: 20px;
   }
+  
 }
 
 /* Recharge parts */
@@ -1504,7 +1505,8 @@ button[aria-label="Added to favorites"] .mcc-heart-animate,
 }
 
 /* Intermediate breakpoint: switch to sticky positioning so sidebar flexes with container */
-@media (max-width: 1200px) and (min-width: 769px) {
+/* Lower breakpoint (900px) for earlier responsive scaling - tablet portrait and smaller */
+@media (max-width: 900px) and (min-width: 769px) {
   .product-sidebar {
     align-self: start;
   }
@@ -1515,10 +1517,17 @@ button[aria-label="Added to favorites"] .mcc-heart-animate,
     /* Full width of sidebar column so it flexes with container */
     width: 100%;
     max-width: 100%;
+    min-width: 0; /* Allow sidebar to shrink below content's minimum width */
     /* Responsive padding that scales */
     padding: 12px clamp(16px, 2vw, 24px) clamp(20px, 2.5vw, 30px) clamp(16px, 2vw, 24px);
     box-sizing: border-box;
     align-self: start;
+  }
+  
+  /* Ensure all direct children of sidebar-content can shrink */
+  .sidebar-content > * {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 
@@ -2856,6 +2865,88 @@ border-radius: 0px !important;
 .block-coming-soon + .block-wishlist .wishlist-anchor * {
   padding-top: 0 !important;
   margin-top: 0 !important;
+}
+
+/* =========================================
+   COMING SOON BLOCKS - Responsive Sidebar Sizing
+   Ensure coming soon blocks scale properly when sidebar is narrower
+   ========================================= */
+
+/* Intermediate breakpoint: scale down coming soon stores when sidebar is narrower */
+/* Lower breakpoint (900px) for earlier responsive scaling - tablet portrait and smaller */
+@media (max-width: 900px) and (min-width: 769px) {
+  /* Ensure coming soon blocks don't overflow sidebar */
+  .sidebar-content .block-coming-soon-description,
+  .sidebar-content .block-available-stores,
+  .sidebar-content .coming-soon-stores,
+  .sidebar-content .block-coming-soon {
+    max-width: 100%;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  
+  /* Scale down stores grid logos when sidebar is narrower */
+  /* Ensure grid and all children can shrink to fit sidebar width */
+  .sidebar-content .coming-soon-stores .ml-grid {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    /* Scale down logo size gradually - smaller at narrower widths */
+    /* At 900px viewport, sidebar is ~340px, at 769px it's ~290px */
+    --logo-w: clamp(60px, 8vw, 85px) !important;
+    --logo-h: clamp(48px, 6.4vw, 68px) !important;
+    --gap-x: clamp(8px, 1.2vw, 12px) !important;
+  }
+  
+  /* Ensure grid items can shrink below their content size */
+  .sidebar-content .coming-soon-stores .ml-item {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .sidebar-content .coming-soon-stores .ml-frame {
+    /* Override inline styles - use the scaled CSS variables */
+    width: calc(var(--logo-w) + var(--ring)*2) !important;
+    height: calc(var(--logo-h) + var(--ring)*2) !important;
+    max-width: 100%; /* Ensure frame doesn't exceed grid cell */
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  
+  .sidebar-content .coming-soon-stores .ml-logo {
+    max-width: var(--logo-w) !important;
+    max-height: var(--logo-h) !important;
+    width: auto;
+    height: auto;
+  }
+  
+  .sidebar-content .coming-soon-stores .ml-fpo {
+    width: calc(var(--logo-w) + var(--ring)*2) !important;
+    height: calc(var(--logo-h) + var(--ring)*2) !important;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure coming soon CTA button scales with sidebar */
+  .sidebar-content .coming-soon-ctas {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .sidebar-content .coming-soon-email-cta {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure description content doesn't overflow */
+  .sidebar-content .block-coming-soon-description .description-content {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 
